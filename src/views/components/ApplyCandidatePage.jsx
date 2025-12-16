@@ -107,7 +107,16 @@ export default function ApplyCandidatePage() {
                 setFeedback({ type: 'error', text: 'Não foi possível confirmar a candidatura.' });
             }
         } catch (error) {
-            const msg = error?.message || error?.response?.data || 'Falha ao submeter candidatura.';
+
+            let msg;
+            const data = error?.response?.data;
+            if (typeof data === 'string') {
+                msg = data; 
+            } else if (data && typeof data === 'object') {
+                msg = data.detail || data.title || data.message
+                            || (data.errors ? Object.values(data.errors).flat().join(' · ') : null);
+            }
+            if (!msg) msg = error?.message || 'Falha ao submeter candidatura.';
             setFeedback({ type: 'error', text: msg });
         } finally {
             setLoading(false);
@@ -254,13 +263,13 @@ export default function ApplyCandidatePage() {
                             padding: '12px 14px',
                             background: feedback.type === 'success' ? '#e9f7ec' : '#fdecea',
                             color: feedback.type === 'success' ? '#1e7e34' : '#b03a2e',
-              fontWeight: 600,
-            }}
-          >
-                {feedback.text}
-            </div>
-        )}
-        </form>
-    </section >
-  );
+                            fontWeight: 600,
+                        }}
+                    >
+                        {feedback.text}
+                    </div>
+                )}
+            </form>
+        </section >
+    );
 }
