@@ -1,7 +1,42 @@
-// src/pages/ApplyCandidatePage.jsx
+
 import React, { useState, useRef } from 'react';
+import {
+    Box,
+    Typography,
+    TextField,
+    Button,
+    Stack,
+    Alert,
+} from '@mui/material';
 import CandidateService from '../../services/CandidateService';
-import { isValidXml, readXmlFileToString } from '../../utils/xmlUtils';
+
+const ui = {
+    title: {
+        fontSize: 32,
+        fontWeight: 700,
+        color: '#000',
+        textAlign: 'center',
+        mb: 3,
+    },
+    button: {
+        bgcolor: '#000',
+        color: '#fff',
+        py: 1.25,
+        fontWeight: 600,
+        borderRadius: 2,
+        textTransform: 'none',
+        fontSize: 16,
+        '&:hover': { bgcolor: '#FF9800', color: '#000' },
+    },
+    attach: {
+        bgcolor: 'rgba(0,0,0,0.06)',
+        color: '#000',
+        fontWeight: 600,
+        borderRadius: 2,
+        textTransform: 'none',
+        '&:hover': { bgcolor: 'rgba(255,152,0,0.25)' },
+    },
+};
 
 export default function ApplyCandidatePage() {
     const [form, setForm] = useState({
@@ -11,46 +46,22 @@ export default function ApplyCandidatePage() {
         email: '',
         phone: '',
         message: '',
-        resumeXml: '', // mantém o XML em memória após upload
+        resumeFile: null,
     });
     const [resumeFileName, setResumeFileName] = useState('');
-    const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState(null);
+    const [loading, setLoading] = useState(false);
     const abortRef = useRef(null);
 
     const onChange = (e) => {
         const { name, value, files } = e.target;
-
-        // Upload de XML
         if (name === 'resumeFile') {
-            const file = files?.[0] || null;
-            if (!file) {
-                setResumeFileName('');
-                setForm((prev) => ({ ...prev, resumeXml: '' }));
-                return;
-            }
-            (async () => {
-                try {
-                    const xmlText = await readXmlFileToString(file);
-
-                    // validação de XML bem-formado
-                    if (!isValidXml(xmlText)) {
-                        throw new Error('O CV (XML) não é válido.');
-                    }
-
-                    setForm((prev) => ({ ...prev, resumeXml: xmlText }));
-                    setResumeFileName(file.name);
-                    setFeedback(null);
-                } catch (err) {
-                    setFeedback({ type: 'error', text: err.message });
-                    setResumeFileName('');
-                    setForm((prev) => ({ ...prev, resumeXml: '' }));
-                }
-            })();
+            const file = files?.[0] ?? null;
+            setForm((prev) => ({ ...prev, resumeFile: file }));
+            setResumeFileName(file ? file.name : '');
+            setFeedback(null);
             return;
         }
-
-        // Campos de texto
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
@@ -59,16 +70,24 @@ export default function ApplyCandidatePage() {
         if (!form.email?.trim()) return 'E-mail é obrigatório.';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'E-mail inválido.';
         if (!form.message?.trim()) return 'Mensagem é obrigatória.';
-        if (!form.resumeXml?.trim()) return 'CV (XML) é obrigatório.';
-        if (!isValidXml(form.resumeXml)) return 'O CV (XML) não é válido.';
-
+        if (!form.resumeFile) return 'CV é obrigatório.';
+        const allowed = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+        if (form.resumeFile && !allowed.includes(form.resumeFile.type)) {
+            return 'CV deve ser PDF/DOC/DOCX.';
+        }
+        if (form.resumeFile && form.resumeFile.size > 10 * 1024 * 1024) {
+            return 'CV excede 10MB.';
+        }
         return null;
     };
 
     const onSubmit = async (e) => {
         e.preventDefault();
         setFeedback(null);
-
         const err = validate();
         if (err) {
             setFeedback({ type: 'error', text: err });
@@ -79,21 +98,20 @@ export default function ApplyCandidatePage() {
         abortRef.current = new AbortController();
 
         try {
-            const payload = {
-                JobCandidateId: null,
-                FirstName: form.firstName.trim(),
-                MiddleName: form.middleName?.trim() || null,
-                LastName: form.lastName?.trim() || '',
-                Email: form.email.trim().toLowerCase(),
-                Phone: form.phone?.trim() || null,
-                Resume: form.resumeXml, // XML como string
-                Message: form.message.trim(),
-            };
+            const res = await CandidateService.apply(
+                {
+                    FirstName: form.firstName.trim(),
+                    MiddleName: form.middleName?.trim(),
+                    LastName: form.lastName?.trim(),
+                    Email: form.email.trim().toLowerCase(),
+                    Phone: form.phone?.trim(),
+                    Message: form.message.trim(),
+                    ResumeFile: form.resumeFile,
+                },
+                { signal: abortRef.current.signal }
+            );
 
-            const res = await CandidateService.apply(payload, { signal: abortRef.current.signal });
-
-            const ok = res?.WasSaved ?? res?.data?.WasSaved ?? true;
-
+            const ok = res?.data?.WasSaved ?? res?.WasSaved ?? true;
             if (ok) {
                 setFeedback({ type: 'success', text: 'Candidatura enviada com sucesso!' });
                 setForm({
@@ -103,14 +121,28 @@ export default function ApplyCandidatePage() {
                     email: '',
                     phone: '',
                     message: '',
-                    resumeXml: '',
+                    resumeFile: null,
                 });
                 setResumeFileName('');
             } else {
-                setFeedback({ type: 'success', text: 'Candidatura enviada.' });
+                setFeedback({
+                    type: 'error',
+                    text: 'Não foi possível confirmar a candidatura.',
+                });
             }
         } catch (error) {
-            const msg = error?.message || error?.response?.data || 'Falha ao submeter candidatura.';
+            let msg;
+            const data = error?.response?.data;
+            if (typeof data === 'string') {
+                msg = data;
+            } else if (data && typeof data === 'object') {
+                msg =
+                    data.detail ||
+                    data.title ||
+                    data.message ||
+                    (data.errors ? Object.values(data.errors).flat().join(' · ') : null);
+            }
+            if (!msg) msg = error?.message || 'Falha ao submeter candidatura.';
             setFeedback({ type: 'error', text: msg });
         } finally {
             setLoading(false);
@@ -123,146 +155,136 @@ export default function ApplyCandidatePage() {
     };
 
     return (
-        <section style={{ maxWidth: 720, margin: '24px auto', padding: 16 }}>
-            <h1>Candidatura</h1>
+        <Box component="form" onSubmit={onSubmit} noValidate>
+            <Typography variant="h4" sx={ui.title}>
+                Candidatura
+            </Typography>
 
-            <form onSubmit={onSubmit} noValidate style={{ display: 'grid', gap: 12 }}>
-                <div style={{ display: 'grid', gap: 12 }}>
-                    <input
-                        name="firstName"
-                        placeholder="First Name"
-                        value={form.firstName}
-                        onChange={onChange}
-                    />
-                    <input
+            {feedback && (
+                <Alert
+                    severity={feedback.type === 'success' ? 'success' : 'error'}
+                    sx={{ mb: 2 }}
+                >
+                    {feedback.text}
+                </Alert>
+            )}
+
+            <Stack spacing={2} sx={{ mb: 2 }}>
+                <TextField
+                    name="firstName"
+                    label="First Name"
+                    value={form.firstName}
+                    onChange={onChange}
+                    fullWidth
+                    sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                />
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <TextField
                         name="middleName"
-                        placeholder="Middle Name"
+                        label="Middle Name"
                         value={form.middleName}
                         onChange={onChange}
+                        fullWidth
+                        sx={{ bgcolor: '#fff', borderRadius: 1 }}
                     />
-                    <input
+                    <TextField
                         name="lastName"
-                        placeholder="Last Name"
+                        label="Last Name"
                         value={form.lastName}
                         onChange={onChange}
+                        fullWidth
+                        sx={{ bgcolor: '#fff', borderRadius: 1 }}
                     />
-                    <input
+                </Stack>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <TextField
                         type="email"
                         name="email"
-                        placeholder="E-mail"
+                        label="E-mail"
                         value={form.email}
                         onChange={onChange}
+                        fullWidth
+                        sx={{ bgcolor: '#fff', borderRadius: 1 }}
                     />
-                    <input
+                    <TextField
                         name="phone"
-                        placeholder="Telemóvel"
+                        label="Telemóvel"
                         value={form.phone}
                         onChange={onChange}
+                        fullWidth
+                        sx={{ bgcolor: '#fff', borderRadius: 1 }}
                     />
-                    <textarea
-                        name="message"
-                        placeholder="Mensagem"
-                        rows={5}
-                        value={form.message}
+                </Stack>
+                <TextField
+                    name="message"
+                    label="Mensagem"
+                    value={form.message}
+                    onChange={onChange}
+                    fullWidth
+                    multiline
+                    rows={5}
+                    sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                />
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
+                <Button component="label" variant="contained" sx={ui.attach}>
+                    Anexar CV (.pdf/.doc/.docx)
+                    <input
+                        hidden
+                        id="resumeFile"
+                        name="resumeFile"
+                        type="file"
+                        accept=".pdf,.doc,.docx"
                         onChange={onChange}
                     />
-                </div>
-
-                {/* Apenas upload de XML */}
-                <div
-                    style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'auto 1fr',
-                        gap: 12,
+                </Button>
+                <Box
+                    sx={{
+                        flex: 1,
+                        display: 'flex',
                         alignItems: 'center',
+                        border: '1px solid #e6e6e6',
+                        borderRadius: 2,
+                        px: 2,
+                        color: resumeFileName ? '#333' : '#888',
+                        minHeight: 40,
+                        bgcolor: '#fff',
                     }}
                 >
-                    <label
-                        htmlFor="resumeFile"
-                        style={{
-                            width: 42,
-                            height: 42,
-                            display: 'grid',
-                            placeItems: 'center',
-                            borderRadius: 10,
-                            background: 'rgba(0,118,255,0.12)',
-                            color: '#0057b7',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            border: '1px solid #e6e6e6',
-                        }}
-                    >
-                        +
-                    </label>
-                    <input
-                        id="resumeFile"
-                        type="file"
-                        name="resumeFile"
-                        accept=".xml"
-                        onChange={onChange}
-                        hidden
-                    />
-                    <div
-                        style={{
-                            border: '1px solid #e6e6e6',
-                            borderRadius: 10,
-                            padding: '12px 14px',
-                            color: '#666',
-                        }}
-                    >
-                        {resumeFileName || 'Anexar CV (.xml)'}
-                    </div>
-                </div>
+                    {resumeFileName || 'Nenhum ficheiro selecionado'}
+                </Box>
+            </Stack>
 
-                <button
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Button
                     type="submit"
+                    variant="contained"
+                    fullWidth
                     disabled={loading}
-                    style={{
-                        width: '100%',
-                        borderRadius: 12,
-                        padding: '14px 16px',
-                        background: 'linear-gradient(90deg,#1565c0,#1e88e5)',
-                        color: '#fff',
-                        fontWeight: 700,
-                        border: 'none',
-                    }}
+                    sx={ui.button}
                 >
                     {loading ? 'A enviar...' : 'Candidate-se'}
-                </button>
+                </Button>
 
                 {loading && (
-                    <button
+                    <Button
                         type="button"
+                        variant="outlined"
                         onClick={onCancel}
-                        style={{
-                            width: '100%',
-                            borderRadius: 12,
-                            padding: '10px 12px',
-                            background: '#f5f5f5',
-                            color: '#333',
+                        fullWidth
+                        sx={{
+                            borderColor: '#000',
+                            color: '#000',
                             fontWeight: 600,
-                            border: '1px solid #ddd',
+                            textTransform: 'none',
+                            '&:hover': { borderColor: '#FF9800', color: '#FF9800' },
                         }}
                     >
                         Cancelar
-                    </button>
+                    </Button>
                 )}
-
-                {feedback && (
-                    <div
-                        style={{
-                            marginTop: 12,
-                            borderRadius: 10,
-                            padding: '12px 14px',
-                            background: feedback.type === 'success' ? '#e9f7ec' : '#fdecea',
-                            color: feedback.type === 'success' ? '#1e7e34' : '#b03a2e',
-                            fontWeight: 600,
-                        }}
-                    >
-                        {feedback.text}
-                    </div>
-                )}
-            </form>
-        </section>
+            </Stack>
+        </Box>
     );
 }
