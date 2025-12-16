@@ -38,7 +38,6 @@ export default function EmployeeProfile() {
 
   const [profileInfo, setProfileInfo] = useState(null);
 
-  // ====== Edição de perfil ======
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [formData, setFormData] = useState({
@@ -51,7 +50,7 @@ export default function EmployeeProfile() {
     Role: ''
   });
 
-  // ====== Alteração de password ======
+  // Password dialog
   const [isPwdDialogOpen, setIsPwdDialogOpen] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -95,25 +94,7 @@ export default function EmployeeProfile() {
     GetEmployeeInfo();
   }, [BusinessID, navigate]);
 
-  // Determina se é HR
-  const isHR = useMemo(() => {
-    try {
-      if (typeof UserSession.getRole === 'function') {
-        return UserSession.getRole() === 'HR';
-      }
-    } catch (e) {
-      // noop
-    }
-    return (profileInfo?.Role || formData?.Role) === 'HR';
-  }, [profileInfo, formData]);
-
-  const enterEditMode = () => {
-    if (!isHR) {
-      setSnackbar({ open: true, severity: 'warning', message: 'Apenas utilizadores HR podem editar o perfil.' });
-      return;
-    }
-    setIsEditMode(true);
-  };
+  const enterEditMode = () => setIsEditMode(true);
 
   const cancelEdit = () => {
     setFormData({
@@ -151,10 +132,7 @@ export default function EmployeeProfile() {
         FirstName: formData.FirstName,
         MiddleName: formData.MiddleName,
         LastName: formData.LastName,
-        JobTitle: formData.JobTitle,
-        Department: formData.Department,
-        Email: formData.Email,
-        Role: formData.Role // se o backend não permitir, remova esta linha
+        Email: formData.Email
       };
 
       await EmployeeService.updateEmployee(BusinessID, payload);
@@ -247,13 +225,12 @@ export default function EmployeeProfile() {
 
         <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
           {!isEditMode ? (
-            <Tooltip title={isHR ? 'Editar Perfil' : 'Apenas HR pode editar'}>
+            <Tooltip title="Editar Perfil">
               <span>
                 <Button
                   variant="outlined"
                   startIcon={<EditIcon />}
                   onClick={enterEditMode}
-                  disabled={!isHR}
                 >
                   Editar Perfil
                 </Button>
@@ -299,15 +276,19 @@ export default function EmployeeProfile() {
               {isEditMode ? (
                 <TextField
                   label="First Name"
+                  type="text"
                   fullWidth
                   size="small"
+                  autoComplete = "off"
                   value={formData.FirstName}
                   onChange={(e) => setFormData((s) => ({ ...s, FirstName: e.target.value }))}
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Tooltip title="Edit FirstName">
-                    <IconButton size="small" disabled><EditIcon /></IconButton>
+                  <Tooltip title="Editar FirstName">
+                    <IconButton size="small" onClick={enterEditMode}>
+                      <EditIcon />
+                    </IconButton>
                   </Tooltip>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {profileInfo?.FirstName || ''}
@@ -323,13 +304,16 @@ export default function EmployeeProfile() {
                   label="Middle Name"
                   fullWidth
                   size="small"
+                  autoComplete = "off"
                   value={formData.MiddleName}
                   onChange={(e) => setFormData((s) => ({ ...s, MiddleName: e.target.value }))}
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Tooltip title="Edit MiddleName">
-                    <IconButton size="small" disabled><EditIcon /></IconButton>
+                  <Tooltip title="Editar MiddleName">
+                    <IconButton size="small" onClick={enterEditMode}>
+                      <EditIcon />
+                    </IconButton>
                   </Tooltip>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {profileInfo?.MiddleName || ''}
@@ -345,13 +329,16 @@ export default function EmployeeProfile() {
                   label="Last Name"
                   fullWidth
                   size="small"
+                  autoComplete = "off"
                   value={formData.LastName}
                   onChange={(e) => setFormData((s) => ({ ...s, LastName: e.target.value }))}
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Tooltip title="Edit LastName">
-                    <IconButton size="small" disabled><EditIcon /></IconButton>
+                  <Tooltip title="Editar LastName">
+                    <IconButton size="small" onClick={enterEditMode}>
+                      <EditIcon />
+                    </IconButton>
                   </Tooltip>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {profileInfo?.LastName || ''}
@@ -361,7 +348,6 @@ export default function EmployeeProfile() {
             </FieldCard>
           </Box>
 
-          {/* Job Title & Department */}
           <Box
             sx={{
               display: 'grid',
@@ -370,52 +356,22 @@ export default function EmployeeProfile() {
               gap: 14
             }}
           >
-            {/* Job Title */}
             <FieldCard>
-              {isEditMode ? (
-                <TextField
-                  label="Job Title"
-                  fullWidth
-                  size="small"
-                  value={formData.JobTitle}
-                  onChange={(e) => setFormData((s) => ({ ...s, JobTitle: e.target.value }))}
-                  InputProps={{ startAdornment: <WorkIcon sx={{ mr: 1, color: 'text.secondary' }} /> }}
-                />
-              ) : (
-                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Tooltip title="Edit Job Title">
-                    <IconButton size="small" disabled><EditIcon /></IconButton>
-                  </Tooltip>
-                  <WorkIcon />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {profileInfo?.JobTitle || ''}
-                  </Typography>
-                </Stack>
-              )}
+              <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
+                <WorkIcon />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {profileInfo?.JobTitle || ''}
+                </Typography>
+              </Stack>
             </FieldCard>
 
-            {/* Department */}
             <FieldCard>
-              {isEditMode ? (
-                <TextField
-                  label="Department"
-                  fullWidth
-                  size="small"
-                  value={formData.Department}
-                  onChange={(e) => setFormData((s) => ({ ...s, Department: e.target.value }))}
-                  InputProps={{ startAdornment: <ApartmentIcon sx={{ mr: 1, color: 'text.secondary' }} /> }}
-                />
-              ) : (
-                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Tooltip title="Edit Department">
-                    <IconButton size="small" disabled><EditIcon /></IconButton>
-                  </Tooltip>
-                  <ApartmentIcon />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {profileInfo?.Department || ''}
-                  </Typography>
-                </Stack>
-              )}
+              <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
+                <ApartmentIcon />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {profileInfo?.Department || ''}
+                </Typography>
+              </Stack>
             </FieldCard>
           </Box>
 
@@ -428,14 +384,17 @@ export default function EmployeeProfile() {
                   type="email"
                   fullWidth
                   size="small"
+                  autoComplete = "off"
                   value={formData.Email}
                   onChange={(e) => setFormData((s) => ({ ...s, Email: e.target.value }))}
                   InputProps={{ startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} /> }}
                 />
               ) : (
                 <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center">
-                  <Tooltip title="Edit Email">
-                    <IconButton size="small" disabled><EditIcon /></IconButton>
+                  <Tooltip title="Editar Email">
+                    <IconButton size="small" onClick={enterEditMode}>
+                      <EditIcon />
+                    </IconButton>
                   </Tooltip>
                   <EmailIcon />
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -446,7 +405,6 @@ export default function EmployeeProfile() {
             </FieldCard>
           </Box>
 
-          {/* Botão Alterar Password */}
           <Stack direction="row" justifyContent="center" sx={{ pt: 0.5 }}>
             <Button
               variant="contained"
@@ -522,12 +480,13 @@ export default function EmployeeProfile() {
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert>
+        <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
+        >
           {snackbar.message}
-        </Alert>
+               </Alert>
       </Snackbar>
     </Box>
   );

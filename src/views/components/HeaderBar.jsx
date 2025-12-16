@@ -69,7 +69,7 @@ export default function HeaderBar() {
 
   return (
     <>
-      <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '1px solid #eee' }}>
+      <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '0.1px solid #000000ff' }}>
         <Toolbar
           sx={{
             position: 'relative',

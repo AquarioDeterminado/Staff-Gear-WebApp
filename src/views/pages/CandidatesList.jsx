@@ -42,25 +42,21 @@ export default function CandidatesView() {
   );
   const [sideMessage, setSideMessage] = useState(null);
 
-  // Filtrar
   const filtered = useMemo(() => {
     const n = parseInt(filterId, 10);
     if (!filterId || Number.isNaN(n)) return rows;
     return rows.filter((r) => r.businessId === n);
   }, [rows, filterId]);
 
-  // Paginação
   const pageCount = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
   const start = (page - 1) * ROWS_PER_PAGE;
   const pageRows = filtered.slice(start, start + ROWS_PER_PAGE);
 
-  // Lógica de aprovação
   const handleApprovalChange = (id) => {
     if (sentMap[id] && approvedMap[id]) return;
     setApprovedMap((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Lógica de envio/cancelamento
   const handleSendOrCancel = (id) => {
     setSentMap((prev) => {
       const next = !prev[id];
