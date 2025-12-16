@@ -44,7 +44,7 @@ export default function Login() {
         throw new Error('Por favor, preencha todos os campos.');
       }
       setLoading(true);
-      await AuthService.logIn(login.email, login.password);
+      await AuthService.login(login.email, login.password);
       navigate('/profile');
     } catch (error) {
       const msg =
