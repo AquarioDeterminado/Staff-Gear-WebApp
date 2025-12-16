@@ -1,7 +1,7 @@
+
 // src/pages/ApplyCandidatePage.jsx
 import React, { useState, useRef } from 'react';
 import CandidateService from '../../services/CandidateService';
-import { isValidXml, readXmlFileToString } from '../../utils/xmlUtils';
 
 export default function ApplyCandidatePage() {
     const [form, setForm] = useState({
@@ -11,8 +11,9 @@ export default function ApplyCandidatePage() {
         email: '',
         phone: '',
         message: '',
-        resumeXml: '', // mantém o XML em memória após upload
+        resumeFile: null, // ficheiro binário
     });
+
     const [resumeFileName, setResumeFileName] = useState('');
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState(null);
@@ -21,32 +22,12 @@ export default function ApplyCandidatePage() {
     const onChange = (e) => {
         const { name, value, files } = e.target;
 
-        // Upload de XML
+        // Upload de ficheiro
         if (name === 'resumeFile') {
             const file = files?.[0] || null;
-            if (!file) {
-                setResumeFileName('');
-                setForm((prev) => ({ ...prev, resumeXml: '' }));
-                return;
-            }
-            (async () => {
-                try {
-                    const xmlText = await readXmlFileToString(file);
-
-                    // validação de XML bem-formado
-                    if (!isValidXml(xmlText)) {
-                        throw new Error('O CV (XML) não é válido.');
-                    }
-
-                    setForm((prev) => ({ ...prev, resumeXml: xmlText }));
-                    setResumeFileName(file.name);
-                    setFeedback(null);
-                } catch (err) {
-                    setFeedback({ type: 'error', text: err.message });
-                    setResumeFileName('');
-                    setForm((prev) => ({ ...prev, resumeXml: '' }));
-                }
-            })();
+            setForm((prev) => ({ ...prev, resumeFile: file }));
+            setResumeFileName(file ? file.name : '');
+            setFeedback(null);
             return;
         }
 
@@ -59,8 +40,24 @@ export default function ApplyCandidatePage() {
         if (!form.email?.trim()) return 'E-mail é obrigatório.';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'E-mail inválido.';
         if (!form.message?.trim()) return 'Mensagem é obrigatória.';
-        if (!form.resumeXml?.trim()) return 'CV (XML) é obrigatório.';
-        if (!isValidXml(form.resumeXml)) return 'O CV (XML) não é válido.';
+        if (!form.resumeFile) return 'CV é obrigatório.';
+
+        // Tipos permitidos: PDF/DOC/DOCX (+ XML se quiseres manter)
+        const allowed = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/xml',          // opcional
+            'application/xml',   // opcional
+        ];
+        if (form.resumeFile && !allowed.includes(form.resumeFile.type)) {
+            return 'CV deve ser PDF/DOC/DOCX (ou XML, se permitido).';
+        }
+
+        // Tamanho máx: 10MB (ajusta conforme)
+        if (form.resumeFile && form.resumeFile.size > 10 * 1024 * 1024) {
+            return 'CV excede 10MB.';
+        }
 
         return null;
     };
@@ -79,21 +76,21 @@ export default function ApplyCandidatePage() {
         abortRef.current = new AbortController();
 
         try {
-            const payload = {
-                JobCandidateId: null,
-                FirstName: form.firstName.trim(),
-                MiddleName: form.middleName?.trim() || null,
-                LastName: form.lastName?.trim() || '',
-                Email: form.email.trim().toLowerCase(),
-                Phone: form.phone?.trim() || null,
-                Resume: form.resumeXml, // XML como string
-                Message: form.message.trim(),
-            };
-
-            const res = await CandidateService.apply(payload, { signal: abortRef.current.signal });
+            // Envio via multipart/form-data (FormData é construído no service)
+            const res = await CandidateService.apply(
+                {
+                    FirstName: form.firstName.trim(),
+                    MiddleName: form.middleName?.trim(),
+                    LastName: form.lastName?.trim(),
+                    Email: form.email.trim().toLowerCase(),
+                    Phone: form.phone?.trim(),
+                    Message: form.message.trim(),
+                    ResumeFile: form.resumeFile, // File
+                },
+                { signal: abortRef.current.signal }
+            );
 
             const ok = res?.WasSaved ?? res?.data?.WasSaved ?? true;
-
             if (ok) {
                 setFeedback({ type: 'success', text: 'Candidatura enviada com sucesso!' });
                 setForm({
@@ -103,11 +100,11 @@ export default function ApplyCandidatePage() {
                     email: '',
                     phone: '',
                     message: '',
-                    resumeXml: '',
+                    resumeFile: null,
                 });
                 setResumeFileName('');
             } else {
-                setFeedback({ type: 'success', text: 'Candidatura enviada.' });
+                setFeedback({ type: 'error', text: 'Não foi possível confirmar a candidatura.' });
             }
         } catch (error) {
             const msg = error?.message || error?.response?.data || 'Falha ao submeter candidatura.';
@@ -168,7 +165,7 @@ export default function ApplyCandidatePage() {
                     />
                 </div>
 
-                {/* Apenas upload de XML */}
+                {/* Upload de ficheiro: mantém o botão “+” e o rótulo ao lado */}
                 <div
                     style={{
                         display: 'grid',
@@ -191,6 +188,7 @@ export default function ApplyCandidatePage() {
                             cursor: 'pointer',
                             border: '1px solid #e6e6e6',
                         }}
+                        title="Anexar CV"
                     >
                         +
                     </label>
@@ -198,7 +196,7 @@ export default function ApplyCandidatePage() {
                         id="resumeFile"
                         type="file"
                         name="resumeFile"
-                        accept=".xml"
+                        accept=".pdf,.doc,.docx,.xml" // ajusta conforme política
                         onChange={onChange}
                         hidden
                     />
@@ -210,7 +208,7 @@ export default function ApplyCandidatePage() {
                             color: '#666',
                         }}
                     >
-                        {resumeFileName || 'Anexar CV (.xml)'}
+                        {resumeFileName || 'Anexar CV (.pdf/.doc/.docx)'}
                     </div>
                 </div>
 
@@ -256,13 +254,13 @@ export default function ApplyCandidatePage() {
                             padding: '12px 14px',
                             background: feedback.type === 'success' ? '#e9f7ec' : '#fdecea',
                             color: feedback.type === 'success' ? '#1e7e34' : '#b03a2e',
-                            fontWeight: 600,
-                        }}
-                    >
-                        {feedback.text}
-                    </div>
-                )}
-            </form>
-        </section>
-    );
+              fontWeight: 600,
+            }}
+          >
+                {feedback.text}
+            </div>
+        )}
+        </form>
+    </section >
+  );
 }
