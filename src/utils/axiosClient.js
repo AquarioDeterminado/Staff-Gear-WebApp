@@ -25,6 +25,20 @@ api.interceptors.response.use(
       console.warn('Sessão expirada ou inválida.');
       // opcional: redirect para login
     }
+    
+    // Se a resposta de erro é um Blob, tenta converter para texto/JSON
+    if (error.response?.data instanceof Blob) {
+      return error.response.data.text().then(text => {
+        try {
+          error.response.data = JSON.parse(text);
+        } catch {
+          // Se não for JSON, guarda o texto como string
+          error.response.data = text;
+        }
+        return Promise.reject(error);
+      });
+    }
+    
     return Promise.reject(error);
   }
 );

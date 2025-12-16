@@ -25,9 +25,11 @@ import HeaderBar from '../components/HeaderBar';
 import CandidateService from '../../services/CandidateService';
 import { useNavigate } from 'react-router-dom';
 import UserService from '../../utils/UserSession';
+import { useNotification } from '../components/NotificationProvider';
 
 export default function CandidatesView() {
   const navigate = useNavigate();
+  const showNotification = useNotification();
 
   const [rows, setRows] = useState([]);
   const [page, setPage] = useState(1);
@@ -100,13 +102,26 @@ export default function CandidatesView() {
         setRows(Array.isArray(list) ? list : []);
       } catch (error) {
         console.error('Error fetching candidates:', error);
-        UserService.verifyAuthorize(navigate, error.status);
+        let msg;
+        const data = error?.response?.data;
+        if (typeof data === 'string') {
+          msg = data;
+        } else if (data && typeof data === 'object') {
+          msg =
+            data.detail ||
+            data.title ||
+            data.message ||
+            (data.errors ? Object.values(data.errors).flat().join(' · ') : null);
+        }
+        if (!msg) msg = error?.message || 'Erro a obter candidaturas.';
+        showNotification({ message: msg, severity: 'error' });
+        UserService.verifyAuthorize(navigate, error?.response?.status);
       }
     }
 
     fetchCandidates();
     
-  }, [navigate]);
+  }, [navigate, showNotification]);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
@@ -171,7 +186,20 @@ export default function CandidatesView() {
                                 a.remove();
                                 URL.revokeObjectURL(url);
                               } catch (error) {
+                                let msg;
+                                const data = error?.response?.data;
+                                if (typeof data === 'string') {
+                                  msg = data;
+                                } else if (data && typeof data === 'object') {
+                                  msg =
+                                    data.detail ||
+                                    data.title ||
+                                    data.message ||
+                                    (data.errors ? Object.values(data.errors).flat().join(' · ') : null);
+                                }
+                                if (!msg) msg = error?.message || 'Erro ao transferir resume.';
                                 console.error('Error downloading resume:', error);
+                                showNotification({ message: msg, severity: 'error' });
                                 UserService.verifyAuthorize(navigate, error.response?.status);
                               }
                             }
