@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Container,
@@ -22,25 +22,23 @@ import {
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import HeaderBar from '../components/HeaderBar';
+import CandidateService from '../../services/CandidateService';
+import { useNavigate } from 'react-router-dom';
+import UserService from '../../utils/UserSession';
 
 export default function CandidatesView() {
-  // Dados estáticos ficticios
-  const initialRows = Array.from({ length: 12 }, (_, i) => ({
-    businessId: i + 1,
-    modifiedDate: '03/11/2025',
-    resumeUrl: '#'
-  }));
+  const navigate = useNavigate();
 
-  const [rows] = useState(initialRows);
+  const [rows, setRows] = useState([]);
   const [page, setPage] = useState(1);
   const ROWS_PER_PAGE = 10;
 
   const [filterId, setFilterId] = useState('');
   const [approvedMap, setApprovedMap] = useState(
-    initialRows.reduce((acc, r) => ({ ...acc, [r.businessId]: false }), {})
+    rows.reduce((acc, r) => ({ ...acc, [r.businessId]: false }), {})
   );
   const [sentMap, setSentMap] = useState(
-    initialRows.reduce((acc, r) => ({ ...acc, [r.businessId]: false }), {})
+    rows.reduce((acc, r) => ({ ...acc, [r.businessId]: false }), {})
   );
   const [sideMessage, setSideMessage] = useState(null);
 
@@ -70,6 +68,7 @@ export default function CandidatesView() {
 
       if (next) {
         setSideMessage({ id, approved: !!approvedMap[id] });
+        CandidateService.accept(id);
       } else {
         setSideMessage((curr) => (curr && curr.id === id ? null : curr));
       }
@@ -92,6 +91,22 @@ export default function CandidatesView() {
       transition: 'background-color 0.2s ease'
     };
   };
+
+  useEffect(() => {
+    async function fetchCandidates() {
+      try {
+        var list = (await CandidateService.list()).data;
+        console.log(list);
+        setRows(Array.isArray(list) ? list : []);
+      } catch (error) {
+        console.error('Error fetching candidates:', error);
+        UserService.verifyAuthorize(navigate, error.status);
+      }
+    }
+
+    fetchCandidates();
+    
+  }, [navigate]);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
@@ -118,7 +133,7 @@ export default function CandidatesView() {
                 <TableRow sx={{ '& th': { fontWeight: 700 } }}>
                   <TableCell sx={{ width: '10%' }}>ID</TableCell>
                   <TableCell sx={{ width: '16%' }}>Resume</TableCell>
-                  <TableCell sx={{ width: '18%' }}>Date (ModifiedDate)</TableCell>
+                  <TableCell sx={{ width: '18%' }}>Full Name</TableCell>
                   <TableCell sx={{ width: '18%' }}>Approved (Status)</TableCell>
                   <TableCell sx={{ width: '18%' }}>Answer</TableCell>
                 </TableRow>
@@ -132,7 +147,7 @@ export default function CandidatesView() {
                   </TableRow>
                 ) : (
                   pageRows.map((r) => {
-                    const id = r.businessId;
+                    const id = r.jobCandidateId;
                     const isApproved = !!approvedMap[id];
                     const isSent = !!sentMap[id];
                     const checkboxDisabled = isSent && isApproved;
@@ -143,8 +158,24 @@ export default function CandidatesView() {
                         <TableCell>
                           <IconButton
                             aria-label="download resume"
-                            onClick={() =>
-                              r.resumeUrl && window.open(r.resumeUrl, '_blank')
+                            onClick={async () =>{
+                              try {
+                                const blob = await CandidateService.downloadResume(r.resumeFileId ?? r.jobCandidateId);
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                const filename = r.resumeFileName ?? `resume_${r.jobCandidateId}.pdf`;
+                                a.download = filename;
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                                URL.revokeObjectURL(url);
+                              } catch (error) {
+                                console.error('Error downloading resume:', error);
+                                UserService.verifyAuthorize(navigate, error.response?.status);
+                              }
+                            }
+                              
                             }
                             sx={{
                               color: '#000',
@@ -154,7 +185,7 @@ export default function CandidatesView() {
                             <DownloadIcon />
                           </IconButton>
                         </TableCell>
-                        <TableCell>{r.modifiedDate}</TableCell>
+                        <TableCell>{`${r.firstName} ${r.middleName? r.middleName + ' ' : ''}${r.lastName}`}</TableCell>
                         <TableCell>
                           <Checkbox
                             checked={isApproved}

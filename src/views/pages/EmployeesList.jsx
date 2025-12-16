@@ -27,6 +27,7 @@ import HRService from '../../services/HRService';
 import EmployeeService from '../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
+import UserSession from '../../utils/UserSession';
 
 export default function EmployeesList() {
   const navigate = useNavigate();
@@ -100,6 +101,7 @@ export default function EmployeesList() {
     return allFilled && emailOk && dateOk;
   }, [form]);
 
+  
   const ROWS_PER_PAGE = 10;
   const [page, setPage] = useState(1);
 
@@ -125,6 +127,7 @@ export default function EmployeesList() {
       department: '',
       jobTitle: '',
       hireDate: '',
+      password: '',
     });
     setErrors({
       firstName: '',
@@ -134,6 +137,7 @@ export default function EmployeesList() {
       department: '',
       jobTitle: '',
       hireDate: '',
+      password: '',
     });
     setDialogOpen(true);
   };
@@ -171,14 +175,14 @@ export default function EmployeesList() {
     try {
       if (mode === 'add') {
         var user = await EmployeeService.createEmployee({
-          FirstName: form.firstName,
-          MiddleName: form.middleName,
-          LastName: form.lastName,
-          Email: form.email,
-          Department: form.department,
-          JobTitle: form.jobTitle,
-          HireDate: form.hireDate,
-          Password: form.password
+          firstName: form.firstName,
+          middleName: form.middleName,
+          lastName: form.lastName,
+          email: form.email,
+          department: form.department,
+          jobTitle: form.jobTitle,
+          hireDate: form.hireDate,
+          password: form.password
         });
         setUsers((prev) => [...prev, user]);
       } else {
@@ -205,7 +209,8 @@ export default function EmployeesList() {
       setDialogOpen(false);
     } catch (error) {
       console.error('Error saving employee:', error);
-      navigate('/');
+      
+      UserSession.verifyAuthorize(navigate, error.status);
     }
   };
 
@@ -215,7 +220,8 @@ export default function EmployeesList() {
       setUsers((prev) => prev.filter((u) => u.BusinessEntityID !== businessEntityID));
     } catch (error) {
       console.error('Error deleting employee:', error);
-      navigate('/');
+
+      UserSession.verifyAuthorize(navigate, error.status);
     }
   };
 
@@ -232,7 +238,7 @@ export default function EmployeesList() {
         console.log(employees);
       } catch (error) {
         console.error('Error fetching initial users:', error);
-        navigate('/');
+        UserSession.verifyAuthorize(navigate, error.status);
       }
       setUsers(employees);
   }
@@ -464,6 +470,17 @@ export default function EmployeesList() {
               required
               error={!!errors.hireDate}
               helperText={errors.hireDate}
+            />
+            <TextField
+              label="Password"
+              value={form.password}
+              onChange={onChange('password')}
+              placeholder="123Abc"
+              fullWidth
+              size="small"
+              required
+              error={!!errors.password}
+              helperText={errors.password}
             />
           </Stack>
         </DialogContent>

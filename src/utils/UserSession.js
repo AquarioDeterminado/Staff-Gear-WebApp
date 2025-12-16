@@ -10,6 +10,12 @@ const UserSession = {
             navigator('/', { replace: true });
         }
     },
+
+    verifyAuthorize : function(navigator, status) {
+        if (status === 401 || status === 405 || status === 500) {
+            navigator('/', { replace: true });
+        } 
+    }
 }
 
 export default UserSession;

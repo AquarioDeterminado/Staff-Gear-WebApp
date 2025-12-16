@@ -46,11 +46,12 @@ const CandidateService = {
      */
     downloadResume: async (id, opts = {}) => {
         const res = await api.get(`${CANDIDATE_BASE}/${id}/resume`, {
-            responseType: 'blob',
-            ...opts
+          responseType: 'blob',
+          headers: { Accept: 'application/octet-stream' },
+          ...opts
         });
         return res.data; // Blob
-    }
+      }
 };
 
 export default CandidateService;

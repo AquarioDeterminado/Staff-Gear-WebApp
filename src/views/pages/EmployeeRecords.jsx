@@ -19,9 +19,13 @@ import {
 
 import HeaderBar from '../components/HeaderBar';
 import EmployeeService from '../../services/EmployeeService';
+import { useNavigate } from 'react-router-dom';
+import UserSession from '../../utils/UserSession';
 
 export default function EmployeeRecords() {
   const [tab, setTab] = useState(0);
+
+  const navigate = useNavigate();
 
   const BusinessID = localStorage.getItem('BusinessID');
 
@@ -44,6 +48,7 @@ export default function EmployeeRecords() {
         const paymentsData = await EmployeeService.getEmployeePayments(BusinessID);
         setPayments(Array.isArray(paymentsData) ? paymentsData : []);
       } catch (error) {
+        UserSession.verifyAuthorize(navigate, error.status);
         setPayments([]);
         console.error('Error fetching payments:', error);
       }
@@ -52,6 +57,7 @@ export default function EmployeeRecords() {
         const jobChangesData = await EmployeeService.getEmployeeMovements(BusinessID);
         setJobChanges(Array.isArray(jobChangesData) ? jobChangesData : []);
       } catch (error) {
+        UserSession.verifyAuthorize(navigate, error.status);
         setJobChanges([]);
         console.error('Error fetching job changes:', error);
       }
@@ -62,7 +68,7 @@ export default function EmployeeRecords() {
     }
 
     fetchData();
-  }, [BusinessID]);
+  }, [BusinessID, navigate]);
 
   // Slice de paginação por aba
   const paymentsCount = Math.max(1, Math.ceil(payments.length / ROWS_PER_PAGE));

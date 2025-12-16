@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -27,24 +27,45 @@ import PersonIcon from '@mui/icons-material/Person';
 import HistoryIcon from '@mui/icons-material/History';
 import GroupIcon from '@mui/icons-material/Group';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
-
+import NoticationService from '../../services/NotificationService';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../../services/AuthService';
 import SideMenu from './SideMenu';
+import logo from '../../assets/logo.png';
 
 export default function HeaderBar() {
   const navigate = useNavigate();
+  const BusinessId = localStorage.getItem('BusinessID');
 
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: 'Message', content: 'Conteúdo da mensagem A' },
-    { id: 2, title: 'Message', content: 'Conteúdo da mensagem B' },
-    { id: 3, title: 'Message', content: 'Conteúdo da mensagem C' },
-  ]);
+  const [notifications, setNotifications] = useState([]);
 
   const [anchorNotif, setAnchorNotif] = useState(null);
   const notifOpen = Boolean(anchorNotif);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+
+  useEffect(() => {
+    async function fetchNotifications() {
+      try {
+        var notifs = await NoticationService.getAllNotifications(BusinessId);
+        setNotifications(Array.isArray(notifs) ? notifs : []);
+        console.log(notifs);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    }
+    fetchNotifications();
+  }, []);
+
+  function handleDismissNotification(id) {
+    try {
+      NoticationService.deleteNotification(id);
+      setNotifications((prev) => prev.filter((n) => n.NotificationID !== id));
+    } catch (error) {
+      console.error('Error dismissing notification:', error);
+    }
+  }
 
   return (
     <>
@@ -66,19 +87,19 @@ export default function HeaderBar() {
               position: 'absolute',
               left: '50%',
               transform: 'translateX(-50%)',
-              pointerEvents: 'none', // não intercepta cliques dos grupos laterais
+              pointerEvents: 'none',
             }}
           >
-            <Typography
-              variant="h4"
+            <Box
+              component="img"
+              src={logo}
+              alt="Staff Gear"
               sx={{
-                fontWeight: 700,
-                color: '#000',
-                whiteSpace: 'nowrap',
+                height: 80,
+                objectFit: 'contain',
+                display: 'block',
               }}
-            >
-              Staff Gear
-            </Typography>
+            />
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, marginLeft: 'auto' }}>
@@ -133,12 +154,12 @@ export default function HeaderBar() {
       >
         {notifications.length > 0 ? (
           notifications.map((n) => (
-            <MenuItem key={n.id} divider>
-              <ListItemText primary={n.title} secondary={n.content} sx={{ mr: 2 }} />
+            <MenuItem key={n.NotificationID} divider>
+              <ListItemText primary={n.Message} secondary={n.CreatedAt} sx={{ mr: 2 }} />
               <Button
                 size="small"
                 color="error"
-                onClick={() => setNotifications((prev) => prev.filter((x) => x.id !== n.id))}
+                onClick={() => handleDismissNotification(n.NotificationID)}
                 sx={{ textTransform: 'none', fontWeight: 700, minWidth: 0, px: 0.75 }}
               >
                 X

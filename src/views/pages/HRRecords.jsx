@@ -17,7 +17,7 @@ import {
 import HeaderBar from '../components/HeaderBar';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
-
+import UserSession from '../../utils/UserSession';
 import HRService from '../../services/HRService';
 
 export default function HRRecords() {
@@ -42,7 +42,7 @@ export default function HRRecords() {
         setPayments(Array.isArray(paymentsData) ? paymentsData : []);
       } catch (error) {
         console.error('Error fetching payments:', error);
-        navigate('/');
+        UserSession.verifyAuthorize(navigate, error.status);
       }
 
       try {
@@ -50,7 +50,7 @@ export default function HRRecords() {
         setJobChanges(Array.isArray(jobChangesData) ? jobChangesData : []);
       } catch (error) {
         console.error('Error fetching job changes:', error);
-        navigate('/');
+        UserSession.verifyAuthorize(navigate, error.status);
       }
 
       setPaymentsPage(1);
