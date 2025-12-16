@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -11,102 +11,145 @@ import {
   Menu,
   MenuItem,
   ListItemText,
+  Drawer,
+  Stack,
+  Divider,
+  List,
+  ListItemButton,
+  ListItemIcon
 } from '@mui/material';
 
 import MenuIcon from '@mui/icons-material/Menu';
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
+import HomeIcon from '@mui/icons-material/Home';
+import LogoutIcon from '@mui/icons-material/Logout';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
+import HistoryIcon from '@mui/icons-material/History';
+import GroupIcon from '@mui/icons-material/Group';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 
-export default function HeaderBar({
-  notifications = [],
-  onRemoveNotification,
-  onHomeClick,
-  onProfileClick,
-  onLogoutClick,
-  onOpenMenu,
-}) {
+import { useNavigate } from 'react-router-dom';
+import AuthService from '../../services/AuthService';
+import SideMenu from './SideMenu';
+
+export default function HeaderBar() {
+  const navigate = useNavigate();
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Message', content: 'Conteúdo da mensagem A' },
+    { id: 2, title: 'Message', content: 'Conteúdo da mensagem B' },
+    { id: 3, title: 'Message', content: 'Conteúdo da mensagem C' },
+  ]);
+
   const [anchorNotif, setAnchorNotif] = useState(null);
-  const open = Boolean(anchorNotif);
+  const notifOpen = Boolean(anchorNotif);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
-    <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '1px solid #eee' }}>
-      <Toolbar sx={{ px: { xs: 2, md: 3 } }}>
-        {/* Esquerda: hamburguer */}
-        <IconButton edge="start" aria-label="menu" onClick={onOpenMenu} sx={{ mr: 1 }}>
-          <MenuIcon />
-        </IconButton>
+    <>
+      <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '1px solid #eee' }}>
+        <Toolbar
+          sx={{
+            position: 'relative',
+            px: { xs: 2, md: 3 },
+            minHeight: 64,
+          }}
+        >
+          {/* Hamburguer */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <SideMenu />
+          </Box>
 
-        {/* Direita: sino, Home, Logout, Avatar */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <IconButton
-            aria-label="notificações"
-            onClick={(e) => setAnchorNotif(e.currentTarget)}
-          >
-            <Badge badgeContent={notifications.length} color="error">
-              <NotificationsNoneIcon />
-            </Badge>
-          </IconButton>
-
-          <Button
-            variant="text"
-            onClick={onHomeClick}
-            sx={{ color: '#000', textTransform: 'none', fontWeight: 600 }}
-          >
-            Home
-          </Button>
-
-          <Button
-            variant="contained"
-            onClick={onLogoutClick}
+          <Box
             sx={{
-              bgcolor: '#000',
-              color: '#fff',
-              textTransform: 'none',
-              fontWeight: 700,
-              px: 2,
-              '&:hover': { bgcolor: '#222' },
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              pointerEvents: 'none', // não intercepta cliques dos grupos laterais
             }}
           >
-            Log out
-          </Button>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                color: '#000',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Staff Gear
+            </Typography>
+          </Box>
 
-          <IconButton aria-label="perfil" onClick={onProfileClick}>
-            <Avatar sx={{ bgcolor: '#607d8b' }}>
-              <PersonIcon />
-            </Avatar>
-          </IconButton>
-        </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, marginLeft: 'auto' }}>
+            <IconButton onClick={(e) => setAnchorNotif(e.currentTarget)} aria-label="notificações">
+              <Badge badgeContent={notifications.length} color="error">
+                <NotificationsIcon sx={{ fontSize: 26 }} />
+              </Badge>
+            </IconButton>
 
-        {/* Menu de notificações */}
-        <Menu
-          anchorEl={anchorNotif}
-          open={open}
-          onClose={() => setAnchorNotif(null)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-          MenuListProps={{ dense: true }}
-        >
-          {notifications.length > 0 ? (
-            notifications.map((n) => (
-              <MenuItem key={n.id} divider>
-                <ListItemText primary={n.title} secondary={n.content} sx={{ mr: 2 }} />
-                <Button
-                  size="small"
-                  color="error"
-                  onClick={() => onRemoveNotification?.(n.id)}
-                  sx={{ textTransform: 'none', fontWeight: 700, minWidth: 0, px: 0.75 }}
-                >
-                  X
-                </Button>
-              </MenuItem>
-            ))
-          ) : (
-            <MenuItem disabled>
-              <ListItemText primary="Sem notificações." />
+            <Button
+              variant="text"
+              startIcon={<HomeIcon />}
+              sx={{ color: '#000', textTransform: 'none', fontWeight: 600 }}
+              onClick={() => navigate('/home')}
+            >
+              Home
+            </Button>
+
+            <Button
+              variant="contained"
+              startIcon={<LogoutIcon />}
+              sx={{
+                bgcolor: '#000',
+                color: '#fff',
+                textTransform: 'none',
+                fontWeight: 700,
+                px: 2,
+                '&:hover': { bgcolor: '#222' }
+              }}
+              onClick={() => { AuthService.logout(); navigate('/'); }}
+            >
+              Log out
+            </Button>
+
+            <IconButton onClick={() => navigate('/profile')} aria-label="perfil">
+              <Avatar sx={{ bgcolor: '#607d8b' }}>
+                <PersonIcon />
+              </Avatar>
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* Menu de notificações */}
+      <Menu
+        anchorEl={anchorNotif}
+        open={notifOpen}
+        onClose={() => setAnchorNotif(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        MenuListProps={{ dense: true }}
+      >
+        {notifications.length > 0 ? (
+          notifications.map((n) => (
+            <MenuItem key={n.id} divider>
+              <ListItemText primary={n.title} secondary={n.content} sx={{ mr: 2 }} />
+              <Button
+                size="small"
+                color="error"
+                onClick={() => setNotifications((prev) => prev.filter((x) => x.id !== n.id))}
+                sx={{ textTransform: 'none', fontWeight: 700, minWidth: 0, px: 0.75 }}
+              >
+                X
+              </Button>
             </MenuItem>
-          )}
-        </Menu>
-      </Toolbar>
-    </AppBar>
-  );
-}
+          ))
+        ) : (
+          <MenuItem disabled>
+            <ListItemText primary="Sem notificações." />
+          </MenuItem>
+        )}
+      </Menu>
+    </>
+  )};

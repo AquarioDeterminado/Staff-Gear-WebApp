@@ -26,7 +26,17 @@ const EmployeeService = {
             console.log('Funcionários obtidos com sucesso!');
         }
 
-        var employees = response.data.map(empData => new EmployeeViewModel(empData));
+        var employees = response.data.map(empData => new EmployeeViewModel({
+            BusinessEntityID: empData.businessEntityID,
+            FirstName: empData.firstName,
+            MiddleName: empData.middleName,
+            LastName: empData.lastName,
+            JobTitle: empData.jobTitle,
+            Department: empData.department,
+            Email: empData.email,
+            HireDate: empData.hireDate,
+            Role: empData.role
+        }));
         return employees;
     },
 
@@ -39,12 +49,19 @@ const EmployeeService = {
             console.log('Funcionário obtido com sucesso!');
         }
 
-        var employee = new EmployeeViewModel(response.data);
+        console.log(response.data);
+        var employee = new EmployeeViewModel({FirstName: response.data.firstName,
+                                              MiddleName: response.data.middleName,
+                                              LastName: response.data.lastName,
+                                              JobTitle: response.data.jobTitle,
+                                              Department: response.data.department,
+                                              Email: response.data.email
+                                            });
         return employee;
     },
 
     updateEmployee:  async (id, payload) => { 
-        var response = await api.put(`${EMPLOYEE_PATH}/${id}`, payload);
+        var response = await api.put(`${EMPLOYEE_PATH}/${id}`, new EmployeeViewModel(payload));
 
         if (!response || response.status !== 200) {
             throw new Error('Erro ao atualizar funcionário! Error code: ' + response?.status);
@@ -72,7 +89,8 @@ const EmployeeService = {
             console.log('Pagamentos do funcionário obtidos com sucesso!');
         }
 
-        var payments = response.data.map(paymentData => ( new PaymentViewModel(paymentData) ));
+        console.log(response.data);
+        var payments = response.data.map(paymentData => ( new PaymentViewModel({BusinessEntityID: paymentData.businessEntityID, Name: paymentData.fullName, Amount: paymentData.rate, Date: paymentData.payedDate}) ));
         return payments;
     },
 
@@ -84,8 +102,9 @@ const EmployeeService = {
         } else {
             console.log('Movimentos do funcionário obtidos com sucesso!');
         }
-
-        var movements = response.data.map(movementData => ( new MovementViewModel(movementData) ));
+        
+        console.log(response.data);
+        var movements = response.data.map(movementData => ( new MovementViewModel({BusinessEntityID: movementData.businessEntityID, FullName: movementData.fullName, JobTitle: movementData.jobTitle, DepartmentName: movementData.departmentName, StartDate: movementData.startDate, EndDate: movementData.endDate}) ));
         return movements;
     },
 

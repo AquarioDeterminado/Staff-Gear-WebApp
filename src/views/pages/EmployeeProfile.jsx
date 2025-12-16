@@ -1,4 +1,6 @@
-import { useState } from 'react';
+
+// src/views/pages/Profile.jsx
+import { useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -7,25 +9,17 @@ import {
   Avatar,
   IconButton,
   Tooltip,
-  Chip,
   Button,
-  Badge,
-  Menu,
-  MenuItem,
-  ListItemText,
   Stack,
   Drawer,
   List,
   ListItemButton,
   ListItemIcon,
-  Divider
+  Divider,
+  ListItemText,
 } from '@mui/material';
 
-import MenuIcon from '@mui/icons-material/Menu';
-import HomeIcon from '@mui/icons-material/Home';
-import LogoutIcon from '@mui/icons-material/Logout';
 import EditIcon from '@mui/icons-material/Edit';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import EmailIcon from '@mui/icons-material/Email';
 import WorkIcon from '@mui/icons-material/Work';
 import ApartmentIcon from '@mui/icons-material/Apartment';
@@ -35,27 +29,38 @@ import HistoryIcon from '@mui/icons-material/History';
 import GroupIcon from '@mui/icons-material/Group';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 
-export default function EmployeeProfile({route}) {
-  var {BusinessID} = route.params;
-  console.log(BusinessID);
+import HeaderBar from '../components/HeaderBar';
+import { useNavigate } from 'react-router-dom';
+import { SettingsInputAntenna } from '@mui/icons-material';
+import EmployeeService from '../../services/EmployeeService';
+import SideMenu from '../components/SideMenu';
+import UserSession from '../../utils/UserSession';
 
-  const [user] = useState({
-    firstName: 'FirstName',
-    middleName: 'MiddleName',
-    lastName: 'LastName',
-    jobTitle: 'Job Title',
-    department: 'Department',
-    email: 'email@exemplo.com'
-  });
+export default function Profile() {
+  const navigate = useNavigate();
+  const BusinessID = UserSession.getBusinessID(navigate);
 
-  const [anchorNotif, setAnchorNotif] = useState(null);
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: 'Message', content: 'Conteúdo da mensagem A' },
-    { id: 2, title: 'Message', content: 'Conteúdo da mensagem B' }
-  ]);
-  const notifOpen = Boolean(anchorNotif);
+  const [profileInfo, setProfileInfo] = useState(null);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  useEffect(() => {
+    if (!BusinessID) {
+      navigate('/');
+    }
+
+    async function GetEmployeeIndfo () {
+      try {
+        var info = await EmployeeService.getEmployee(BusinessID)
+        setProfileInfo(info);
+        console.log(info);
+      } catch (error) {
+        console.error('Error fetching profile info:', error);
+        navigate('/', { replace: true });
+      }
+    }
+
+    GetEmployeeIndfo();
+    
+  }, [BusinessID, navigate]);
 
   // Dimensões
   const CARD_W = 280;
@@ -83,68 +88,24 @@ export default function EmployeeProfile({route}) {
 
   return (
     <Box sx={{ minHeight: '100vh', width: '100%', bgcolor: '#fff' }}>
+      {/* Header comum */}
+      <HeaderBar/>
 
-      <Stack
-        direction="row"
-        alignItems="center"
-        sx={{ p: { xs: 1.75, md: 2.25 } }}
-      >
-        <IconButton onClick={() => setDrawerOpen(true)} sx={{ mr: 'auto' }}>
-          <MenuIcon sx={{ fontSize: 30 }} />
-        </IconButton>
-
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Button
-            variant="text"
-            startIcon={<HomeIcon sx={{ fontSize: 24 }} />}
-            sx={{ fontSize: 16 }}
-          >
-            Home
-          </Button>
-
-          <Button
-            variant="contained"
-            startIcon={<LogoutIcon sx={{ fontSize: 22 }} />}
-            sx={{
-              fontSize: 16,
-              px: 2.25,
-              bgcolor: '#000',
-              color: '#fff',
-              '&:hover': { bgcolor: '#222' }
-            }}
-          >
-            Log out
-          </Button>
-
-          <Tooltip title="Notificações">
-            <IconButton onClick={(e) => setAnchorNotif(e.currentTarget)}>
-              <Badge badgeContent={notifications.length} color="error">
-                <NotificationsIcon sx={{ fontSize: 26 }} />
-              </Badge>
-            </IconButton>
-          </Tooltip>
-
-          <Avatar alt="Perfil" sx={{ width: 40, height: 40 }}>
-            <PersonIcon sx={{ fontSize: 22 }} />
-          </Avatar>
-        </Stack>
-      </Stack>
-
+      {/* Títulos centrais */}
       <Stack alignItems="center" sx={{ mt: { xs: 1, md: 2 }, mb: { xs: 1, md: 2 } }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: 0.2 }}>
-          Staff Gear
-        </Typography>
         <Typography variant="h5" sx={{ opacity: 0.85 }}>
-          Perfil
+          Profile
         </Typography>
       </Stack>
-
+      
+      {/* Avatar central grande */}
       <Stack alignItems="center" sx={{ mb: { xs: 2, md: 3 } }}>
         <Avatar sx={{ width: { xs: 110, md: 125 }, height: { xs: 110, md: 125 } }}>
           <PersonIcon sx={{ fontSize: { xs: 52, md: 66 } }} />
         </Avatar>
       </Stack>
 
+      {/* Conteúdo dos cartões */}
       <Container maxWidth="md" sx={{ pb: { xs: 5, md: 7 } }}>
         <Stack alignItems="center" spacing={2}>
           <Box
@@ -162,7 +123,7 @@ export default function EmployeeProfile({route}) {
                   <IconButton size="small"><EditIcon /></IconButton>
                 </Tooltip>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {user.firstName}
+                  {profileInfo?.FirstName || ''}
                 </Typography>
               </Stack>
             </FieldCard>
@@ -174,7 +135,7 @@ export default function EmployeeProfile({route}) {
                   <IconButton size="small"><EditIcon /></IconButton>
                 </Tooltip>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {user.middleName}
+                  {profileInfo?.MiddleName || ''}
                 </Typography>
               </Stack>
             </FieldCard>
@@ -186,7 +147,7 @@ export default function EmployeeProfile({route}) {
                   <IconButton size="small"><EditIcon /></IconButton>
                 </Tooltip>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {user.lastName}
+                  {profileInfo?.LastName || ''}
                 </Typography>
               </Stack>
             </FieldCard>
@@ -208,7 +169,7 @@ export default function EmployeeProfile({route}) {
                 </Tooltip>
                 <WorkIcon />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {user.jobTitle}
+                  {profileInfo?.JobTitle || ''}
                 </Typography>
               </Stack>
             </FieldCard>
@@ -221,7 +182,7 @@ export default function EmployeeProfile({route}) {
                 </Tooltip>
                 <ApartmentIcon />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {user.department}
+                  {profileInfo?.Department || ''}
                 </Typography>
               </Stack>
             </FieldCard>
@@ -236,7 +197,7 @@ export default function EmployeeProfile({route}) {
                 </Tooltip>
                 <EmailIcon />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {user.email}
+                  {profileInfo?.Email || ''}
                 </Typography>
               </Stack>
             </FieldCard>
@@ -265,82 +226,6 @@ export default function EmployeeProfile({route}) {
         </Stack>
       </Container>
 
-      {/* Notificações */}
-      <Menu
-        anchorEl={anchorNotif}
-        open={notifOpen}
-        onClose={() => setAnchorNotif(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        MenuListProps={{ dense: true }}
-      >
-        {notifications.map((n) => (
-          <MenuItem key={n.id} divider>
-            <ListItemText primary={n.title} secondary={n.content} sx={{ mr: 2 }} />
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() =>
-                setNotifications((prev) => prev.filter((x) => x.id !== n.id))
-              }
-            >
-              <Typography sx={{ fontWeight: 700 }}>X</Typography>
-            </IconButton>
-          </MenuItem>
-        ))}
-        {notifications.length === 0 && (
-          <Box sx={{ px: 2, py: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              Sem notificações.
-            </Typography>
-          </Box>
-        )}
-      </Menu>
-
-      {/* Menu Lateral */}
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        PaperProps={{ sx: { width: 280 } }}  // mais largo
-      >
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 2, py: 2 }}>
-          <MenuIcon sx={{ fontSize: 30 }} />
-          <Typography variant="h6">Menu</Typography>
-        </Stack>
-        <Divider />
-        <List sx={{ '& .MuiListItemButton-root': { py: 1.25 } }}>
-          <ListItemButton>
-            <ListItemIcon><PersonIcon sx={{ fontSize: 24 }} /></ListItemIcon>
-            <ListItemText
-              primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>Perfil</Typography>}
-            />
-          </ListItemButton>
-
-          <ListItemButton>
-            <ListItemIcon><HistoryIcon sx={{ fontSize: 24 }} /></ListItemIcon>
-            <ListItemText
-              primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>History</Typography>}
-            />
-          </ListItemButton>
-
-          <Divider sx={{ my: 0.75 }} />
-
-          <ListItemButton>
-            <ListItemIcon><GroupIcon sx={{ fontSize: 24 }} /></ListItemIcon>
-            <ListItemText
-              primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>Users</Typography>}
-            />
-          </ListItemButton>
-
-          <ListItemButton>
-            <ListItemIcon><GroupAddIcon sx={{ fontSize: 24 }} /></ListItemIcon>
-            <ListItemText
-              primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>Candidates</Typography>}
-            />
-          </ListItemButton>
-        </List>
-      </Drawer>
-    </Box>
-  );
-}
+      {/* Drawer lateral (igual ao teu) */}
+       </Box>
+  )};

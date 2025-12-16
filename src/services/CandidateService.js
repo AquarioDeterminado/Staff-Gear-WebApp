@@ -1,7 +1,7 @@
 // CandidateService.js
 import api from '../utils/axiosClient';
 
-const CANDIDATE_PATH = import.meta.env.VITE_API_CANDIDATE ?? '/api/v1/candidates';
+const CANDIDATE_PATH = import.meta.env.VITE_API_CANDIDATE ?? '/api/v1/candidate';
 
 function ensurePayload(payload) {
     const required = ['FirstName', 'Email', 'Message', 'Resume', 'MiddleName'];

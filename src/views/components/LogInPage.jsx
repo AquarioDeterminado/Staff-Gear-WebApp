@@ -28,8 +28,9 @@ export default function Login({ onSubmit }) {
       if (!login.email || !login.password) {
         throw new Error('Por favor, preencha todos os campos.');
       }
-      var resp = await AuthService.logIn(login.email, login.password);
-
+      var resp = await AuthService.login({username: login.email, password: login.password});
+      var id = resp.employee_id;
+      localStorage.setItem('BusinessID', id);
       navigator('/profile');
     } catch (error) {
       console.error('Erro ao efetuar login:', error.message);

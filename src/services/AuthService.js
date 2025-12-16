@@ -7,7 +7,7 @@ const AUTH_PATH = import.meta.env.VITE_API_URL + import.meta.env.VITE_API_AUTH_L
 
 const AuthService = {
     login: async (credentials) => {
-        var response = await api.post(AUTH_PATH, new LogInRequest(credentials));
+        var response = await api.post(AUTH_PATH, credentials);
 
         if (!response || response.status !== 200) {
             throw new Error('Erro ao efetuar login! Error code: ' + response?.status);
@@ -18,15 +18,19 @@ const AuthService = {
         var token = new AuthTokenViewModel({
             access_token: response.data.access_token,
             role: response.data.role,
-            user_id: response.data.user_id
+            user_id: response.data.user_id,
+            employee_id: response.data.employee_id
         });
-
+        localStorage.setItem('BusinessID', token.employee_id);
+        localStorage.setItem('user_role', token.role);
         setAuthToken(token.access_token);
         return token;
     },
 
     logout: async () => {
-        setAuthToken(null);
+        localStorage.removeItem('AuthToken');
+        localStorage.removeItem('BusinessID');
+        localStorage.removeItem('user_role');
         console.log('Logout efetuado com sucesso!');
     }
 }
