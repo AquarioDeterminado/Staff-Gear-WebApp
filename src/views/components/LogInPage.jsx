@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { Box, Typography, TextField, Button, Stack, Alert } from '@mui/material';
+import logo from '../../assets/logo.png';
 import LoginIcon from '@mui/icons-material/Login';
 import AuthService from '../../services/AuthService';
 import { useNavigate } from 'react-router-dom';
@@ -62,48 +63,58 @@ export default function Login() {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit}>
-      <Typography variant="h4" sx={ui.title}>
-        Login
-      </Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', px: 2 }}>
+      <Box
+        component="img"
+        src={logo}
+        alt="Staff Gear"
+        loading="lazy"
+        sx={{ height: { xs: 64, md: 120 }, mb: { xs: 2, md: 4 }, objectFit: 'contain' }}
+      />
 
-      {feedback && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {feedback.text}
-        </Alert>
-      )}
+      <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%', maxWidth: 420 }}>
+        <Typography variant="h4" sx={ui.title}>
+          Login
+        </Typography>
 
-      <Stack spacing={2} sx={{ mb: 3 }}>
-        <TextField
+        {feedback && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {feedback.text}
+          </Alert>
+        )}
+
+        <Stack spacing={2} sx={{ mb: 3 }}>
+          <TextField
+            fullWidth
+            label="Email"
+            type="email"
+            placeholder="Insira o seu Email"
+            value={login.email}
+            onChange={handleChange('email')}
+            sx={{ bgcolor: '#fff', borderRadius: 1 }}
+          />
+          <TextField
+            fullWidth
+            label="Password"
+            type="password"
+            placeholder="Insira a sua Password"
+            value={login.password}
+            onChange={handleChange('password')}
+            sx={{ bgcolor: '#fff', borderRadius: 1 }}
+          />
+        </Stack>
+
+        <Button
+          type="submit"
           fullWidth
-          label="Email"
-          type="email"
-          placeholder="Insira o seu Email"
-          value={login.email}
-          onChange={handleChange('email')}
-          sx={{ bgcolor: '#fff', borderRadius: 1 }}
-        />
-        <TextField
-          fullWidth
-          label="Password"
-          type="password"
-          placeholder="Insira a sua Password"
-          value={login.password}
-          onChange={handleChange('password')}
-          sx={{ bgcolor: '#fff', borderRadius: 1 }}
-        />
-      </Stack>
-
-      <Button
-        type="submit"
-        fullWidth
-        variant="contained"
-        endIcon={<LoginIcon />}
-        disabled={loading}
-        sx={ui.button}
-      >
-        {loading ? 'A entrar...' : 'Entrar'}
-      </Button>
+          variant="contained"
+          endIcon={<LoginIcon />}
+          disabled={loading}
+          sx={ui.button}
+        >
+          {loading ? 'A entrar...' : 'Entrar'}
+        </Button>
+      </Box>
     </Box>
   );
 }
