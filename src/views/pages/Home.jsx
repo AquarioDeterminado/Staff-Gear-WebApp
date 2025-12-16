@@ -1,46 +1,88 @@
-import { Box, Container, Grid, Typography, Divider, Stack } from '@mui/material';
-import Login from './../components/LogInPage';
-import ApplyCandidatePage from './../components/ApplyCandidatePage';
+
+import { Box, Typography } from '@mui/material';
+import Login from '../components/LogInPage';
+import ApplyCandidatePage from '../components/ApplyCandidatePage';
 
 export default function Home() {
+  const HEADER_H = 80;
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
-      {/* Topo: título central */}
-      <Container maxWidth="lg" sx={{ pt: 3, pb: 2 }}>
-        <Stack direction="row" alignItems="center">
-          <Box sx={{ flex: 1 }} />
+    <Box
+      sx={{
+        minHeight: '100vh',
+        width: '100%',
+        bgcolor: '#FFF3E0',
+        overflowX: 'hidden',
+      }}
+    >
+      {/* Header */}
+      <Box
+        component="header"
+        sx={{
+          height: HEADER_H,
+          display: 'grid',
+          placeItems: 'center',
+          px: 2,
+          textAlign: 'center',
+        }}
+      >
+        <div>
           <Typography
-            variant="h4"
-            sx={{ fontWeight: 700, textAlign: 'center', flex: 2, color: '#000' }}
+            variant="h3"
+            sx={{ fontWeight: 800, color: '#000', letterSpacing: 1.2, mb: 1 }}
           >
             Staff Gear
           </Typography>
-          <Box sx={{ flex: 1 }} />
-        </Stack>
-      </Container>
+        </div>
+      </Box>
 
-      <Container maxWidth="lg" sx={{ pb: 6 }}>
-        <Grid container spacing={0} alignItems="stretch">
-          {/* Coluna esquerda */}
+      {/* Corpo: duas metades + traço vertical */}
+      <Box
+        component="main"
+        sx={{
+          height: `calc(100vh - ${HEADER_H}px)`,
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '1fr 2px 1fr' },
+        }}
+      >
+        {/* Esquerda: Candidatura */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            px: { xs: 1, md: 6 },
+          }}
+        >
+          <Box sx={{ width: '100%', maxWidth: 680 }}>
             <ApplyCandidatePage />
+          </Box>
+        </Box>
 
-          {/* Divisor vertical */}
-          <Grid
-            item
-            xs={12}
-            md="auto"
-            sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'stretch' }}
-          >
-            <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-          </Grid>
+        {/* Traço vertical */}
+        <Box
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            width: '2px',
+            backgroundColor: '#000',
+          }}
+        />
 
-          {/* Coluna direita — Login */}
-          <Grid item xs={12} md={6}>
+        {/* Direita: Login */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            px: { xs: 2, md: 6 },
+            py: { xs: 4, md: 0 },
+          }}
+        >
+          <Box sx={{ width: '100%', maxWidth: 520 }}>
             <Login />
-          </Grid>
-        </Grid>
-      </Container>
+          </Box>
+        </Box>
+      </Box>
     </Box>
   );
 }
-
