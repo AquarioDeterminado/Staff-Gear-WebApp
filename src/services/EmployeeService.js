@@ -108,7 +108,9 @@ const EmployeeService = {
       console.log('Pagamentos do funcionário obtidos com sucesso!');
     }
 
-    const payments = response.data.map(
+    var data = response.data.length ? response.data : [];
+
+    const payments = data.map(
       (paymentData) =>
         new PaymentViewModel({
           BusinessEntityID: paymentData.businessEntityID,
@@ -130,7 +132,9 @@ const EmployeeService = {
       console.log('Movimentos do funcionário obtidos com sucesso!');
     }
 
-    const movements = response.data.map(
+    var data = response.data.length ? response.data : [];
+
+    const movements = data.map(
       (movementData) =>
         new MovementViewModel({
           BusinessEntityID: movementData.businessEntityID,
