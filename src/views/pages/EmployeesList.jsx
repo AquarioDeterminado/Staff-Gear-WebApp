@@ -28,6 +28,7 @@ import EmployeeService from '../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
 import UserSession from '../../utils/UserSession';
+import AddIcon from '@mui/icons-material/AddCircleOutline';
 
 export default function EmployeesList() {
   const navigate = useNavigate();

@@ -1,6 +1,4 @@
-
-// src/views/pages/EmployeeProfile.jsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -18,7 +16,8 @@ import {
   DialogActions,
   Snackbar,
   Alert,
-  CircularProgress
+  CircularProgress,
+  InputAdornment
 } from '@mui/material';
 
 import EditIcon from '@mui/icons-material/Edit';
@@ -32,6 +31,31 @@ import HeaderBar from '../components/HeaderBar';
 import { useNavigate } from 'react-router-dom';
 import EmployeeService from '../../services/EmployeeService';
 import UserSession from '../../utils/UserSession';
+import { ConfirmationNumber } from '@mui/icons-material';
+
+const CARD_W = 280;
+const CARD_H = 72;
+const EMAIL_W = 360;
+
+function FieldCard({ children, width = CARD_W }) {
+  return (
+    <Paper
+      elevation={3}
+      sx={{
+        width,
+        minHeight: CARD_H,
+        px: 2.75,
+        py: 1.85,
+        borderRadius: 3,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+    >
+      {children}
+    </Paper>
+  );
+}
 
 export default function EmployeeProfile() {
   const navigate = useNavigate();
@@ -39,7 +63,6 @@ export default function EmployeeProfile() {
 
   const [profileInfo, setProfileInfo] = useState(null);
 
-  // Edição global (apenas para First/Middle/Last/Email)
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [formData, setFormData] = useState({
@@ -52,14 +75,12 @@ export default function EmployeeProfile() {
     Role: ''
   });
 
-  // Password dialog
   const [isPwdDialogOpen, setIsPwdDialogOpen] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmittingPwd, setIsSubmittingPwd] = useState(false);
 
-  // Snackbar
   const [snackbar, setSnackbar] = useState({
     open: false,
     severity: 'success',
@@ -77,7 +98,6 @@ export default function EmployeeProfile() {
         const info = await EmployeeService.getEmployee(BusinessID);
         setProfileInfo(info);
 
-        // Inicialização (primeiro load)
         setFormData({
           FirstName: info?.FirstName || '',
           MiddleName: info?.MiddleName || '',
@@ -98,10 +118,6 @@ export default function EmployeeProfile() {
     GetEmployeeInfo();
   }, [BusinessID, navigate]);
 
-  // =========================
-  // ALTERAÇÃO A) — SINCRONIZAR formData A PARTIR DE profileInfo
-  // APENAS QUANDO NÃO ESTÁS A EDITAR (evita reidratar o input enquanto escreves)
-  // =========================
   useEffect(() => {
     if (profileInfo && !isEditMode) {
       setFormData({
@@ -115,9 +131,7 @@ export default function EmployeeProfile() {
       });
     }
   }, [profileInfo, isEditMode]);
-  // =========================
 
-  // Qualquer utilizador pode editar os campos básicos
   const enterEditMode = () => setIsEditMode(true);
 
   const cancelEdit = () => {
@@ -152,13 +166,11 @@ export default function EmployeeProfile() {
     try {
       setIsSavingProfile(true);
 
-      // Apenas os campos básicos serão enviados/atualizados
       const payload = {
         FirstName: formData.FirstName,
         MiddleName: formData.MiddleName,
         LastName: formData.LastName,
         Email: formData.Email
-        // ⚠️ JobTitle, Department e Role NÃO são enviados (não editáveis)
       };
 
       await EmployeeService.updateEmployee(BusinessID, payload);
@@ -190,10 +202,6 @@ export default function EmployeeProfile() {
       setSnackbar({ open: true, severity: 'warning', message: 'Preencha todos os campos da password.' });
       return;
     }
-    if (newPassword.length < 8) {
-      setSnackbar({ open: true, severity: 'warning', message: 'A nova password deve ter pelo menos 8 caracteres.' });
-      return;
-    }
     if (newPassword !== confirmPassword) {
       setSnackbar({ open: true, severity: 'warning', message: 'A confirmação não coincide com a nova password.' });
       return;
@@ -201,7 +209,7 @@ export default function EmployeeProfile() {
 
     try {
       setIsSubmittingPwd(true);
-      const payload = { oldPassword, newPassword };
+      const payload = { CurrentPassword: oldPassword, NewPassword: newPassword, ConfirmPassword: confirmPassword };
       await EmployeeService.alterEmployeePassword(BusinessID, payload);
 
       setSnackbar({ open: true, severity: 'success', message: 'Password alterada com sucesso!' });
@@ -214,36 +222,10 @@ export default function EmployeeProfile() {
       setIsSubmittingPwd(false);
     }
   };
-
-  // Dimensões
-  const CARD_W = 280;
-  const CARD_H = 72;
-  const EMAIL_W = 360;
-
-  // Card base
-  const FieldCard = ({ children, width = CARD_W }) => (
-    <Paper
-      elevation={3}
-      sx={{
-        width,
-        minHeight: CARD_H,
-        px: 2.75,
-        py: 1.85,
-        borderRadius: 3,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-    >
-      {children}
-    </Paper>
-  );
-
-  return (
+   return (
     <Box sx={{ minHeight: '100vh', width: '100%', bgcolor: '#fff' }}>
       <HeaderBar />
 
-      {/* Título + ações */}
       <Stack alignItems="center" sx={{ mt: { xs: 1, md: 2 }, mb: { xs: 1, md: 2 } }}>
         <Typography variant="h5" sx={{ opacity: 0.85 }}>
           Profile
@@ -277,18 +259,14 @@ export default function EmployeeProfile() {
           )}
         </Stack>
       </Stack>
-
-      {/* Avatar */}
       <Stack alignItems="center" sx={{ mb: { xs: 2, md: 3 } }}>
         <Avatar sx={{ width: { xs: 110, md: 125 }, height: { xs: 110, md: 125 } }}>
           <PersonIcon sx={{ fontSize: { xs: 52, md: 66 } }} />
         </Avatar>
       </Stack>
 
-      {/* Conteúdo */}
       <Container maxWidth="md" sx={{ pb: { xs: 5, md: 7 } }}>
         <Stack alignItems="center" spacing={2}>
-          {/* Nomes */}
           <Box
             sx={{
               display: 'grid',
@@ -312,12 +290,7 @@ export default function EmployeeProfile() {
                   }
                 />
               ) : (
-                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Tooltip title="Editar FirstName">
-                    <IconButton size="small" onClick={enterEditMode}>
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
+                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">                 
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {profileInfo?.FirstName || ''}
                   </Typography>
@@ -341,11 +314,6 @@ export default function EmployeeProfile() {
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Tooltip title="Editar MiddleName">
-                    <IconButton size="small" onClick={enterEditMode}>
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {profileInfo?.MiddleName || ''}
                   </Typography>
@@ -369,11 +337,6 @@ export default function EmployeeProfile() {
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Tooltip title="Editar LastName">
-                    <IconButton size="small" onClick={enterEditMode}>
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {profileInfo?.LastName || ''}
                   </Typography>
@@ -382,7 +345,7 @@ export default function EmployeeProfile() {
             </FieldCard>
           </Box>
 
-          {/* Job Title & Department (SEM EDIÇÃO) */}
+          {/* Job Title & Department */}
           <Box
             sx={{
               display: 'grid',
@@ -391,7 +354,6 @@ export default function EmployeeProfile() {
               gap: 14
             }}
           >
-            {/* Job Title - SEM botão de editar */}
             <FieldCard>
               <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
                 <WorkIcon />
@@ -400,8 +362,7 @@ export default function EmployeeProfile() {
                 </Typography>
               </Stack>
             </FieldCard>
-
-            {/* Department - SEM botão de editar */}
+ 
             <FieldCard>
               <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
                 <ApartmentIcon />
@@ -426,15 +387,16 @@ export default function EmployeeProfile() {
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, Email: e.target.value }))
                   }
-                  InputProps={{ startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} /> }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    )
+                  }}
                 />
               ) : (
                 <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center">
-                  <Tooltip title="Editar Email">
-                    <IconButton size="small" onClick={enterEditMode}>
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
                   <EmailIcon />
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {profileInfo?.Email || ''}
@@ -444,7 +406,7 @@ export default function EmployeeProfile() {
             </FieldCard>
           </Box>
 
-          {/* Botão Alterar Password */}
+          {/* Alterar Password */}
           <Stack direction="row" justifyContent="center" sx={{ pt: 0.5 }}>
             <Button
               variant="contained"
@@ -467,14 +429,12 @@ export default function EmployeeProfile() {
           </Stack>
         </Stack>
       </Container>
-
-      {/* Dialog Alterar Password */}
       <Dialog open={isPwdDialogOpen} onClose={closePwdDialog} fullWidth maxWidth="xs">
         <DialogTitle>Alterar Password</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
-              label="Password atual"
+              label="Current Password"
               type="password"
               fullWidth
               value={oldPassword}
@@ -482,16 +442,15 @@ export default function EmployeeProfile() {
               autoComplete="current-password"
             />
             <TextField
-              label="Nova password"
+              label="New password"
               type="password"
               fullWidth
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               autoComplete="new-password"
-              helperText="Mínimo 8 caracteres."
             />
             <TextField
-              label="Confirmar nova password"
+              label="Confirm the password"
               type="password"
               fullWidth
               value={confirmPassword}
@@ -513,20 +472,20 @@ export default function EmployeeProfile() {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert>
+        <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
-
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>
     </Box>
-)};
+  );
+}
