@@ -37,17 +37,17 @@ export default function CandidatesView() {
 
   const [filterId, setFilterId] = useState('');
   const [approvedMap, setApprovedMap] = useState(
-    rows.reduce((acc, r) => ({ ...acc, [r.businessId]: false }), {})
+    rows.reduce((acc, r) => ({ ...acc, [r.jobCandidateId]: false }), {})
   );
   const [sentMap, setSentMap] = useState(
-    rows.reduce((acc, r) => ({ ...acc, [r.businessId]: false }), {})
+    rows.reduce((acc, r) => ({ ...acc, [r.jobCandidateId]: false }), {})
   );
   const [sideMessage, setSideMessage] = useState(null);
 
   const filtered = useMemo(() => {
     const n = parseInt(filterId, 10);
     if (!filterId || Number.isNaN(n)) return rows;
-    return rows.filter((r) => r.businessId === n);
+    return rows.filter((r) => r.jobCandidateId === n);
   }, [rows, filterId]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));

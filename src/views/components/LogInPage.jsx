@@ -5,6 +5,7 @@ import logo from '../../assets/logo.png';
 import LoginIcon from '@mui/icons-material/Login';
 import AuthService from '../../services/AuthService';
 import { useNavigate } from 'react-router-dom';
+import { useNotification } from '../components/NotificationProvider';
 
 const ui = {
   title: {
@@ -31,6 +32,7 @@ export default function Login() {
   const [login, setLogin] = useState({ email: '', password: '' });
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(false);
+  const notif = useNotification();
 
   const handleChange = (field) => (e) =>
     setLogin((prev) => ({ ...prev, [field]: e.target.value }));
@@ -56,7 +58,7 @@ export default function Login() {
             error.response.data.message)) ||
         error?.message ||
         'Erro ao efetuar login.';
-      setFeedback({ type: 'error', text: msg });
+      notif({ severity: 'error', message: msg });
     } finally {
       setLoading(false);
     }
