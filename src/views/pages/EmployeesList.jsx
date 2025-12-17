@@ -29,9 +29,11 @@ import { useNavigate } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
 import UserSession from '../../utils/UserSession';
 import AddIcon from '@mui/icons-material/AddCircleOutline';
+import { useNotification } from '../components/NotificationProvider';
 
 export default function EmployeesList() {
   const navigate = useNavigate();
+  const notifs = useNotification();
 
   const [Users, setUsers] = useState([]);
 
@@ -210,8 +212,8 @@ export default function EmployeesList() {
       setDialogOpen(false);
     } catch (error) {
       console.error('Error saving employee:', error);
-      
       UserSession.verifyAuthorize(navigate, error.status);
+      notifs({ severity: 'error', message: error?.message || 'Error saving employee.' });
     }
   };
 
@@ -221,8 +223,8 @@ export default function EmployeesList() {
       setUsers((prev) => prev.filter((u) => u.BusinessEntityID !== businessEntityID));
     } catch (error) {
       console.error('Error deleting employee:', error);
-
       UserSession.verifyAuthorize(navigate, error.status);
+      notifs({ severity: 'error', message: error?.message || 'Error deleting employee.' });
     }
   };
 
@@ -240,12 +242,13 @@ export default function EmployeesList() {
       } catch (error) {
         console.error('Error fetching initial users:', error);
         UserSession.verifyAuthorize(navigate, error.status);
+        notifs({ severity: 'error', message: error?.message || 'Error fetching employees.' });
       }
       setUsers(employees);
   }
     if (Users.length === 0)
       fetchData();
-  }, [Users.length, navigate]);
+  }, [Users.length, navigate, notifs]);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>

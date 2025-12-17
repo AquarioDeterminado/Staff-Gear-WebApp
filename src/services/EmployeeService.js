@@ -33,7 +33,7 @@ const EmployeeService = {
   getAllEmployees: async () => {
     const response = await api.get(EMPLOYEE_PATH);
 
-    if (!response || response.status !== 200) {
+    if (!response || (response.status !== 200 && response.status !== 201)) {
       throw new Error('Erro ao obter funcionários! Error code: ' + response?.status);
     } else {
       console.log('Funcionários obtidos com sucesso!');

@@ -9,6 +9,7 @@ import {
     Alert,
 } from '@mui/material';
 import CandidateService from '../../services/CandidateService';
+import { useNotification } from '../components/NotificationProvider';
 
 const ui = {
     title: {
@@ -52,6 +53,8 @@ export default function ApplyCandidatePage() {
     const [feedback, setFeedback] = useState(null);
     const [loading, setLoading] = useState(false);
     const abortRef = useRef(null);
+
+    const notif = useNotification();
 
     const onChange = (e) => {
         const { name, value, files } = e.target;
@@ -143,7 +146,7 @@ export default function ApplyCandidatePage() {
                     (data.errors ? Object.values(data.errors).flat().join(' · ') : null);
             }
             if (!msg) msg = error?.message || 'Falha ao submeter candidatura.';
-            setFeedback({ type: 'error', text: msg });
+            notif({ severity: 'error', message: msg });
         } finally {
             setLoading(false);
         }
