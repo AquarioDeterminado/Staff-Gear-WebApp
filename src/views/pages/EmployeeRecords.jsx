@@ -34,12 +34,10 @@ export default function EmployeeRecords() {
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
 
-  // Definição de colunas (alinhadas com os dados renderizados)
   const paymentsColumns = ['Date of Payment', 'Rate'];
   const jobChangesColumns = ['Job Title', 'Department', 'Start Date', 'End Date'];
   const columns = tab === 0 ? paymentsColumns : jobChangesColumns;
 
-  // Estados de paginação independentes por aba
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [jobChangesPage, setJobChangesPage] = useState(1);
   const ROWS_PER_PAGE = 10;
@@ -66,7 +64,6 @@ export default function EmployeeRecords() {
         notifs({ severity: 'error', message: error?.message || 'Error fetching job changes.' });
       }
 
-      // Reinicia paginação ao mudar dados
       setPaymentsPage(1);
       setJobChangesPage(1);
     }
@@ -74,7 +71,6 @@ export default function EmployeeRecords() {
     fetchData();
   }, [BusinessID, navigate, notifs]);
 
-  // Slice de paginação por aba
   const paymentsCount = Math.max(1, Math.ceil(payments.length / ROWS_PER_PAGE));
   const jobChangesCount = Math.max(1, Math.ceil(jobChanges.length / ROWS_PER_PAGE));
 
@@ -91,7 +87,6 @@ export default function EmployeeRecords() {
     [jobChanges, jobChangesStart]
   );
 
-  // Ao trocar de aba, não criamos páginas adicionais: apenas mudamos o estado da UI
   const handleTabChange = (_e, v) => setTab(v);
 
   return (
@@ -99,7 +94,6 @@ export default function EmployeeRecords() {
       <HeaderBar />
 
       <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
-        {/* Tabs com estilo simples */}
         <Box sx={{ display: 'inline-block', bgcolor: '#e0e0e0', borderRadius: 1, mb: 2 }}>
           <Tabs
             value={tab}
@@ -128,12 +122,11 @@ export default function EmployeeRecords() {
           </Tabs>
         </Box>
 
-        {/* Caixa da tabela com a mesma paleta dos Candidates */}
         <Paper
           variant="outlined"
           sx={{
-            bgcolor: '#fff3e0',     // fundo laranja claro
-            borderColor: '#ddd',    // borda suave
+            bgcolor: '#fff3e0',
+            borderColor: '#ddd',
             borderRadius: 1.5,
             overflow: 'auto',
           }}
@@ -177,7 +170,6 @@ export default function EmployeeRecords() {
                 ) : (
                   visiblePayments.map((payment, index) => (
                     <TableRow key={`${payment.Date}-${index}`}>
-                      {/* A ordem aqui segue columns: Date of Payment, Rate */}
                       <TableCell>{payment.Date}</TableCell>
                       <TableCell>{payment.Amount}</TableCell>
                     </TableRow>
@@ -211,7 +203,6 @@ export default function EmployeeRecords() {
             </TableBody>
           </Table>
 
-          {/* Paginação no rodapé — cor da página selecionada em laranja (#ff9800) */}
           <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
             {tab === 0 ? (
               <Pagination
