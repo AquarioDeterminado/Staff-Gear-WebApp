@@ -95,7 +95,7 @@ export default function HeaderBar() {
               src={logo}
               alt="Staff Gear"
               sx={{
-                height: 80,
+                height: 50,
                 objectFit: 'contain',
                 display: 'block',
               }}

@@ -520,11 +520,11 @@ export default function EmployeeProfile() {
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert>
+        <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
-
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>
