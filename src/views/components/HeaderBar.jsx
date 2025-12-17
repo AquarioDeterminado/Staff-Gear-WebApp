@@ -108,16 +108,7 @@ export default function HeaderBar() {
                 <NotificationsIcon sx={{ fontSize: 26 }} />
               </Badge>
             </IconButton>
-
-            <Button
-              variant="text"
-              startIcon={<HomeIcon />}
-              sx={{ color: '#000', textTransform: 'none', fontWeight: 600 }}
-              onClick={() => navigate('/home')}
-            >
-              Home
-            </Button>
-
+            
             <Button
               variant="contained"
               startIcon={<LogoutIcon />}
