@@ -45,6 +45,13 @@ const CandidateService = {
     },
 
     /**
+     * Rejeita/deleta um candidato.
+     */
+    reject: (id, opts = {}) => {
+        return api.delete(`${CANDIDATE_BASE}/${id}`, opts);
+    },
+
+    /**
      * Download do CV (binário) de um candidato (só RH).
      * Retorna Blob — usa URL.createObjectURL(blob) para abrir/guardar.
      */

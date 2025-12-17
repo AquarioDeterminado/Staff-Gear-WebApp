@@ -10,7 +10,6 @@ import {
   TableCell,
   TableBody,
   IconButton,
-  Checkbox,
   Pagination,
   Card,
   CardContent,
@@ -22,9 +21,11 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Drawer
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import CloseIcon from '@mui/icons-material/Close';
 import HeaderBar from '../components/HeaderBar';
 import CandidateService from '../../services/CandidateService';
 import { useNavigate } from 'react-router-dom';
@@ -40,13 +41,7 @@ export default function CandidatesView() {
   const ROWS_PER_PAGE = 10;
 
   const [filterId, setFilterId] = useState('');
-  const [approvedMap, setApprovedMap] = useState(
-    rows.reduce((acc, r) => ({ ...acc, [r.jobCandidateId]: false }), {})
-  );
-  const [sentMap, setSentMap] = useState(
-    rows.reduce((acc, r) => ({ ...acc, [r.jobCandidateId]: false }), {})
-  );
-  const [sideMessage, setSideMessage] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Dialog para aceitar candidato
   const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
@@ -57,45 +52,56 @@ export default function CandidatesView() {
     defaultPassword: 'Welcome@123'
   });
 
+  // Drawer para detalhes do candidato
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+
   const filtered = useMemo(() => {
-    const n = parseInt(filterId, 10);
-    if (!filterId || Number.isNaN(n)) return rows;
-    return rows.filter((r) => r.jobCandidateId === n);
-  }, [rows, filterId]);
+    let result = rows;
+
+    // Filtro por ID
+    if (filterId) {
+      const n = parseInt(filterId, 10);
+      if (!Number.isNaN(n)) {
+        result = result.filter((r) => r.jobCandidateId === n);
+      }
+    }
+
+    // Filtro por nome ou email (em tempo real)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((r) => {
+        const fullName = `${r.firstName} ${r.middleName || ''} ${r.lastName}`.toLowerCase();
+        const email = (r.email || '').toLowerCase();
+        return fullName.includes(query) || email.includes(query);
+      });
+    }
+
+    return result;
+  }, [rows, filterId, searchQuery]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
   const start = (page - 1) * ROWS_PER_PAGE;
   const pageRows = filtered.slice(start, start + ROWS_PER_PAGE);
 
-  const handleApprovalChange = (id) => {
-    if (sentMap[id] && approvedMap[id]) return;
-    setApprovedMap((prev) => ({ ...prev, [id]: !prev[id] }));
+  const openAcceptDialog = (candidate) => {
+    setCandidateToAccept(candidate);
+    setAcceptFormData({
+      jobTitle: '',
+      department: 'Sales',
+      defaultPassword: 'Welcome@123'
+    });
+    setAcceptDialogOpen(true);
   };
 
-  const handleSendOrCancel = (id) => {
-    setSentMap((prev) => {
-      const next = !prev[id];
-      const newMap = { ...prev, [id]: next };
+  const openDrawer = (candidate) => {
+    setSelectedCandidate(candidate);
+    setDrawerOpen(true);
+  };
 
-      if (next) {
-        setSideMessage({ id, approved: !!approvedMap[id] });
-        
-        // Se aprovado, abre dialog para aceitar
-        if (approvedMap[id]) {
-          const candidate = rows.find(r => r.jobCandidateId === id);
-          setCandidateToAccept(candidate);
-          setAcceptFormData({
-            jobTitle: '',
-            department: 'Sales',
-            defaultPassword: 'Welcome@123'
-          });
-          setAcceptDialogOpen(true);
-        }
-      } else {
-        setSideMessage((curr) => (curr && curr.id === id ? null : curr));
-      }
-      return newMap;
-    });
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    setSelectedCandidate(null);
   };
 
   const handleAcceptCandidate = async () => {
@@ -130,20 +136,33 @@ export default function CandidatesView() {
     }
   };
 
-  // Filtro
-  const handleApplyFilter = () => setPage(1);
-  const handleClearFilter = () => {
-    setFilterId('');
-    setPage(1);
+  const handleRejectCandidate = async (id) => {
+    try {
+      await CandidateService.reject(id);
+      setRows((prev) => prev.filter(r => r.jobCandidateId !== id));
+      showNotification({
+        message: 'Candidato rejeitado com sucesso!',
+        severity: 'success'
+      });
+    } catch (error) {
+      let msg;
+      const data = error?.response?.data;
+      if (typeof data === 'string') {
+        msg = data;
+      } else if (data && typeof data === 'object') {
+        msg = data.message || data.detail || data.title || 'Erro ao rejeitar candidato';
+      }
+      if (!msg) msg = error?.message || 'Erro ao rejeitar candidato.';
+      showNotification({ message: msg, severity: 'error' });
+      UserService.verifyAuthorize(navigate, error?.response?.status);
+    }
   };
 
-  // Cor da linha
-  const getRowSx = (id) => {
-    if (!sentMap[id]) return {};
-    return {
-      bgcolor: approvedMap[id] ? '#c8e6c9' : '#ffcdd2',
-      transition: 'background-color 0.2s ease'
-    };
+  // Filtro - limpar
+  const handleClearFilter = () => {
+    setFilterId('');
+    setSearchQuery('');
+    setPage(1);
   };
 
   useEffect(() => {
@@ -178,6 +197,121 @@ export default function CandidatesView() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
+
+      {/* Drawer para detalhes do candidato */}
+      <Drawer
+        anchor="right"
+        open={drawerOpen}
+        onClose={closeDrawer}
+      >
+        <Box sx={{ width: 450, p: 3 }}>
+          {/* Header */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Detalhes do Candidato
+            </Typography>
+            <IconButton onClick={closeDrawer} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {selectedCandidate && (
+            <Stack spacing={3}>
+              {/* Nome */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#666', mb: 0.5 }}>
+                  Nome Completo
+                </Typography>
+                <Typography variant="body1">
+                  {`${selectedCandidate.firstName} ${selectedCandidate.middleName ? selectedCandidate.middleName + ' ' : ''}${selectedCandidate.lastName}`}
+                </Typography>
+              </Box>
+
+              <Divider />
+
+              {/* Email */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#666', mb: 0.5 }}>
+                  Email
+                </Typography>
+                <Typography variant="body1">
+                  {selectedCandidate.email}
+                </Typography>
+              </Box>
+
+              {/* Telefone */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#666', mb: 0.5 }}>
+                  Telefone
+                </Typography>
+                <Typography variant="body1">
+                  {selectedCandidate.phone || 'Não fornecido'}
+                </Typography>
+              </Box>
+
+              {/* Mensagem */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#666', mb: 0.5 }}>
+                  Mensagem
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    bgcolor: '#f5f5f5', 
+                    p: 2, 
+                    borderRadius: 1,
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word'
+                  }}
+                >
+                  {selectedCandidate.message}
+                </Typography>
+              </Box>
+
+              <Divider />
+
+              {/* Botões de ação */}
+              <Stack spacing={1.5}>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    openAcceptDialog(selectedCandidate);
+                    closeDrawer();
+                  }}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    bgcolor: '#4caf50',
+                    color: '#fff',
+                    '&:hover': { bgcolor: '#45a049' }
+                  }}
+                >
+                  Aceitar Candidato
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    handleRejectCandidate(selectedCandidate.jobCandidateId);
+                    closeDrawer();
+                  }}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    borderColor: '#f44336',
+                    color: '#f44336',
+                    '&:hover': { 
+                      bgcolor: '#ffebee',
+                      borderColor: '#f44336'
+                    }
+                  }}
+                >
+                  Rejeitar Candidato
+                </Button>
+              </Stack>
+            </Stack>
+          )}
+        </Box>
+      </Drawer>
 
       {/* Dialog para aceitar candidato */}
       <Dialog open={acceptDialogOpen} onClose={() => setAcceptDialogOpen(false)} maxWidth="sm" fullWidth>
@@ -247,10 +381,10 @@ export default function CandidatesView() {
               <TableHead>
                 <TableRow sx={{ '& th': { fontWeight: 700 } }}>
                   <TableCell sx={{ width: '10%' }}>ID</TableCell>
-                  <TableCell sx={{ width: '16%' }}>Resume</TableCell>
-                  <TableCell sx={{ width: '18%' }}>Full Name</TableCell>
-                  <TableCell sx={{ width: '18%' }}>Approved (Status)</TableCell>
-                  <TableCell sx={{ width: '18%' }}>Answer</TableCell>
+                  <TableCell sx={{ width: '15%' }}>Resume</TableCell>
+                  <TableCell sx={{ width: '25%' }}>Full Name</TableCell>
+                  <TableCell sx={{ width: '20%' }}>Email</TableCell>
+                  <TableCell sx={{ width: '30%' }}>Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -263,12 +397,16 @@ export default function CandidatesView() {
                 ) : (
                   pageRows.map((r) => {
                     const id = r.jobCandidateId;
-                    const isApproved = !!approvedMap[id];
-                    const isSent = !!sentMap[id];
-                    const checkboxDisabled = isSent && isApproved;
 
                     return (
-                      <TableRow key={id} sx={getRowSx(id)}>
+                      <TableRow 
+                        key={id}
+                        onClick={() => openDrawer(r)}
+                        sx={{
+                          cursor: 'pointer',
+                          '&:hover': { bgcolor: '#f5f5f5' }
+                        }}
+                      >
                         <TableCell>{id}</TableCell>
                         <TableCell>
                           <IconButton
@@ -302,9 +440,7 @@ export default function CandidatesView() {
                                 showNotification({ message: msg, severity: 'error' });
                                 UserService.verifyAuthorize(navigate, error.response?.status);
                               }
-                            }
-                              
-                            }
+                            }}
                             sx={{
                               color: '#000',
                               '&:hover': { bgcolor: '#eee' }
@@ -314,36 +450,45 @@ export default function CandidatesView() {
                           </IconButton>
                         </TableCell>
                         <TableCell>{`${r.firstName} ${r.middleName? r.middleName + ' ' : ''}${r.lastName}`}</TableCell>
+                        <TableCell>{r.email}</TableCell>
                         <TableCell>
-                          <Checkbox
-                            checked={isApproved}
-                            onChange={() => handleApprovalChange(id)}
-                            color="secondary"
-                            disabled={checkboxDisabled}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant={isSent ? 'outlined' : 'contained'}
-                            onClick={() => handleSendOrCancel(id)}
-                            sx={{
-                              textTransform: 'none',
-                              fontWeight: 700,
-                              ...(isSent
-                                ? {
-                                    color: '#000',
-                                    borderColor: '#000',
-                                    bgcolor: 'transparent'
-                                  }
-                                : {
-                                    bgcolor: '#000',
-                                    color: '#fff',
-                                    '&:hover': { bgcolor: '#222' }
-                                  })
-                            }}
-                          >
-                            {isSent ? 'Cancel' : 'Send Answer'}
-                          </Button>
+                          <Stack direction="row" spacing={1}>
+                            <Button
+                              variant="contained"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openAcceptDialog(r);
+                              }}
+                              sx={{
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                bgcolor: '#4caf50',
+                                color: '#fff',
+                                '&:hover': { bgcolor: '#45a049' }
+                              }}
+                            >
+                              Aceitar
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRejectCandidate(id);
+                              }}
+                              sx={{
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                borderColor: '#f44336',
+                                color: '#f44336',
+                                '&:hover': { 
+                                  bgcolor: '#ffebee',
+                                  borderColor: '#f44336'
+                                }
+                              }}
+                            >
+                              Rejeitar
+                            </Button>
+                          </Stack>
                         </TableCell>
                       </TableRow>
                     );
@@ -380,11 +525,24 @@ export default function CandidatesView() {
           >
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-                Filter
+                Filtros
               </Typography>
               <Divider sx={{ mb: 2 }} />
+
+              {/* Pesquisa por Nome ou Email */}
               <TextField
-                label="Enter ID"
+                label="Nome ou Email"
+                placeholder="Pesquisar..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                fullWidth
+                size="small"
+                sx={{ mb: 2 }}
+              />
+
+              {/* Filtro por ID */}
+              <TextField
+                label="Filtrar por ID"
                 placeholder="Ex.: 3"
                 value={filterId}
                 onChange={(e) => setFilterId(e.target.value)}
@@ -393,47 +551,27 @@ export default function CandidatesView() {
                 sx={{ mb: 2 }}
                 inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
               />
-              <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mb: 2 }}>
-                <Button
-                  variant="text"
-                  onClick={handleClearFilter}
-                  sx={{ textTransform: 'none', color: '#000' }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleApplyFilter}
-                  sx={{
-                    bgcolor: '#000',
-                    color: '#fff',
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    '&:hover': { bgcolor: '#222' }
-                  }}
-                >
-                  OK
-                </Button>
-              </Stack>
 
-              <Divider sx={{ mb: 1 }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                State
+              {/* Botão Limpar */}
+              <Button
+                variant="outlined"
+                onClick={handleClearFilter}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  borderColor: '#000',
+                  color: '#000',
+                  width: '100%',
+                  '&:hover': { bgcolor: '#f5f5f5' }
+                }}
+              >
+                Limpar Filtros
+              </Button>
+
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="body2" sx={{ color: '#555' }}>
+                Use os botões "Aceitar" ou "Rejeitar" para responder às candidaturas.
               </Typography>
-              {sideMessage ? (
-                <Chip
-                  label={`Answer sent • ID ${sideMessage.id}`}
-                  sx={{
-                    width: '100%',
-                    fontWeight: 700,
-                    bgcolor: sideMessage.approved ? '#c8e6c9' : '#ffcdd2'
-                  }}
-                />
-              ) : (
-                <Typography variant="body2" sx={{ color: '#555' }}>
-                                   No answer sent.
-                </Typography>
-              )}
             </CardContent>
           </Card>
         </Stack>
