@@ -33,11 +33,15 @@ const CandidateService = {
     },
 
     /**
-     * Aceita candidato e integra como funcionário.
-     * Mantém GET enquanto o backend estiver com [HttpGet("accept/{id}")].
+     * Aceita candidato e integra como funcionário com dados opcionais.
+     * Agora é POST para enviar jobTitle, department, defaultPassword
      */
-    accept: (id, opts = {}) => {
-        return api.get(`${CANDIDATE_BASE}/accept/${id}`, opts);
+    accept: (id, data = {}, opts = {}) => {
+        return api.post(`${CANDIDATE_BASE}/accept/${id}`, {
+            jobTitle: data.jobTitle || null,
+            department: data.department || null,
+            defaultPassword: data.defaultPassword || null
+        }, opts);
     },
 
     /**
