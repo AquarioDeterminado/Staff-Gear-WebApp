@@ -21,7 +21,7 @@ export default function Popups({
     fontWeight: 700,
     '&:hover': { bgcolor: '#222' },
   },
-  children,   // deve ser UM único elemento (ex.: <IconButton/>)
+  children,
   onConfirm,
 }) {
   const [open, setOpen] = useState(false);

@@ -80,6 +80,7 @@ export default function HRRecords() {
   const [editIndex, setEditIndex] = useState(null);
 
   const [form, setForm] = useState({
+    BusinessEntityID: '',
     Rate: '€',
     RateChangeDate: '',
     PayFrequency: '',
@@ -124,6 +125,7 @@ export default function HRRecords() {
     setMode('add');
     setEditIndex(null);
     setForm({
+      BusinessEntityID: '',
       Rate: '€',
       RateChangeDate: '',
       PayFrequency: '',
@@ -145,6 +147,7 @@ export default function HRRecords() {
     if (tab === PAYMENT_TAB) {
       const item = payments[realIndex];
       setForm({
+        BusinessEntityID: item?.BusinessEntityID || '',
         Rate: (item?.Rate || '').toString().trim().startsWith('€') ? item?.Rate : `€${item?.Rate ?? ''}`,
         RateChangeDate: item?.RateChangeDate || '',
         P_FullName: item?.FullName || '',
@@ -158,6 +161,7 @@ export default function HRRecords() {
     } else {
       const item = jobChanges[realIndex];
       setForm({
+        BusinessEntityID: item?.BusinessEntityID || '',
         Rate: '',
         RateChangeDate: '',
         PayFrequency: '',
@@ -201,10 +205,7 @@ export default function HRRecords() {
     return (
       form.JobTitle?.trim() &&
       form.DepartmentName?.trim() &&
-      form.StartDate?.trim() &&
-      isValidDateYMD(form.StartDate) &&
-      (form.EndDate?.trim() ? isValidDateYMD(form.EndDate) : true) &&
-      form.J_FullName?.trim()
+      form.StartDate?.trim()
     );
   }, [form, tab]);
 
@@ -212,16 +213,14 @@ export default function HRRecords() {
     if (!canSave) return;
 
     if (tab === PAYMENT_TAB) {
-      var payment = payments[editIndex];
-      const newItem = {
-        BusinessEntityID:payment.BusinessEntityID || null,
-        P_FullName: payment.P_FullName,
-        Rate: parseFloat(form.Rate.replace('€', '').trim()),
-        RateChangeDate: payment.RateChangeDate,
-        PayFrequency: parseInt(form.PayFrequency, 10),
-      };
-
       if (mode === 'add') {
+
+        const newItem = {
+          BusinessEntityID: form.BusinessEntityID,
+          Rate: parseFloat(form.Rate.replace('€', '').trim()),
+          RateChangeDate: form.RateChangeDate,
+          PayFrequency: parseInt(form.PayFrequency, 10),
+        };
 
         try {
           await HRService.createPayment({ BusinessEntityID: newItem.BusinessEntityID, PFullName: newItem.P_FullName, Rate: newItem.Rate, RateChangeDate: newItem.RateChangeDate, PayFrequency: newItem.PayFrequency});
@@ -233,8 +232,18 @@ export default function HRRecords() {
           notif({ severity: 'error', message: error?.message || 'Error creating payment.' });
         }
       } else if (editIndex != null) {
+        var payment = payments[editIndex];
+
+        const newItem = {
+          BusinessEntityID: payment.BusinessEntityID,
+          P_FullName: payment.FullName,
+          Rate: parseFloat(form.Rate.replace('€', '').trim()),
+          RateChangeDate: payment.RateChangeDate,
+          PayFrequency: parseInt(form.PayFrequency, 10),
+        };
+
         try {
-          await HRService.editPayment({ BusinessEntityID: newItem.BusinessEntityID, Name: newItem.Name, Amount: newItem.Amount, Date: newItem.Date});
+          await HRService.editPayment({ BusinessEntityID: newItem.BusinessEntityID, FullName: newItem.P_FullName, Rate: newItem.Rate, RateChangeDate: newItem.RateChangeDate, PayFrequency: newItem.PayFrequency});
           setPayments((prev) => prev.map((p, i) => (i === editIndex ? newItem : p)));
         } catch (error) {
           console.error('Error editing payment:', error);
@@ -243,17 +252,15 @@ export default function HRRecords() {
         }
       }
     } else {
-      const newItem = {
-        BusinessEntityID: null,
-        FullName: form.FullName,
-        DepartmentName: form.DepartmentName,
-        JobTitle: form.JobTitle,
-        StartDate: form.StartDate,
-        EndDate: form.EndDate || null,
-      };
-
       if (mode === 'add') {
         try {
+          const newItem = {
+            BusinessEntityID: form.BusinessEntityID,
+            DepartmentName: form.DepartmentName,
+            JobTitle: form.JobTitle,
+            StartDate: form.StartDate,
+            EndDate: form.EndDate || null,
+          };
           await HRService.createMovement({ BusinessEntityID: newItem.BusinessEntityID, FullName: newItem.FullName, DepartmentName: newItem.DepartmentName, JobTitle: newItem.JobTitle, StartDate: newItem.StartDate, EndDate: newItem.EndDate});
           setJobChanges((prev) => [newItem, ...prev]);
           setJobChangesPage(1);
@@ -263,6 +270,16 @@ export default function HRRecords() {
           notif({ severity: 'error', message: error?.message || 'Error creating job change.' });
         }
       } else if (editIndex != null) {
+        var jobChange = jobChanges[editIndex];
+
+        const newItem = {
+            BusinessEntityID: jobChange.BusinessEntityID,
+            DepartmentName: form.DepartmentName,
+            StartDate: jobChange.StartDate,
+            JobTitle: form.JobTitle,
+            EndDate: Date.parse(form.EndDate) || null,
+        };
+
         try {
           await HRService.editMovement({ BusinessEntityID: newItem.BusinessEntityID, FullName: newItem.FullName, DepartmentName: newItem.DepartmentName, JobTitle: newItem.JobTitle, StartDate: newItem.StartDate, EndDate: newItem.EndDate});
           setJobChanges((prev) => prev.map((j, i) => (i === editIndex ? newItem : j)));
@@ -472,17 +489,22 @@ export default function HRRecords() {
                         >
                           <EditOutlinedIcon />
                         </IconButton>
-                        <IconButton
-                          onClick={() => handleDelete(idx)}
-                          sx={{
-                            bgcolor: '#fff3e0',
-                            color: '#000000ff',
-                            '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                          }}
-                          size="small"
-                        >
-                          <DeleteOutlineIcon />
-                        </IconButton>
+                          <Popups
+                            title="Remove record"
+                            message="Do you really want to delete this record? This action is irreversible."
+                            onConfirm={() => handleDelete(idx)}
+                          >
+                            <IconButton
+                              sx={{
+                                bgcolor: '#fff3e0',
+                                color: '#000000ff',
+                                '&:hover': { bgcolor: '#000000ff', color: '#fff' },
+                              }}
+                              size="small"
+                            >
+                              <DeleteOutlineIcon />
+                            </IconButton>
+                          </Popups>
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -532,7 +554,24 @@ export default function HRRecords() {
         <DialogContent dividers>
           <Stack spacing={1.5}>
             {tab === 0 ? (
+              mode === 'add' ? (
               <>
+                <TextField
+                  label="Employee"
+                  value={form.BusinessEntityID}
+                  onChange={onChange('BusinessEntityID')}
+                  fullWidth
+                  size="small"
+                  required
+                />
+                <TextField
+                  label="Rate Change Date (yyyy-mm-ddThh:mm:ss)"
+                  value={form.RateChangeDate}
+                  onChange={onChange('RateChangeDate')}
+                  fullWidth
+                  size="small"
+                  required
+                /> 
                 <TextField
                   label="Rate"
                   value={form.Rate}
@@ -556,6 +595,31 @@ export default function HRRecords() {
                   }}
                 />
               </>
+              ) :(
+              <>
+                <TextField
+                  label="Rate"
+                  value={form.Rate}
+                  onChange={onChange('Rate')}
+                  fullWidth
+                  size="small"
+                  required
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start"></InputAdornment>,
+                  }}
+                />
+                <TextField
+                  label="Pay Frequency"
+                  value={form.PayFrequency}
+                  onChange={onChange('PayFrequency')}
+                  fullWidth
+                  size="small"
+                  required
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start"></InputAdornment>,
+                  }}
+                />
+              </>)
             ) : (
               <>
                 <TextField
@@ -591,8 +655,8 @@ export default function HRRecords() {
                 />
                 <TextField
                   label="Employee"
-                  value={form.FullName}
-                  onChange={onChange('FullName')}
+                  value={form.BusinessEntityID}
+                  onChange={onChange('BusinessEntityID')}
                   fullWidth
                   size="small"
                   required

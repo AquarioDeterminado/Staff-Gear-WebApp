@@ -102,7 +102,7 @@ const EmployeeService = {
   getEmployeePayments: async (id) => {
     const response = await api.get(`${EMPLOYEE_PATH}/Payments/${id}`);
 
-    if (!response || response.status !== 200) {
+    if (!response || (response.status !== 200 && response.status !== 204)) {
       throw new Error('Erro ao obter pagamentos do funcionário! Error code: ' + response?.status);
     } else {
       console.log('Pagamentos do funcionário obtidos com sucesso!');
@@ -124,7 +124,7 @@ const EmployeeService = {
   getEmployeeMovements: async (id) => {
     const response = await api.get(`${EMPLOYEE_PATH}/Movements/${id}`);
 
-    if (!response || response.status !== 200) {
+    if (!response || (response.status !== 200 && response.status !== 204)) {
       throw new Error('Erro ao obter movimentos do funcionário! Error code: ' + response?.status);
     } else {
       console.log('Movimentos do funcionário obtidos com sucesso!');

@@ -60,7 +60,7 @@ const HRService = {
     },
 
     deletePayment: async (payment) => {
-        const response = await api.delete(`${PAYMENTS_PATH}`, new PaymentViewModel({BusinessEntityID: payment.BusinessEntityID, FullName: payment.FullName, Rate: payment.Rate, RateChangeDate: payment.RateChangeDate, PayFrequency: payment.PayFrequency}));
+        const response = await api.delete(`${PAYMENTS_PATH}/delete/${payment.BusinessEntityID}/${payment.RateChangeDate}`);
         if (!response || response.status !== 200) {
             throw new Error('Erro ao deletar pagamento! Error code: ' + response?.status);
         } else {
@@ -87,7 +87,8 @@ const HRService = {
     },
 
     deleteMovement: async (movement) => {
-        const response = await api.delete(`${MOVEMENTS_PATH}`, new MovementViewModel({BusinessEntityID: movement.BusinessEntityID, FullName: movement.FullName, DepartmentName: movement.DepartmentName, JobTitle: movement.JobTitle, StartDate: movement.StartDate, EndDate: movement.EndDate}));
+        console.log(movement);
+        const response = await api.delete(`${MOVEMENTS_PATH}/delete/${movement.BusinessEntityID}/${movement.DepartmentName}/${movement.StartDate}/`);
         if (!response || response.status !== 200) {
             throw new Error('Erro ao deletar movimentação! Error code: ' + response?.status);
         } else {
