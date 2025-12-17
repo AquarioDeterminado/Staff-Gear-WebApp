@@ -18,7 +18,11 @@ import {
   Button,
   Stack,
   Divider,
-  Chip
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import HeaderBar from '../components/HeaderBar';
@@ -44,6 +48,15 @@ export default function CandidatesView() {
   );
   const [sideMessage, setSideMessage] = useState(null);
 
+  // Dialog para aceitar candidato
+  const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
+  const [candidateToAccept, setCandidateToAccept] = useState(null);
+  const [acceptFormData, setAcceptFormData] = useState({
+    jobTitle: '',
+    department: 'Sales',
+    defaultPassword: 'Welcome@123'
+  });
+
   const filtered = useMemo(() => {
     const n = parseInt(filterId, 10);
     if (!filterId || Number.isNaN(n)) return rows;
@@ -66,12 +79,55 @@ export default function CandidatesView() {
 
       if (next) {
         setSideMessage({ id, approved: !!approvedMap[id] });
-        CandidateService.accept(id);
+        
+        // Se aprovado, abre dialog para aceitar
+        if (approvedMap[id]) {
+          const candidate = rows.find(r => r.jobCandidateId === id);
+          setCandidateToAccept(candidate);
+          setAcceptFormData({
+            jobTitle: '',
+            department: 'Sales',
+            defaultPassword: 'Welcome@123'
+          });
+          setAcceptDialogOpen(true);
+        }
       } else {
         setSideMessage((curr) => (curr && curr.id === id ? null : curr));
       }
       return newMap;
     });
+  };
+
+  const handleAcceptCandidate = async () => {
+    try {
+      const result = await CandidateService.accept(candidateToAccept.jobCandidateId, {
+        jobTitle: acceptFormData.jobTitle || undefined,
+        department: acceptFormData.department || undefined,
+        defaultPassword: acceptFormData.defaultPassword || undefined
+      });
+
+      // Remove candidato da lista
+      setRows((prev) => prev.filter(r => r.jobCandidateId !== candidateToAccept.jobCandidateId));
+      
+      showNotification({
+        message: `Candidato ${candidateToAccept.firstName} foi aceito como funcionário!`,
+        severity: 'success'
+      });
+
+      setAcceptDialogOpen(false);
+      setCandidateToAccept(null);
+    } catch (error) {
+      let msg;
+      const data = error?.response?.data;
+      if (typeof data === 'string') {
+        msg = data;
+      } else if (data && typeof data === 'object') {
+        msg = data.message || data.detail || data.title || 'Erro ao aceitar candidato';
+      }
+      if (!msg) msg = error?.message || 'Erro ao aceitar candidato.';
+      showNotification({ message: msg, severity: 'error' });
+      UserService.verifyAuthorize(navigate, error?.response?.status);
+    }
   };
 
   // Filtro
@@ -122,6 +178,54 @@ export default function CandidatesView() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
+
+      {/* Dialog para aceitar candidato */}
+      <Dialog open={acceptDialogOpen} onClose={() => setAcceptDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Aceitar Candidato: {candidateToAccept?.firstName} {candidateToAccept?.lastName}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 2 }}>
+            <TextField
+              label="Job Title"
+              placeholder="Ex: Software Developer"
+              value={acceptFormData.jobTitle}
+              onChange={(e) => setAcceptFormData({ ...acceptFormData, jobTitle: e.target.value })}
+              fullWidth
+              size="small"
+              helperText="Deixe vazio para usar 'New Hire'"
+            />
+            <TextField
+              label="Department"
+              placeholder="Ex: IT"
+              value={acceptFormData.department}
+              onChange={(e) => setAcceptFormData({ ...acceptFormData, department: e.target.value })}
+              fullWidth
+              size="small"
+              helperText="Default: Sales"
+            />
+            <TextField
+              label="Password"
+              type="password"
+              value={acceptFormData.defaultPassword}
+              onChange={(e) => setAcceptFormData({ ...acceptFormData, defaultPassword: e.target.value })}
+              fullWidth
+              size="small"
+              helperText="Será enviada ao employee (deve mudar no primeiro login)"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAcceptDialogOpen(false)}>Cancelar</Button>
+          <Button 
+            onClick={handleAcceptCandidate} 
+            variant="contained"
+            sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#45a049' } }}
+          >
+            Aceitar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Container maxWidth="xl" sx={{ pt: 3, pb: 2 }}>
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
