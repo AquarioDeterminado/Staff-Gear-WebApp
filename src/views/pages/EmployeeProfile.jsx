@@ -1,4 +1,5 @@
 
+// src/views/pages/EmployeeProfile.jsx
 import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
@@ -38,6 +39,7 @@ export default function EmployeeProfile() {
 
   const [profileInfo, setProfileInfo] = useState(null);
 
+  // Edição global (apenas para First/Middle/Last/Email)
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [formData, setFormData] = useState({
@@ -74,6 +76,8 @@ export default function EmployeeProfile() {
       try {
         const info = await EmployeeService.getEmployee(BusinessID);
         setProfileInfo(info);
+
+        // Inicialização (primeiro load)
         setFormData({
           FirstName: info?.FirstName || '',
           MiddleName: info?.MiddleName || '',
@@ -94,6 +98,26 @@ export default function EmployeeProfile() {
     GetEmployeeInfo();
   }, [BusinessID, navigate]);
 
+  // =========================
+  // ALTERAÇÃO A) — SINCRONIZAR formData A PARTIR DE profileInfo
+  // APENAS QUANDO NÃO ESTÁS A EDITAR (evita reidratar o input enquanto escreves)
+  // =========================
+  useEffect(() => {
+    if (profileInfo && !isEditMode) {
+      setFormData({
+        FirstName: profileInfo.FirstName || '',
+        MiddleName: profileInfo.MiddleName || '',
+        LastName: profileInfo.LastName || '',
+        JobTitle: profileInfo.JobTitle || '',
+        Department: profileInfo.Department || '',
+        Email: profileInfo.Email || '',
+        Role: profileInfo.Role || ''
+      });
+    }
+  }, [profileInfo, isEditMode]);
+  // =========================
+
+  // Qualquer utilizador pode editar os campos básicos
   const enterEditMode = () => setIsEditMode(true);
 
   const cancelEdit = () => {
@@ -128,11 +152,13 @@ export default function EmployeeProfile() {
     try {
       setIsSavingProfile(true);
 
+      // Apenas os campos básicos serão enviados/atualizados
       const payload = {
         FirstName: formData.FirstName,
         MiddleName: formData.MiddleName,
         LastName: formData.LastName,
         Email: formData.Email
+        // ⚠️ JobTitle, Department e Role NÃO são enviados (não editáveis)
       };
 
       await EmployeeService.updateEmployee(BusinessID, payload);
@@ -279,9 +305,11 @@ export default function EmployeeProfile() {
                   type="text"
                   fullWidth
                   size="small"
-                  autoComplete = "off"
+                  autoComplete="off"
                   value={formData.FirstName}
-                  onChange={(e) => setFormData((s) => ({ ...s, FirstName: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, FirstName: e.target.value }))
+                  }
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
@@ -302,11 +330,14 @@ export default function EmployeeProfile() {
               {isEditMode ? (
                 <TextField
                   label="Middle Name"
+                  type="text"
                   fullWidth
                   size="small"
-                  autoComplete = "off"
+                  autoComplete="off"
                   value={formData.MiddleName}
-                  onChange={(e) => setFormData((s) => ({ ...s, MiddleName: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, MiddleName: e.target.value }))
+                  }
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
@@ -327,11 +358,14 @@ export default function EmployeeProfile() {
               {isEditMode ? (
                 <TextField
                   label="Last Name"
+                  type="text"
                   fullWidth
                   size="small"
-                  autoComplete = "off"
+                  autoComplete="off"
                   value={formData.LastName}
-                  onChange={(e) => setFormData((s) => ({ ...s, LastName: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, LastName: e.target.value }))
+                  }
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
@@ -348,6 +382,7 @@ export default function EmployeeProfile() {
             </FieldCard>
           </Box>
 
+          {/* Job Title & Department (SEM EDIÇÃO) */}
           <Box
             sx={{
               display: 'grid',
@@ -356,6 +391,7 @@ export default function EmployeeProfile() {
               gap: 14
             }}
           >
+            {/* Job Title - SEM botão de editar */}
             <FieldCard>
               <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
                 <WorkIcon />
@@ -365,6 +401,7 @@ export default function EmployeeProfile() {
               </Stack>
             </FieldCard>
 
+            {/* Department - SEM botão de editar */}
             <FieldCard>
               <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
                 <ApartmentIcon />
@@ -384,9 +421,11 @@ export default function EmployeeProfile() {
                   type="email"
                   fullWidth
                   size="small"
-                  autoComplete = "off"
+                  autoComplete="off"
                   value={formData.Email}
-                  onChange={(e) => setFormData((s) => ({ ...s, Email: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, Email: e.target.value }))
+                  }
                   InputProps={{ startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} /> }}
                 />
               ) : (
@@ -405,6 +444,7 @@ export default function EmployeeProfile() {
             </FieldCard>
           </Box>
 
+          {/* Botão Alterar Password */}
           <Stack direction="row" justifyContent="center" sx={{ pt: 0.5 }}>
             <Button
               variant="contained"
@@ -480,14 +520,13 @@ export default function EmployeeProfile() {
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert
+        <Alert>
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
-        >
+
           {snackbar.message}
-               </Alert>
+        </Alert>
       </Snackbar>
     </Box>
-  );
-};
+)};
