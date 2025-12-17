@@ -377,14 +377,14 @@ export default function CandidatesView() {
               overflow: 'auto'
             }}
           >
-            <Table size="small" sx={{ minWidth: 820, tableLayout: 'fixed' }}>
+            <Table size="small" sx={{ minWidth: 1000, tableLayout: 'auto' }}>
               <TableHead>
-                <TableRow sx={{ '& th': { fontWeight: 700 } }}>
-                  <TableCell sx={{ width: '10%' }}>ID</TableCell>
-                  <TableCell sx={{ width: '15%' }}>Resume</TableCell>
-                  <TableCell sx={{ width: '25%' }}>Full Name</TableCell>
-                  <TableCell sx={{ width: '20%' }}>Email</TableCell>
-                  <TableCell sx={{ width: '30%' }}>Ações</TableCell>
+                <TableRow sx={{ '& th': { fontWeight: 700, backgroundColor: '#ffe0b2' } }}>
+                  <TableCell sx={{ width: '8%' }}>ID</TableCell>
+                  <TableCell sx={{ width: '10%' }}>Resume</TableCell>
+                  <TableCell sx={{ width: '22%' }}>Nome</TableCell>
+                  <TableCell sx={{ width: '28%' }}>Email</TableCell>
+                  <TableCell sx={{ width: '32%', textAlign: 'center' }}>Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -452,18 +452,21 @@ export default function CandidatesView() {
                         <TableCell>{`${r.firstName} ${r.middleName? r.middleName + ' ' : ''}${r.lastName}`}</TableCell>
                         <TableCell>{r.email}</TableCell>
                         <TableCell>
-                          <Stack direction="row" spacing={1}>
+                          <Stack direction="row" spacing={1} justifyContent="center">
                             <Button
                               variant="contained"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openAcceptDialog(r);
                               }}
+                              size="small"
                               sx={{
                                 textTransform: 'none',
-                                fontWeight: 700,
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
                                 bgcolor: '#4caf50',
                                 color: '#fff',
+                                padding: '6px 12px',
                                 '&:hover': { bgcolor: '#45a049' }
                               }}
                             >
@@ -475,11 +478,14 @@ export default function CandidatesView() {
                                 e.stopPropagation();
                                 handleRejectCandidate(id);
                               }}
+                              size="small"
                               sx={{
                                 textTransform: 'none',
-                                fontWeight: 700,
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
                                 borderColor: '#f44336',
                                 color: '#f44336',
+                                padding: '6px 12px',
                                 '&:hover': { 
                                   bgcolor: '#ffebee',
                                   borderColor: '#f44336'
@@ -568,10 +574,6 @@ export default function CandidatesView() {
                 Limpar Filtros
               </Button>
 
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="body2" sx={{ color: '#555' }}>
-                Use os botões "Aceitar" ou "Rejeitar" para responder às candidaturas.
-              </Typography>
             </CardContent>
           </Card>
         </Stack>
