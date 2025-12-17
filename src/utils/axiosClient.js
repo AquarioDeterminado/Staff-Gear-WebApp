@@ -16,6 +16,13 @@ export function setAuthToken(token) {
   }
 }
 
+// Restaurar token do localStorage ao inicializar
+const storedToken = localStorage.getItem('access_token');
+if (storedToken) {
+  setAuthToken(storedToken);
+  console.log('Token restaurado do localStorage ao iniciar a aplicação');
+}
+
 // Interceptor para erros globais
 api.interceptors.response.use(
   response => response,
