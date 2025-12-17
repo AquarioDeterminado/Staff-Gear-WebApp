@@ -113,8 +113,9 @@ const EmployeeService = {
         new PaymentViewModel({
           BusinessEntityID: paymentData.businessEntityID,
           Name: paymentData.fullName,
-          Amount: paymentData.rate,
-          Date: paymentData.payedDate
+          Rate: paymentData.rate,
+          PayFrequency: paymentData.payFrequency,
+          RateChangeDate: paymentData.rateChangeDate
         })
     );
     return payments;

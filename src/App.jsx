@@ -1,11 +1,13 @@
-import './App.css'
+import React from 'react';
+import { RouterProvider } from 'react-router-dom';
+import router from './routes';
+import Popups from './views/components/Popups';
 
-function App() {
+export default function App() {
   return (
     <>
-      <p>App Component</p>
+      <RouterProvider router={router} />
+      <Popups />
     </>
-  )
+  );
 }
-
-export default App

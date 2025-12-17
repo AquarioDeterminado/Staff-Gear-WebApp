@@ -1,10 +1,11 @@
 class PaymentViewModel {
 
-    constructor({BusinessEntityID, Name, Amount, Date}) {
+    constructor({BusinessEntityID, FullName, Rate, PayFrequency, RateChangeDate}) {
         this.BusinessEntityID = BusinessEntityID;
-        this.Name = Name;
-        this.Amount = Amount;
-        this.Date = Date;
+        this.FullName = FullName;
+        this.Rate = Rate;
+        this.PayFrequency = PayFrequency;
+        this.RateChangeDate = RateChangeDate;
     }
 }
 

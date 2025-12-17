@@ -20,8 +20,6 @@ const router = createBrowserRouter(createRoutesFromElements (
             <Route path="/hr/records" element={<HRRecords />} />
             
 
-            {/* SÓ PARA TESTE */}
-
         </>
     )
 );

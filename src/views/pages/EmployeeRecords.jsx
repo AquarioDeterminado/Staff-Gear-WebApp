@@ -34,7 +34,7 @@ export default function EmployeeRecords() {
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
 
-  const paymentsColumns = ['Date of Payment', 'Rate'];
+  const paymentsColumns = ['Date - Changed Rate', 'Rate', 'Pay Frequency'];
   const jobChangesColumns = ['Job Title', 'Department', 'Start Date', 'End Date'];
   const columns = tab === 0 ? paymentsColumns : jobChangesColumns;
 
@@ -51,7 +51,8 @@ export default function EmployeeRecords() {
         UserSession.verifyAuthorize(navigate, error.status);
         setPayments([]);
         console.error('Error fetching payments:', error);
-        notifs({ severity: 'error', message: error?.message || 'Error fetching payments.' });
+        if (error.status !== 404)
+          notifs({ severity: 'error', message: error?.message || 'Error fetching payments.' });
       }
 
       try {
@@ -61,7 +62,8 @@ export default function EmployeeRecords() {
         UserSession.verifyAuthorize(navigate, error.status);
         setJobChanges([]);
         console.error('Error fetching job changes:', error);
-        notifs({ severity: 'error', message: error?.message || 'Error fetching job changes.' });
+        if (error.status !== 404)
+          notifs({ severity: 'error', message: error?.message || 'Error fetching job changes.' });
       }
 
       setPaymentsPage(1);
@@ -169,9 +171,10 @@ export default function EmployeeRecords() {
                   </TableRow>
                 ) : (
                   visiblePayments.map((payment, index) => (
-                    <TableRow key={`${payment.Date}-${index}`}>
-                      <TableCell>{payment.Date}</TableCell>
-                      <TableCell>{payment.Amount}</TableCell>
+                    <TableRow key={`${payment.rateChangeDate}-${index}`}>
+                      <TableCell>{payment.RateChangeDate}</TableCell>
+                      <TableCell>{payment.Rate}</TableCell>
+                      <TableCell>{payment.PayFrequency}</TableCell>
                     </TableRow>
                   ))
                 )

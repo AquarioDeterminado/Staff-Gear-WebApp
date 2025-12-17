@@ -16,7 +16,7 @@ const HRService = {
 
         var payments = [];
         for (let payment of response.data) {
-            var newPayment = new PaymentViewModel({BusinessEntityID: payment.businessEntityID, Name: payment.fullName, Amount: payment.rate, Date: payment.payedDate});
+            var newPayment = new PaymentViewModel({BusinessEntityID: payment.businessEntityID, FullName: payment.fullName, Rate: payment.rate, RateChangeDate: payment.rateChangeDate, PayFrequency: payment.payFrequency}); // Supondo que payment já esteja no formato desejado
             payments.push(newPayment);
         }
 
@@ -38,6 +38,61 @@ const HRService = {
         }
         
         return movements;
+    },
+
+    createPayment: async (payment) => {
+        const response = await api.post(PAYMENTS_PATH, new PaymentViewModel({BusinessEntityID: payment.BusinessEntityID, FullName: payment.FullName, Rate: payment.Rate, RateChangeDate: payment.RateChangeDate, PayFrequency: payment.PayFrequency}));
+        
+        if (!response || (response.status !== 200 && response.status !== 201)) {
+            throw new Error('Erro ao criar pagamento! Error code: ' + response?.status);
+        } else {
+            console.log('Pagamento criado com sucesso!');
+        }
+    },
+
+    editPayment: async (payment) => {
+                const response = await api.put(`${PAYMENTS_PATH}`, new PaymentViewModel({BusinessEntityID: payment.BusinessEntityID, FullName: payment.FullName, Rate: payment.Rate, RateChangeDate: payment.RateChangeDate, PayFrequency: payment.PayFrequency}));
+        if (!response || response.status !== 200) {
+            throw new Error('Erro ao editar pagamento! Error code: ' + response?.status);
+        } else {
+            console.log('Pagamento editado com sucesso!');
+        }
+    },
+
+    deletePayment: async (payment) => {
+        const response = await api.delete(`${PAYMENTS_PATH}`, new PaymentViewModel({BusinessEntityID: payment.BusinessEntityID, FullName: payment.FullName, Rate: payment.Rate, RateChangeDate: payment.RateChangeDate, PayFrequency: payment.PayFrequency}));
+        if (!response || response.status !== 200) {
+            throw new Error('Erro ao deletar pagamento! Error code: ' + response?.status);
+        } else {
+            console.log('Pagamento deletado com sucesso!');
+        }
+    },
+
+    createMovement: async (movement) => {
+        const response = await api.post(MOVEMENTS_PATH, new MovementViewModel({BusinessEntityID: movement.BusinessEntityID, FullName: movement.FullName, DepartmentName: movement.DepartmentName, JobTitle: movement.JobTitle, StartDate: movement.StartDate, EndDate: movement.EndDate}));
+        if (!response || (response.status !== 200 && response.status !== 201)) {
+            throw new Error('Erro ao criar movimentação! Error code: ' + response?.status);
+        } else {
+            console.log('Movimentação criada com sucesso!');
+        }
+    },
+
+    editMovement: async (movement) => {
+        const response = await api.put(`${MOVEMENTS_PATH}`, new MovementViewModel({BusinessEntityID: movement.BusinessEntityID, FullName: movement.FullName, DepartmentName: movement.DepartmentName, JobTitle: movement.JobTitle, StartDate: movement.StartDate, EndDate: movement.EndDate}));
+        if (!response || response.status !== 200) {
+            throw new Error('Erro ao editar movimentação! Error code: ' + response?.status);
+        } else {
+            console.log('Movimentação editada com sucesso!');
+        }
+    },
+
+    deleteMovement: async (movement) => {
+        const response = await api.delete(`${MOVEMENTS_PATH}`, new MovementViewModel({BusinessEntityID: movement.BusinessEntityID, FullName: movement.FullName, DepartmentName: movement.DepartmentName, JobTitle: movement.JobTitle, StartDate: movement.StartDate, EndDate: movement.EndDate}));
+        if (!response || response.status !== 200) {
+            throw new Error('Erro ao deletar movimentação! Error code: ' + response?.status);
+        } else {
+            console.log('Movimentação deletada com sucesso!');
+        }
     }
 }
 
