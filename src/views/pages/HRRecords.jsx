@@ -26,7 +26,7 @@ import {
 import AddIcon from '@mui/icons-material/AddCircleOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-
+import ErrorHandler from '../../utils/ErrorHandler';
 import HeaderBar from '../components/HeaderBar';
 import { useNavigate } from 'react-router-dom';
 import UserSession from '../../utils/UserSession';
@@ -210,6 +210,8 @@ export default function HRRecords() {
   }, [form, tab]);
 
   const handleAddOrSave = async () => {
+    var errorMessage = null;
+
     if (!canSave) return;
 
     if (tab === PAYMENT_TAB) {
@@ -229,7 +231,8 @@ export default function HRRecords() {
         } catch (error) {
           console.error('Error creating payment:', error);
           UserSession.verifyAuthorize(navigate, error?.status);
-          notif({ severity: 'error', message: error?.message || 'Error creating payment.' });
+          errorMessage = ErrorHandler(error);
+          notif({ severity: 'error', message: errorMessage || 'Error creating job change.' });
         }
       } else if (editIndex != null) {
         var payment = payments[editIndex];
@@ -248,7 +251,8 @@ export default function HRRecords() {
         } catch (error) {
           console.error('Error editing payment:', error);
           UserSession.verifyAuthorize(navigate, error?.status);
-          notif({ severity: 'error', message: error?.message || 'Error editing payment.' });
+          errorMessage = ErrorHandler(error);
+          notif({ severity: 'error', message: errorMessage || 'Error creating job change.' });
         }
       }
     } else {
@@ -267,7 +271,8 @@ export default function HRRecords() {
         } catch (error) {
           console.error('Error creating job change:', error);
           UserSession.verifyAuthorize(navigate, error?.status);
-          notif({ severity: 'error', message: error?.message || 'Error creating job change.' });
+          errorMessage = ErrorHandler(error);
+          notif({ severity: 'error', message: errorMessage || 'Error creating job change.' });
         }
       } else if (editIndex != null) {
         var jobChange = jobChanges[editIndex];
@@ -286,7 +291,8 @@ export default function HRRecords() {
         } catch (error) {
           console.error('Error editing job change:', error);
           UserSession.verifyAuthorize(navigate, error?.status);
-          notif({ severity: 'error', message: error?.message || 'Error editing job change.' });
+          errorMessage = ErrorHandler(error);
+          notif({ severity: 'error', message: errorMessage || 'Error creating job change.' });
         }
       }
     }
@@ -294,7 +300,9 @@ export default function HRRecords() {
   };
 
   const handleDelete = async (indexInPage) => {
+    var errorMessage = null;
     const realIndex = tab === 0 ? paymentsStart + indexInPage : jobChangesStart + indexInPage;
+    
     if (tab === 0) {
       try {
         const item = payments[realIndex];
@@ -303,7 +311,8 @@ export default function HRRecords() {
       } catch (error) {
         console.error('Error deleting payment:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
-        notif({ severity: 'error', message: error?.message || 'Error deleting payment.' });
+        errorMessage = ErrorHandler(error);
+        notif({ severity: 'error', message: errorMessage || 'Error creating job change.' });
       }
     } else {
       try {
@@ -313,7 +322,8 @@ export default function HRRecords() {
       } catch (error) {
         console.error('Error deleting job change:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
-        notif({ severity: 'error', message: error?.message || 'Error deleting job change.' });
+        errorMessage = ErrorHandler(error);
+        notif({ severity: 'error', message: errorMessage || 'Error creating job change.' });
       }
     }
   };

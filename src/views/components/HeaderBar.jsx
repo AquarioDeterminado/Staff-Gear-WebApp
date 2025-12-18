@@ -67,6 +67,17 @@ export default function HeaderBar() {
     }
   }
 
+  function sendToPage(message) {
+    console.log(message);
+    if (message.includes('New Payment History Added') || message.includes('New Department Movement Added') || message.includes('Payment History Deleted') || message.includes('Department Movement Deleted') || message.includes('Payment History Updated') || message.includes('Department Movement Updated')) {
+      navigate('/records');
+    } else if (message.includes('has updated their information')) {
+      navigate('/employees');
+    } else if (message.includes('New candidate applied')) {
+      navigate('/candidates');
+    }
+  }
+
   return (
     <>
       <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '0.1px solid #000000ff' }}>
@@ -146,7 +157,7 @@ export default function HeaderBar() {
         {notifications.length > 0 ? (
           notifications.map((n) => (
             <MenuItem key={n.NotificationID} divider>
-              <ListItemText primary={n.Message} secondary={n.CreatedAt} sx={{ mr: 2 }} />
+              <ListItemText primary={n.Message} secondary={n.CreatedAt} sx={{ mr: 2 }} onClick={() => {sendToPage(n.Message)}} />
               <Button
                 size="small"
                 color="error"

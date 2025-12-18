@@ -30,6 +30,7 @@ import Pagination from '@mui/material/Pagination';
 import UserSession from '../../utils/UserSession';
 import AddIcon from '@mui/icons-material/AddCircleOutline';
 import { useNotification } from '../components/NotificationProvider';
+import ErrorHandler from '../../utils/ErrorHandler';
 
 export default function EmployeesList() {
   const navigate = useNavigate();
@@ -173,6 +174,7 @@ export default function EmployeesList() {
 
   const handleSave = async () => {
     const ok = validateForm(form);
+
     if (!ok) return;
 
     try {
@@ -213,7 +215,7 @@ export default function EmployeesList() {
     } catch (error) {
       console.error('Error saving employee:', error);
       UserSession.verifyAuthorize(navigate, error.status);
-      notifs({ severity: 'error', message: error?.message || 'Error saving employee.' });
+      notifs({ severity: 'error', message: ErrorHandler(error) || 'Error creating job change.' });
     }
   };
 
@@ -224,7 +226,7 @@ export default function EmployeesList() {
     } catch (error) {
       console.error('Error deleting employee:', error);
       UserSession.verifyAuthorize(navigate, error.status);
-      notifs({ severity: 'error', message: error?.message || 'Error deleting employee.' });
+      notifs({ severity: 'error', message: ErrorHandler(error) || 'Error deleting employee.' });
     }
   };
 
@@ -242,7 +244,7 @@ export default function EmployeesList() {
       } catch (error) {
         console.error('Error fetching initial users:', error);
         UserSession.verifyAuthorize(navigate, error.status);
-        notifs({ severity: 'error', message: error?.message || 'Error fetching employees.' });
+        notifs({ severity: 'error', message: ErrorHandler(error) || 'Error deleting employee.' });
       }
       setUsers(employees);
   }
