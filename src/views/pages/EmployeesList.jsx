@@ -189,7 +189,7 @@ export default function EmployeesList() {
           hireDate: form.hireDate,
           password: form.password
         });
-        setUsers((prev) => [...prev, user]);
+        setUsers(await EmployeeService.getAllEmployees());
       } else {
         await EmployeeService.updateEmployee(form.businessId, {
           FirstName: form.firstName,
@@ -265,15 +265,15 @@ export default function EmployeesList() {
           <Box sx={{ ml: 'auto' }}>
             <Button
               variant="contained"
+              startIcon={<AddIcon />}
               onClick={handleOpenAdd}
               sx={{
-                bgcolor: '#d0d0d0',
+                bgcolor: '#ff9800',
                 color: '#000',
                 textTransform: 'none',
                 fontWeight: 700,
-                borderRadius: 1.25,
-                px: 2.5,
-                '&:hover': { bgcolor: '#bdbdbd' },
+                px: 2,
+                '&:hover': { bgcolor: '#ff9800' },
               }}
             >
               Add User
@@ -344,12 +344,12 @@ export default function EmployeesList() {
                     <TableCell>
                       <Stack direction="row" spacing={1}>
                         <IconButton
-                          aria-label="apagar"
+                          aria-label="delete"
                           onClick={() => handleDelete(row.BusinessEntityID)}
                           sx={{
-                            bgcolor: '#9e9e9e',
-                            color: '#fff',
-                            '&:hover': { bgcolor: '#8d8d8d' },
+                            bgcolor: '#fff3e0',
+                            color: '#000000ff',
+                            '&:hover': { bgcolor: '#000000ff', color: '#fff' },
                           }}
                           size="small"
                         >
@@ -359,9 +359,9 @@ export default function EmployeesList() {
                           aria-label="editar"
                           onClick={() => handleOpenEdit(row)}
                           sx={{
-                            bgcolor: '#9e9e9e',
-                            color: '#fff',
-                            '&:hover': { bgcolor: '#8d8d8d' },
+                            bgcolor: '#fff3e0',
+                            color: '#000000ff',
+                            '&:hover': { bgcolor: '#000000ff', color: '#fff' },
                           }}
                           size="small"
                         >
@@ -375,7 +375,6 @@ export default function EmployeesList() {
             </TableBody>
           </Table>
 
-          {/* Paginação — limitada a 10 linhas por página, página ativa em laranja */}
           <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
             <Pagination
               count={pageCount}
@@ -383,7 +382,7 @@ export default function EmployeesList() {
               onChange={(_, p) => setPage(p)}
               sx={{
                 '& .MuiPaginationItem-root.Mui-selected': {
-                  bgcolor: '#ff9800', // laranja
+                  bgcolor: '#ff9800',
                   color: '#fff',
                 },
               }}

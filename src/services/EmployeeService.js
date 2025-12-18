@@ -23,7 +23,7 @@ const EmployeeService = {
       })
     );
 
-    if (!response || response.status !== 201) {
+    if (!response || (response.status !== 201 && response.status !== 200)) {
       throw new Error('Erro ao criar funcionário! Error code: ' + response?.status);
     } else {
       console.log('Funcionário criado com sucesso!');
