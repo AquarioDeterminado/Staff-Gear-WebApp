@@ -83,7 +83,7 @@ export default function HRRecords() {
   // --- Paginação ---
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [jobChangesPage, setJobChangesPage] = useState(1);
-  const ROWS_PER_PAGE = 10;
+  const ROWS_PER_PAGE = 9;
 
   // Aplicar filtros
   const filteredPayments = useMemo(() => {
@@ -439,7 +439,7 @@ export default function HRRecords() {
 
       <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
         {/* Tabs */}
-        <Box sx={{ display: 'inline-block', bgcolor: '#fff3e0', borderRadius: 1, mb: 2 }}>
+        <Box sx={{ display: 'inline-block', bgcolor: '#f5f5f5', borderRadius: 1, mb: 2 }}>
           <Tabs
             value={tab}
             onChange={handleTabChange}
@@ -454,12 +454,15 @@ export default function HRRecords() {
                 textTransform: 'none',
                 fontWeight: 600,
                 fontSize: 14,
-                color: '#333',
-                bgcolor: '#fff3e0',
+                color: '#666',
+                bgcolor: '#f5f5f5',
+                transition: 'all 0.3s ease',
               },
               '& .MuiTab-root.Mui-selected': {
-                bgcolor: '#fff3e0',
-                color: '#333',
+                bgcolor: '#ff9800',
+                color: '#fff',
+                fontWeight: 700,
+                boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)',
               },
             }}
           >
@@ -491,7 +494,7 @@ export default function HRRecords() {
 
         {/* Filter Panel - Payments */}
         {tab === PAYMENT_TAB && (
-          <Card sx={{ mb: 2, bgcolor: '#fff9c4', border: '1px solid #fbc02d' }}>
+          <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
             <CardHeader
               title="Filters"
               action={
@@ -598,7 +601,7 @@ export default function HRRecords() {
 
         {/* Filter Panel - Job Changes */}
         {tab === JOB_CHANGE_TAB && (
-          <Card sx={{ mb: 2, bgcolor: '#fff9c4', border: '1px solid #fbc02d' }}>
+          <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
             <CardHeader
               title="Filters"
               action={
