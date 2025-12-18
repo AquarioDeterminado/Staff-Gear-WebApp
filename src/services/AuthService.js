@@ -28,7 +28,7 @@ const AuthService = {
     },
 
     logout: async () => {
-        localStorage.removeItem('AuthToken');
+        localStorage.removeItem('access_token');
         localStorage.removeItem('BusinessID');
         localStorage.removeItem('user_role');
         console.log('Logout efetuado com sucesso!');
