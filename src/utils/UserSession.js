@@ -12,7 +12,12 @@ const UserSession = {
     },
 
     verifyAuthorize : function(navigator, status) {
-        if (status === 401 || status === 405 || status === 500) {
+        console.log('Verifying authorization for status:', status);
+        // Treat 401, 403 and 405 as authorization failures and redirect to login/root
+        if (status === 401 || status === 403 || status === 405 || status === 500 || status === undefined) {
+            try {
+                localStorage.removeItem('access_token');
+            } catch {}
             navigator('/', { replace: true });
         } 
     }

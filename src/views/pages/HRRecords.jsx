@@ -50,6 +50,14 @@ export default function HRRecords() {
   const navigate = useNavigate();
   const notif = useNotification();
 
+  // Redirect immediately to login/root if no token present
+  useEffect(() => {
+    const token = UserSession.getToken();
+    if (!token) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
+
   const [tab, setTab] = useState(0);
 
   const [payments, setPayments] = useState([]);
