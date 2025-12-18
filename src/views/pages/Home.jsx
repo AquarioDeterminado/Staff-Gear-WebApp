@@ -15,9 +15,7 @@ export default function Home() {
         overflowX: 'hidden',
       }}
     >
-      {/* no header: main fills the full viewport */}
 
-      {/* Corpo: duas metades + traço vertical */}
       <Box
         component="main"
         sx={{
@@ -39,8 +37,6 @@ export default function Home() {
             <ApplyCandidatePage />
           </Box>
         </Box>
-
-        {/* Traço vertical */}
         <Box
           sx={{
             display: { xs: 'none', md: 'block' },

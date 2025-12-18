@@ -30,7 +30,7 @@ import HeaderBar from '../components/HeaderBar';
 import CandidateService from '../../services/CandidateService';
 import { useNavigate } from 'react-router-dom';
 import UserService from '../../utils/UserSession';
-import { useNotification } from '../components/NotificationProvider';
+import useNotification  from '../../utils/UseNotification';
 
 export default function CandidatesView() {
   const navigate = useNavigate();
@@ -222,7 +222,7 @@ export default function CandidatesView() {
           {/* Header */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Detalhes do Candidato
+              Candidate Details
             </Typography>
             <IconButton onClick={closeDrawer} size="small">
               <CloseIcon />
@@ -231,10 +231,10 @@ export default function CandidatesView() {
 
           {selectedCandidate && (
             <Stack spacing={3}>
-              {/* Nome */}
+              {/* Name */}
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#666', mb: 0.5 }}>
-                  Nome Completo
+                  Full Name
                 </Typography>
                 <Typography variant="body1">
                   {`${selectedCandidate.firstName} ${selectedCandidate.middleName ? selectedCandidate.middleName + ' ' : ''}${selectedCandidate.lastName}`}
@@ -253,20 +253,20 @@ export default function CandidatesView() {
                 </Typography>
               </Box>
 
-              {/* Telefone */}
+              {/* Phone */}
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#666', mb: 0.5 }}>
-                  Telefone
+                  Phone
                 </Typography>
                 <Typography variant="body1">
-                  {selectedCandidate.phone || 'Não fornecido'}
+                  {selectedCandidate.phone || 'NNot provided'}
                 </Typography>
               </Box>
 
-              {/* Mensagem */}
+              {/* Message */}
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#666', mb: 0.5 }}>
-                  Mensagem
+                  Message
                 </Typography>
                 <Typography 
                   variant="body2" 
@@ -300,7 +300,7 @@ export default function CandidatesView() {
                     '&:hover': { bgcolor: '#45a049' }
                   }}
                 >
-                  Aceitar Candidato
+                  Accept Candidate
                 </Button>
                 <Button
                   variant="outlined"
@@ -320,7 +320,7 @@ export default function CandidatesView() {
                     }
                   }}
                 >
-                  Rejeitar Candidato
+                  Reject Candidate
                 </Button>
               </Stack>
             </Stack>
@@ -331,7 +331,7 @@ export default function CandidatesView() {
       {/* Dialog para aceitar candidato */}
       <Dialog open={acceptDialogOpen} onClose={() => setAcceptDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
-          Aceitar Candidato: {candidateToAccept?.firstName} {candidateToAccept?.lastName}
+          Accept Candidate: {candidateToAccept?.firstName} {candidateToAccept?.lastName}
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 2 }}>
@@ -342,7 +342,7 @@ export default function CandidatesView() {
               onChange={(e) => setAcceptFormData({ ...acceptFormData, jobTitle: e.target.value })}
               fullWidth
               size="small"
-              helperText="Deixe vazio para usar 'New Hire'"
+              helperText="Leave empty to use 'New Hire'"
             />
             <TextField
               label="Department"
@@ -360,12 +360,12 @@ export default function CandidatesView() {
               onChange={(e) => setAcceptFormData({ ...acceptFormData, defaultPassword: e.target.value })}
               fullWidth
               size="small"
-              helperText="Será enviada ao employee (deve mudar no primeiro login)"
+              helperText="Will be sent to the employee (must change on first login)"
             />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAcceptDialogOpen(false)}>Cancelar</Button>
+          <Button onClick={() => setAcceptDialogOpen(false)}>Cancel</Button>
           <Button 
             onClick={handleAcceptCandidate} 
             variant="contained"
@@ -378,14 +378,14 @@ export default function CandidatesView() {
 
       {/* Dialog para confirmar rejeição */}
       <Dialog open={rejectDialogOpen} onClose={closeRejectDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Confirmar rejeição</DialogTitle>
+        <DialogTitle>Confirm Reject</DialogTitle>
         <DialogContent>
           <Typography>
-            Tem a certeza que deseja rejeitar o candidato {candidateToReject?.firstName} {candidateToReject?.lastName}?
+            Are you sure you want to reject the candidate {candidateToReject?.firstName} {candidateToReject?.lastName}?
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeRejectDialog}>Cancelar</Button>
+          <Button onClick={closeRejectDialog}>Cancel</Button>
           <Button
             onClick={async () => {
               if (!candidateToReject) return;
@@ -395,14 +395,14 @@ export default function CandidatesView() {
             variant="contained"
             sx={{ bgcolor: '#f44336', '&:hover': { bgcolor: '#d32f2f' }, color: '#fff' }}
           >
-            Confirmar Rejeição
+            Confirm Reject
           </Button>
         </DialogActions>
       </Dialog>
 
       <Container maxWidth="xl" sx={{ pt: 3, pb: 2 }}>
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-          Visualização de candidaturas
+          Candidates View
         </Typography>
 
         <Stack direction="row" spacing={3} alignItems="flex-start">
@@ -421,16 +421,16 @@ export default function CandidatesView() {
                 <TableRow sx={{ '& th': { fontWeight: 700, backgroundColor: '#ffe0b2' } }}>
                   <TableCell sx={{ width: '8%' }}>ID</TableCell>
                   <TableCell sx={{ width: '10%' }}>Resume</TableCell>
-                  <TableCell sx={{ width: '22%' }}>Nome</TableCell>
+                  <TableCell sx={{ width: '22%' }}>Name</TableCell>
                   <TableCell sx={{ width: '28%' }}>Email</TableCell>
-                  <TableCell sx={{ width: '32%', textAlign: 'center' }}>Ações</TableCell>
+                  <TableCell sx={{ width: '32%', textAlign: 'center' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {pageRows.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} sx={{ py: 3 }}>
-                      Nenhuma candidatura encontrada.
+                      No candidates found.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -509,7 +509,7 @@ export default function CandidatesView() {
                                 '&:hover': { bgcolor: '#45a049' }
                               }}
                             >
-                              Aceitar
+                              Accept
                             </Button>
                             <Button
                               variant="outlined"
@@ -532,7 +532,7 @@ export default function CandidatesView() {
                                 }
                               }}
                             >
-                              Rejeitar
+                              Reject
                             </Button>
                           </Stack>
                         </TableCell>
@@ -571,14 +571,14 @@ export default function CandidatesView() {
           >
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-                Filtros
+                Filters
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
               {/* Pesquisa por Nome ou Email */}
               <TextField
-                label="Nome ou Email"
-                placeholder="Pesquisar..."
+                label="Name or Email"
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 fullWidth
@@ -588,7 +588,7 @@ export default function CandidatesView() {
 
               {/* Filtro por ID */}
               <TextField
-                label="Filtrar por ID"
+                label="Filter by ID"
                 placeholder="Ex.: 3"
                 value={filterId}
                 onChange={(e) => setFilterId(e.target.value)}
@@ -611,7 +611,7 @@ export default function CandidatesView() {
                   '&:hover': { bgcolor: '#f5f5f5' }
                 }}
               >
-                Limpar Filtros
+                Clear Filters
               </Button>
 
             </CardContent>

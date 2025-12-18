@@ -18,7 +18,6 @@ import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 
-
 function SideMenu() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -43,7 +42,7 @@ function SideMenu() {
     <List sx={{ '& .MuiListItemButton-root': { py: 1.25 } }}>
       <ListItemButton onClick={() => navigate('/profile')}>
         <ListItemIcon><PersonIcon sx={{ fontSize: 24 }} /></ListItemIcon>
-        <ListItemText primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>Perfil</Typography>} />
+        <ListItemText primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>Profile</Typography>} />
       </ListItemButton>
 
       <ListItemButton onClick={() => navigate('/records')}>

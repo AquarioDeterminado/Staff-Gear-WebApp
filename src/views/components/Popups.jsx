@@ -10,10 +10,10 @@ import {
 } from '@mui/material';
 
 export default function Popups({
-  title = 'Confirmar ação',
-  message = 'Tens a certeza?',
-  confirmLabel = 'Confirmar',
-  cancelLabel = 'Cancelar',
+  title = 'Confirm action',
+  message = 'Are you sure?',
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
   confirmButtonSx = {
     bgcolor: '#000',
     color: '#fff',

@@ -21,7 +21,7 @@ import HeaderBar from '../components/HeaderBar';
 import EmployeeService from '../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
 import UserSession from '../../utils/UserSession';
-import { useNotification } from '../components/NotificationProvider';
+import useNotification from '../../utils/UseNotification';
 
 export default function EmployeeRecords() {
   const [tab, setTab] = useState(0);
@@ -95,35 +95,36 @@ export default function EmployeeRecords() {
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
 
-      <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
-        <Box sx={{ display: 'inline-block', bgcolor: '#e0e0e0', borderRadius: 1, mb: 2 }}>
-          <Tabs
-            value={tab}
-            onChange={handleTabChange}
-            TabIndicatorProps={{ style: { display: 'none' } }}
-            sx={{
-              '& .MuiTab-root': {
-                minHeight: 36,
-                py: 0.5,
-                px: 2,
-                m: 0.5,
-                borderRadius: 0.75,
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: 14,
-                color: '#333',
-                bgcolor: '#d9d9d9',
-              },
-              '& .MuiTab-root:not(:last-of-type)': {
-                borderRight: '1px solid rgba(0,0,0,0.2)',
-              },
-            }}
-          >
-            <Tab label="payments" disableRipple />
-            <Tab label="job changes" disableRipple />
-          </Tabs>
-        </Box>
-
+      <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>    
+      <Box sx={{ mb: 2 }}>
+        <Tabs
+          value={tab}
+          onChange={handleTabChange}
+          TabIndicatorProps={{ style: { display: 'none' } }}
+          sx={{
+            '& .MuiTab-root': {
+              minHeight: 36,
+              py: 0.5,
+              px: 2,
+              m: 0.5,
+              borderRadius: 0.75,
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: 14,
+              color: '#000',
+              bgcolor: '#ff9800',
+            },
+            '& .MuiTab-root.Mui-selected': {
+              bgcolor: '#ff9800',
+              color: '#000',
+              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.15)',
+            },
+          }}
+        >
+          <Tab label="payments" disableRipple />
+          <Tab label="job changes" disableRipple />
+        </Tabs>
+      </Box>
         <Paper
           variant="outlined"
           sx={{

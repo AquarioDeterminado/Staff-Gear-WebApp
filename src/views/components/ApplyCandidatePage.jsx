@@ -9,7 +9,7 @@ import {
     Alert,
 } from '@mui/material';
 import CandidateService from '../../services/CandidateService';
-import { useNotification } from '../components/NotificationProvider';
+import useNotification from '../../utils/UseNotification';
 
 const ui = {
     title: {
@@ -160,7 +160,7 @@ export default function ApplyCandidatePage() {
     return (
         <Box component="form" onSubmit={onSubmit} noValidate>
             <Typography variant="h4" sx={ui.title}>
-                Candidatura
+                Apply for a Job
             </Typography>
 
             {feedback && (
@@ -211,7 +211,7 @@ export default function ApplyCandidatePage() {
                     />
                     <TextField
                         name="phone"
-                        label="Telemóvel"
+                        label="Phone"
                         value={form.phone}
                         onChange={onChange}
                         fullWidth
@@ -220,7 +220,7 @@ export default function ApplyCandidatePage() {
                 </Stack>
                 <TextField
                     name="message"
-                    label="Mensagem"
+                    label="Message"
                     value={form.message}
                     onChange={onChange}
                     fullWidth
@@ -232,7 +232,7 @@ export default function ApplyCandidatePage() {
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
                 <Button component="label" variant="contained" sx={ui.attach}>
-                    Anexar CV (.pdf/.doc/.docx)
+                    Attach Resume (.pdf/.doc/.docx)
                     <input
                         hidden
                         id="resumeFile"
@@ -255,7 +255,7 @@ export default function ApplyCandidatePage() {
                         bgcolor: '#fff',
                     }}
                 >
-                    {resumeFileName || 'Nenhum ficheiro selecionado'}
+                    {resumeFileName || 'No file selected'}
                 </Box>
             </Stack>
 
@@ -267,7 +267,7 @@ export default function ApplyCandidatePage() {
                     disabled={loading}
                     sx={ui.button}
                 >
-                    {loading ? 'A enviar...' : 'Candidate-se'}
+                    {loading ? 'Sending...' : 'Apply Now'}
                 </Button>
 
                 {loading && (
@@ -284,7 +284,7 @@ export default function ApplyCandidatePage() {
                             '&:hover': { borderColor: '#FF9800', color: '#FF9800' },
                         }}
                     >
-                        Cancelar
+                        Cancel
                     </Button>
                 )}
             </Stack>

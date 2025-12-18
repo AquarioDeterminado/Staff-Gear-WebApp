@@ -111,7 +111,7 @@ export default function EmployeeProfile() {
         console.error('Error fetching profile info:', error);
         const status = error?.response?.status || error?.status;
         UserSession.verifyAuthorize(navigate, status);
-        setSnackbar({ open: true, severity: 'error', message: 'Erro ao carregar perfil.' });
+        setSnackbar({ open: true, severity: 'error', message: 'Error while loading the profile.' });
       }
     }
 
@@ -149,12 +149,12 @@ export default function EmployeeProfile() {
 
   const validateProfile = () => {
     if (!formData.FirstName?.trim() || !formData.LastName?.trim() || !formData.Email?.trim()) {
-      setSnackbar({ open: true, severity: 'warning', message: 'Primeiro nome, apelido e email são obrigatórios.' });
+      setSnackbar({ open: true, severity: 'warning', message: 'First name, last name and email are mandatory.' });
       return false;
     }
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.Email);
     if (!emailOk) {
-      setSnackbar({ open: true, severity: 'warning', message: 'Insira um email válido.' });
+      setSnackbar({ open: true, severity: 'warning', message: 'Insert a valid email.' });
       return false;
     }
     return true;
@@ -177,12 +177,12 @@ export default function EmployeeProfile() {
 
       setProfileInfo((prev) => ({ ...(prev || {}), ...payload }));
       setIsEditMode(false);
-      setSnackbar({ open: true, severity: 'success', message: 'Perfil atualizado com sucesso!' });
+      setSnackbar({ open: true, severity: 'success', message: 'Profile updated with success!' });
     } catch (error) {
       const status = error?.response?.status || error?.status || 'N/A';
-      console.error('Erro ao atualizar perfil:', error);
+      console.error('Error while updating the profile:', error);
       UserSession.verifyAuthorize(navigate, status);
-      setSnackbar({ open: true, severity: 'error', message: `Erro ao atualizar perfil. Código: ${status}` });
+      setSnackbar({ open: true, severity: 'error', message: `Error while updating the profile. Code: ${status}` });
     } finally {
       setIsSavingProfile(false);
     }
@@ -199,11 +199,11 @@ export default function EmployeeProfile() {
 
   const handleChangePassword = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
-      setSnackbar({ open: true, severity: 'warning', message: 'Preencha todos os campos da password.' });
+      setSnackbar({ open: true, severity: 'warning', message: 'Fill all the password fields.' });
       return;
     }
     if (newPassword !== confirmPassword) {
-      setSnackbar({ open: true, severity: 'warning', message: 'A confirmação não coincide com a nova password.' });
+      setSnackbar({ open: true, severity: 'warning', message: 'The confirmation isnt the same as the new password.' });
       return;
     }
 
@@ -212,12 +212,12 @@ export default function EmployeeProfile() {
       const payload = { CurrentPassword: oldPassword, NewPassword: newPassword, ConfirmPassword: confirmPassword };
       await EmployeeService.alterEmployeePassword(BusinessID, payload);
 
-      setSnackbar({ open: true, severity: 'success', message: 'Password alterada com sucesso!' });
+      setSnackbar({ open: true, severity: 'success', message: 'Password changed with success!' });
       closePwdDialog();
     } catch (error) {
       const status = error?.response?.status || error?.status || 'N/A';
-      console.error('Erro ao alterar password:', error);
-      setSnackbar({ open: true, severity: 'error', message: `Erro ao alterar password. Código: ${status}` });
+      console.error('Error while changing the password:', error);
+      setSnackbar({ open: true, severity: 'error', message: `Error while changing the password. Code: ${status}` });
     } finally {
       setIsSubmittingPwd(false);
     }
@@ -233,27 +233,27 @@ export default function EmployeeProfile() {
 
         <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
           {!isEditMode ? (
-            <Tooltip title="Editar Perfil">
+            <Tooltip title="Edit Profile">
               <span>
                 <Button
                   variant="outlined"
                   startIcon={<EditIcon />}
                   onClick={enterEditMode}
                 >
-                  Editar Perfil
+                  Edit Profile
                 </Button>
               </span>
             </Tooltip>
           ) : (
             <>
-              <Button variant="text" onClick={cancelEdit}>Cancelar</Button>
+              <Button variant="text" onClick={cancelEdit}>Cancel</Button>
               <Button
                 variant="contained"
                 onClick={saveProfile}
                 disabled={isSavingProfile}
                 startIcon={isSavingProfile ? <CircularProgress size={18} color="inherit" /> : <EditIcon />}
               >
-                Guardar Alterações
+                Save Changes
               </Button>
             </>
           )}
@@ -424,13 +424,13 @@ export default function EmployeeProfile() {
               }}
               onClick={openPwdDialog}
             >
-              Alterar Password
+              Change Password
             </Button>
           </Stack>
         </Stack>
       </Container>
       <Dialog open={isPwdDialogOpen} onClose={closePwdDialog} fullWidth maxWidth="xs">
-        <DialogTitle>Alterar Password</DialogTitle>
+        <DialogTitle>Change Password</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -460,14 +460,14 @@ export default function EmployeeProfile() {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={closePwdDialog} disabled={isSubmittingPwd}>Cancelar</Button>
+          <Button onClick={closePwdDialog} disabled={isSubmittingPwd}>Cancel</Button>
           <Button
             onClick={handleChangePassword}
             variant="contained"
             disabled={isSubmittingPwd}
             startIcon={isSubmittingPwd ? <CircularProgress size={18} color="inherit" /> : <KeyIcon />}
           >
-            Guardar
+            Save
           </Button>
         </DialogActions>
       </Dialog>

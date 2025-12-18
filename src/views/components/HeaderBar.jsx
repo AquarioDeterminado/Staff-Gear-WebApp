@@ -42,9 +42,6 @@ export default function HeaderBar() {
   const [anchorNotif, setAnchorNotif] = useState(null);
   const notifOpen = Boolean(anchorNotif);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-
   useEffect(() => {
     async function fetchNotifications() {
       try {
@@ -170,7 +167,7 @@ export default function HeaderBar() {
           ))
         ) : (
           <MenuItem disabled>
-            <ListItemText primary="Sem notificações." />
+            <ListItemText primary="Without notifications." />
           </MenuItem>
         )}
       </Menu>

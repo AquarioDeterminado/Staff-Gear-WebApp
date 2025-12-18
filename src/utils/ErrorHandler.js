@@ -7,6 +7,8 @@ export default function ErrorHandler(error) {
             message = error.response.data.errors[firstKey][0];
         } else if (error.response.data.message) {
             message = error.response.data.message;
+        } else if (typeof error.response.data === 'string') {
+            message = error.response.data;
         }
     } else if (error?.message) {
         message = error.message;

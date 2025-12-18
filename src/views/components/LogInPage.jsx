@@ -5,7 +5,7 @@ import logo from '../../assets/logo.png';
 import LoginIcon from '@mui/icons-material/Login';
 import AuthService from '../../services/AuthService';
 import { useNavigate } from 'react-router-dom';
-import { useNotification } from '../components/NotificationProvider';
+import useNotification from '../../utils/UseNotification';
 
 const ui = {
   title: {
@@ -43,7 +43,7 @@ export default function Login() {
 
     try {
       if (!login.email || !login.password) {
-        throw new Error('Por favor, preencha todos os campos.');
+        throw new Error('Please, fill all the fields.');
       }
       setLoading(true);
       await AuthService.login({ Username: login.email, Password: login.password });
@@ -57,7 +57,7 @@ export default function Login() {
             error.response.data.title ||
             error.response.data.message)) ||
         error?.message ||
-        'Erro ao efetuar login.';
+        'Error while logging in.';
       notif({ severity: 'error', message: msg });
     } finally {
       setLoading(false);
@@ -90,7 +90,7 @@ export default function Login() {
             fullWidth
             label="Email"
             type="email"
-            placeholder="Insira o seu Email"
+            placeholder="Insert the Email"
             value={login.email}
             onChange={handleChange('email')}
             sx={{ bgcolor: '#fff', borderRadius: 1 }}
@@ -99,7 +99,7 @@ export default function Login() {
             fullWidth
             label="Password"
             type="password"
-            placeholder="Insira a sua Password"
+            placeholder="Insert the Password"
             value={login.password}
             onChange={handleChange('password')}
             sx={{ bgcolor: '#fff', borderRadius: 1 }}
@@ -114,7 +114,7 @@ export default function Login() {
           disabled={loading}
           sx={ui.button}
         >
-          {loading ? 'A entrar...' : 'Entrar'}
+          {loading ? 'Entering' : 'Enter'}
         </Button>
       </Box>
     </Box>

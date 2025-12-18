@@ -1,9 +1,8 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, {useCallback, useState } from 'react';
 import { Snackbar, Alert } from '@mui/material';
+import { NotificationContext } from '../../utils/UseNotification';
 
-const NotificationContext = createContext(null);
-
-export const NotificationProvider = ({ children }) => {
+const NotificationProvider = ({ children }) => {
   const [state, setState] = useState({ open: false, message: '', severity: 'info', duration: 6000 });
 
   const showNotification = useCallback(({ message, severity = 'error', duration = 6000 }) => {
@@ -30,12 +29,6 @@ export const NotificationProvider = ({ children }) => {
       </Snackbar>
     </NotificationContext.Provider>
   );
-};
-
-export const useNotification = () => {
-  const ctx = useContext(NotificationContext);
-  if (!ctx) throw new Error('useNotification must be used within NotificationProvider');
-  return ctx.showNotification;
 };
 
 export default NotificationProvider;

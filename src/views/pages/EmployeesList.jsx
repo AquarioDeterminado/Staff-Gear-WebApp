@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
@@ -29,8 +30,8 @@ import { useNavigate } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
 import UserSession from '../../utils/UserSession';
 import AddIcon from '@mui/icons-material/AddCircleOutline';
-import { useNotification } from '../components/NotificationProvider';
 import ErrorHandler from '../../utils/ErrorHandler';
+import useNotification from '../../utils/UseNotification';
 
 export default function EmployeesList() {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ export default function EmployeesList() {
     department: '',
     jobTitle: '',
     hireDate: '',
+    password: '',
   });
 
   const [errors, setErrors] = useState({
@@ -61,6 +63,7 @@ export default function EmployeesList() {
     department: '',
     jobTitle: '',
     hireDate: '',
+    password: '',
   });
 
   const isValidDateYMD = (str) => /^\d{4}-\d{2}-\d{2}$/.test(str);
@@ -68,21 +71,21 @@ export default function EmployeesList() {
 
   const validateForm = (curr) => {
     const newErrors = {
-      firstName: curr.firstName?.trim() ? '' : 'Obrigatório.',
-      middleName: curr.middleName?.trim() ? '' : 'Obrigatório.',
-      lastName: curr.lastName?.trim() ? '' : 'Obrigatório.',
+      firstName: curr.firstName?.trim() ? '' : 'Mandatory.',
+      lastName: curr.lastName?.trim() ? '' : 'Mandatory.',
       email: curr.email?.trim()
         ? isValidEmailBasic(curr.email)
           ? ''
-          : 'Email inválido'
-        : 'Obrigatório.',
-      department: curr.department?.trim() ? '' : 'Obrigatório.',
-      jobTitle: curr.jobTitle?.trim() ? '' : 'Obrigatório.',
+          : 'Invalid Email'
+        : 'Mandatory.',
+      department: curr.department?.trim() ? '' : 'Mandatory.',
+      jobTitle: curr.jobTitle?.trim() ? '' : 'Mandatory.',
       hireDate: curr.hireDate?.trim()
         ? isValidDateYMD(curr.hireDate)
           ? ''
-          : 'Formato deve ser yyyy-mm-dd.'
-        : 'Obrigatório.',
+          : 'Format should be yyyy-mm-dd.'
+        : 'Mandatory.',
+      password: curr.password == '' ||curr.password?.trim() ? '' : 'Mandatory.',
     };
     setErrors(newErrors);
     return Object.values(newErrors).every((e) => e === '');
@@ -91,11 +94,9 @@ export default function EmployeesList() {
   const canSave = useMemo(() => {
     const allFilled = [
       form.firstName,
-      form.middleName,
       form.lastName,
       form.email,
       form.department,
-      form.jobTitle,
       form.hireDate,
     ].every((v) => v && v.trim().length > 0);
 
@@ -105,7 +106,6 @@ export default function EmployeesList() {
     return allFilled && emailOk && dateOk;
   }, [form]);
 
-  
   const ROWS_PER_PAGE = 10;
   const [page, setPage] = useState(1);
 
@@ -157,6 +157,7 @@ export default function EmployeesList() {
       department: row.Department ?? '',
       jobTitle: row.JobTitle ?? '',
       hireDate: row.HireDate ?? '',
+      password: '',
     });
     setErrors({
       firstName: '',
@@ -166,6 +167,7 @@ export default function EmployeesList() {
       department: '',
       jobTitle: '',
       hireDate: '',
+      password: '',
     });
     setDialogOpen(true);
   };
@@ -174,12 +176,11 @@ export default function EmployeesList() {
 
   const handleSave = async () => {
     const ok = validateForm(form);
-
     if (!ok) return;
 
     try {
       if (mode === 'add') {
-        var user = await EmployeeService.createEmployee({
+        await EmployeeService.createEmployee({
           firstName: form.firstName,
           middleName: form.middleName,
           lastName: form.lastName,
@@ -189,7 +190,8 @@ export default function EmployeesList() {
           hireDate: form.hireDate,
           password: form.password
         });
-        setUsers(awaiEmployeeService.getAllEmployees());
+        setUsers(await EmployeeService.getAllEmployees());
+        notifs({ severity: 'success', message: 'Employee created successfully!' });
       } else {
         await EmployeeService.updateEmployee(form.businessId, {
           FirstName: form.firstName,
@@ -200,22 +202,23 @@ export default function EmployeesList() {
           JobTitle: form.jobTitle,
           HireDate: form.hireDate,
         });
+        setUsers((prev) => prev.map((u) => (u.BusinessEntityID === form.businessId ? {
+          BusinessEntityID: form.businessId,
+          FirstName: form.firstName,
+          MiddleName: form.middleName,
+          LastName: form.lastName,
+          Email: form.email,
+          Department: form.department,
+          JobTitle: form.jobTitle,
+          HireDate: form.hireDate,
+        } : u)));
+        notifs({ severity: 'success', message: 'Employee updated successfully!' });
       }
-      setUsers((prev) => prev.map((u) => (u.BusinessEntityID === form.businessId ? {
-        BusinessEntityID: form.businessId,
-        FirstName: form.firstName,
-        MiddleName: form.middleName,
-        LastName: form.lastName,
-        Email: form.email,
-        Department: form.department,
-        JobTitle: form.jobTitle,
-        HireDate: form.hireDate,
-      } : u)));
       setDialogOpen(false);
     } catch (error) {
       console.error('Error saving employee:', error);
       UserSession.verifyAuthorize(navigate, error.status);
-      notifs({ severity: 'error', message: ErrorHandler(error) || 'Error creating job change.' });
+      notifs({ severity: 'error', message: ErrorHandler(error) || 'Error saving employee.' });
     }
   };
 
@@ -223,6 +226,10 @@ export default function EmployeesList() {
     try {
       await EmployeeService.deleteEmployee(businessEntityID);
       setUsers((prev) => prev.filter((u) => u.BusinessEntityID !== businessEntityID));
+      notifs({
+        severity: 'success',
+        message: 'Employee deleted!'
+      });
     } catch (error) {
       console.error('Error deleting employee:', error);
       UserSession.verifyAuthorize(navigate, error.status);
@@ -241,15 +248,14 @@ export default function EmployeesList() {
       try {
         var employees = await EmployeeService.getAllEmployees();
         console.log(employees);
+        setUsers(employees);
       } catch (error) {
         console.error('Error fetching initial users:', error);
         UserSession.verifyAuthorize(navigate, error.status);
-        notifs({ severity: 'error', message: ErrorHandler(error) || 'Error deleting employee.' });
+        notifs({ severity: 'error', message: ErrorHandler(error) || 'Error fetching employees.' });
       }
-      setUsers(employees);
-  }
-    if (Users.length === 0)
-      fetchData();
+    }
+    if (Users.length === 0) fetchData();
   }, [Users.length, navigate, notifs]);
 
   return (
@@ -343,22 +349,6 @@ export default function EmployeesList() {
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1}>
-                          <Popups
-                            title="Remove record"
-                            message="Do you really want to delete this record? This action is irreversible."
-                            onConfirm={() => handleDelete(row.BusinessEntityID)}
-                          >
-                            <IconButton
-                              sx={{
-                                bgcolor: '#fff3e0',
-                                color: '#000000ff',
-                                '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                              }}
-                              size="small"
-                            >
-                              <DeleteOutlineIcon />
-                            </IconButton>
-                          </Popups>
                         <IconButton
                           aria-label="editar"
                           onClick={() => handleOpenEdit(row)}
@@ -371,6 +361,29 @@ export default function EmployeesList() {
                         >
                           <EditOutlinedIcon />
                         </IconButton>
+                        <Popups
+                          title="Remove record"
+                          message="Do you really want to delete this employee? This action is irreversible."
+                          onConfirm={async () => {
+                            await handleDelete(row.BusinessEntityID);
+                            notifs({
+                              severity: 'success',
+                              message: 'Employee deleted!'
+                            });
+                          }}
+                        >
+                          <IconButton
+                            aria-label="apagar"
+                            sx={{
+                              bgcolor: '#fff3e0',
+                              color: '#000000ff',
+                              '&:hover': { bgcolor: '#000000ff', color: '#fff' },
+                            }}
+                            size="small"
+                          >
+                            <DeleteOutlineIcon />
+                          </IconButton>
+                        </Popups>
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -397,6 +410,7 @@ export default function EmployeesList() {
         </Paper>
       </Container>
 
+      {/* Add/Edit */}
       <Dialog open={dialogOpen} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle sx={{ fontWeight: 700 }}>
           {mode === 'add' ? 'Add User' : 'Edit User'}
@@ -407,7 +421,7 @@ export default function EmployeesList() {
               label="First Name"
               value={form.firstName}
               onChange={onChange('firstName')}
-              placeholder="Insere o Primeiro Nome"
+              placeholder="Insert first name."
               fullWidth
               size="small"
               required
@@ -418,7 +432,7 @@ export default function EmployeesList() {
               label="Middle Name"
               value={form.middleName}
               onChange={onChange('middleName')}
-              placeholder="Insere o nome do meio"
+              placeholder="Insert middle name."
               fullWidth
               size="small"
               required
@@ -429,7 +443,7 @@ export default function EmployeesList() {
               label="Last Name"
               value={form.lastName}
               onChange={onChange('lastName')}
-              placeholder="Insere o nome"
+              placeholder="Insert last name."
               fullWidth
               size="small"
               required
@@ -440,7 +454,7 @@ export default function EmployeesList() {
               label="Email"
               value={form.email}
               onChange={onChange('email')}
-              placeholder="Ex.: nome@empresa.pt"
+              placeholder="Ex.: name@company.com"
               fullWidth
               size="small"
               required
@@ -451,7 +465,7 @@ export default function EmployeesList() {
               label="Department"
               value={form.department}
               onChange={onChange('department')}
-              placeholder="Ex.: Tecnologias"
+              placeholder="Ex.: Executive, Sales, Finance..."
               fullWidth
               size="small"
               required
@@ -480,17 +494,19 @@ export default function EmployeesList() {
               error={!!errors.hireDate}
               helperText={errors.hireDate}
             />
-            <TextField
-              label="Password"
-              value={form.password}
-              onChange={onChange('password')}
-              placeholder="123Abc"
-              fullWidth
-              size="small"
-              required
-              error={!!errors.password}
-              helperText={errors.password}
-            />
+            {mode === 'add' && (
+              <TextField
+                label="Password"
+                value={form.password}
+                onChange={onChange('password')}
+                placeholder="123Abc"
+                fullWidth
+                size="small"
+                required
+                error={!!errors.password}
+                helperText={errors.password}
+              />
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
