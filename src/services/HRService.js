@@ -9,9 +9,9 @@ const HRService = {
     getAllPayments: async () => {
         const response = await api.get(PAYMENTS_PATH);
         if (!response || response.status !== 200) {
-            throw new Error('Erro ao buscar pagamentos! Error code: ' + response?.status);
+            throw new Error('Error searching for payments! Error code: ' + response?.status);
         } else {
-            console.log('Pagamentos buscados com sucesso!');
+            console.log('Payments retrieved successfully!');
         }
 
         var payments = [];
@@ -26,9 +26,9 @@ const HRService = {
     getAllMovements: async () => {
         const response = await api.get(MOVEMENTS_PATH);
         if (!response || response.status !== 200) {
-            throw new Error('Erro ao buscar movimentações! Error code: ' + response?.status);
+            throw new Error('Error fetching transactions! Error code: ' + response?.status);
         } else {
-            console.log('Movimentações buscadas com sucesso!');
+            console.log('Transactions retrieved with success!');
         }
 
         var movements = [];
@@ -44,45 +44,45 @@ const HRService = {
         const response = await api.post(PAYMENTS_PATH, new PaymentViewModel({BusinessEntityID: payment.BusinessEntityID, FullName: payment.FullName, Rate: payment.Rate, RateChangeDate: payment.RateChangeDate, PayFrequency: payment.PayFrequency}));
         
         if (!response || (response.status !== 200 && response.status !== 201)) {
-            throw new Error('Erro ao criar pagamento! Error code: ' + response?.status);
+            throw new Error('Error creating the payment! Error code: ' + response?.status);
         } else {
-            console.log('Pagamento criado com sucesso!');
+            console.log('Payment created with success!');
         }
     },
 
     editPayment: async (payment) => {
                 const response = await api.put(`${PAYMENTS_PATH}`, new PaymentViewModel({BusinessEntityID: payment.BusinessEntityID, FullName: payment.FullName, Rate: payment.Rate, RateChangeDate: payment.RateChangeDate, PayFrequency: payment.PayFrequency}));
         if (!response || response.status !== 200) {
-            throw new Error('Erro ao editar pagamento! Error code: ' + response?.status);
+            throw new Error('Error editing the payment! Error code: ' + response?.status);
         } else {
-            console.log('Pagamento editado com sucesso!');
+            console.log('Payment successfully edited!');
         }
     },
 
     deletePayment: async (payment) => {
         const response = await api.delete(`${PAYMENTS_PATH}/delete/${payment.BusinessEntityID}/${payment.RateChangeDate}`);
         if (!response || response.status !== 200) {
-            throw new Error('Erro ao deletar pagamento! Error code: ' + response?.status);
+            throw new Error('Error deleting the payment! Error code: ' + response?.status);
         } else {
-            console.log('Pagamento deletado com sucesso!');
+            console.log('Payment deleted with success!');
         }
     },
 
     createMovement: async (movement) => {
         const response = await api.post(MOVEMENTS_PATH, new MovementViewModel({BusinessEntityID: movement.BusinessEntityID, FullName: movement.FullName, DepartmentName: movement.DepartmentName, JobTitle: movement.JobTitle, StartDate: movement.StartDate, EndDate: movement.EndDate}));
         if (!response || (response.status !== 200 && response.status !== 201)) {
-            throw new Error('Erro ao criar movimentação! Error code: ' + response?.status);
+            throw new Error('Error creating transaction! Error code: ' + response?.status);
         } else {
-            console.log('Movimentação criada com sucesso!');
+            console.log('Transaction created with success!');
         }
     },
 
     editMovement: async (movement) => {
         const response = await api.put(`${MOVEMENTS_PATH}`, new MovementViewModel({BusinessEntityID: movement.BusinessEntityID, FullName: movement.FullName, DepartmentName: movement.DepartmentName, JobTitle: movement.JobTitle, StartDate: movement.StartDate, EndDate: movement.EndDate}));
         if (!response || response.status !== 200) {
-            throw new Error('Erro ao editar movimentação! Error code: ' + response?.status);
+            throw new Error('Erro editing transaction! Error code: ' + response?.status);
         } else {
-            console.log('Movimentação editada com sucesso!');
+            console.log('Transaction edited with success!');
         }
     },
 
@@ -90,9 +90,9 @@ const HRService = {
         console.log(movement);
         const response = await api.delete(`${MOVEMENTS_PATH}/delete/${movement.BusinessEntityID}/${movement.DepartmentName}/${movement.StartDate}/`);
         if (!response || response.status !== 200) {
-            throw new Error('Erro ao deletar movimentação! Error code: ' + response?.status);
+            throw new Error('Error deleting transaction! Error code: ' + response?.status);
         } else {
-            console.log('Movimentação deletada com sucesso!');
+            console.log('Transaction deleted with success!');
         }
     }
 }

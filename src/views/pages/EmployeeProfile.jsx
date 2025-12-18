@@ -183,7 +183,15 @@ export default function EmployeeProfile() {
       const status = error?.response?.status || error?.status || 'N/A';
       console.error('Error while updating the profile:', error);
       UserSession.verifyAuthorize(navigate, status);
-      setSnackbar({ open: true, severity: 'error', message: ErrorHandler.getErrorMessage(error) });
+      if(status === 409) {
+        const data = error?.response?.data;
+        const conflictMsg = (data && (data.message || data.detail)) || 'Email already in use';
+        setSnackbar({ open: true, severity: 'error', message: conflictMsg });
+      }
+      else{
+        const msg = ErrorHandler(error);
+        setSnackbar({ open: true, severity: 'error', message: msg });
+      }
     } finally {
       setIsSavingProfile(false);
     }
@@ -216,9 +224,9 @@ export default function EmployeeProfile() {
       setSnackbar({ open: true, severity: 'success', message: 'Password changed with success!' });
       closePwdDialog();
     } catch (error) {
-      const status = error?.response?.status || error?.status || 'N/A';
+      const message = error?.response?.data || error?.status || 'N/A';
       console.error('Error while changing the password:', error);
-      setSnackbar({ open: true, severity: 'error', message: `Error while changing the password. Code: ${status}` });
+      setSnackbar({ open: true, severity: 'error', message: `Error while changing the password. ${message}` });
     } finally {
       setIsSubmittingPwd(false);
     }

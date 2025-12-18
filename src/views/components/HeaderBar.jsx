@@ -154,7 +154,7 @@ export default function HeaderBar() {
         {notifications.length > 0 ? (
           notifications.map((n) => (
             <MenuItem key={n.NotificationID} divider>
-              <ListItemText primary={n.Message} secondary={n.CreatedAt} sx={{ mr: 2 }} onClick={() => {sendToPage(n.Message)}} />
+              <ListItemText primary={n.Message} secondary={new Date(n.CreatedAt).toLocaleString('fr-FR')} sx={{ mr: 2 }} onClick={() => {sendToPage(n.Message)}} />
               <Button
                 size="small"
                 color="error"

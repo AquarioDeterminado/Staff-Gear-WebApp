@@ -24,9 +24,9 @@ const EmployeeService = {
     );
 
     if (!response || (response.status !== 201 && response.status !== 200)) {
-      throw new Error('Erro ao criar funcionário! Error code: ' + response?.status);
+      throw new Error('Error creating employee! Error code: ' + response?.status);
     } else {
-      console.log('Funcionário criado com sucesso!');
+      console.log('Employee created with success!');
     }
   },
 
@@ -34,9 +34,9 @@ const EmployeeService = {
     const response = await api.get(EMPLOYEE_PATH);
 
     if (!response || (response.status !== 200 && response.status !== 201)) {
-      throw new Error('Erro ao obter funcionários! Error code: ' + response?.status);
+      throw new Error('Error retrieving the employee! Error code: ' + response?.status);
     } else {
-      console.log('Funcionários obtidos com sucesso!');
+      console.log('Employees retrieved successfully!');
     }
 
     const employees = response.data.map(
@@ -60,9 +60,9 @@ const EmployeeService = {
     const response = await api.get(`${EMPLOYEE_PATH}/${id}`);
 
     if (!response || response.status !== 200) {
-      throw new Error('Erro ao obter funcionário! Error code: ' + response?.status);
+      throw new Error('Error retrieving the employee! Error code: ' + response?.status);
     } else {
-      console.log('Funcionário obtido com sucesso!');
+      console.log('Employee retrieved with success!');
     }
 
     const data = response.data;
@@ -83,9 +83,9 @@ const EmployeeService = {
     const response = await api.put(`${EMPLOYEE_PATH}/${id}`, new EmployeeViewModel(payload));
 
     if (!response || response.status !== 200) {
-      throw new Error('Erro ao atualizar funcionário! Error code: ' + response?.status);
+      throw new Error('Error updating the employee! Error code: ' + response?.status);
     } else {
-      console.log('Funcionário atualizado com sucesso!');
+      console.log('Employee updated with success!');
     }
   },
 

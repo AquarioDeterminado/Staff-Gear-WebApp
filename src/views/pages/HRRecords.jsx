@@ -277,13 +277,9 @@ export default function HRRecords() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const isValidDateYMD = (str) => /^\d{4}-\d{2}-\d{2}$/.test(str);
-
   const canSave = useMemo(() => {
     if (tab === PAYMENT_TAB) {
-      return form.Rate?.trim() && (form.PayFrequency == 1 || form.PayFrequency == 2)
-        && isValidDateYMD(form.RateChangeDate);
-    }
+      return form.Rate?.trim() && (form.PayFrequency == 1 || form.PayFrequency == 2);    }
     return form.JobTitle?.trim() && form.DepartmentName?.trim() && form.StartDate?.trim();
   }, [form, tab]);
 

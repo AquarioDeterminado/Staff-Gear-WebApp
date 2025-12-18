@@ -10,9 +10,9 @@ const NotificationService = {
         const response = await api.get(NOTIFICATION_PATH + `/${userId}`);
 
         if (!response || response.status !== 200 && response.status !== 204) {
-            throw new Error('Erro ao buscar notificações! Error code: ' + response?.status);
+            throw new Error('Error fetching notifications! Error code: ' + response?.status);
         } else {
-            console.log('Notificações buscadas com sucesso!');
+            console.log('Notifications retrieved successfully!');
         }
 
         var notifications = [];
@@ -28,9 +28,9 @@ const NotificationService = {
         const response =  await api.delete(NOTIFICATION_PATH + `/${notificationId}`);
 
         if (!response || response.status !== 204) {
-            throw new Error('Erro ao deletar notificação! Error code: ' + response?.status);
+            throw new Error('Error deleting notification! Error code: ' + response?.status);
         }   else {
-            console.log('Notificação deletada com sucesso!');
+            console.log('Notification deleted with success!');
         }
     }
 }
