@@ -18,6 +18,7 @@ const router = createBrowserRouter(createRoutesFromElements (
             <Route path="/employees" element={ <EmployeesList />} />
             <Route path="/records" element={<EmployeeRecords />} />
             <Route path="/hr/records" element={<HRRecords />} />
+            <Route path="/admin" element={<AdminConsole />} />
             
 
         </>
