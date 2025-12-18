@@ -52,6 +52,10 @@ export default function CandidatesView() {
     defaultPassword: 'Welcome@123'
   });
 
+  // Dialog para confirmar rejeição
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [candidateToReject, setCandidateToReject] = useState(null);
+
   // Drawer para detalhes do candidato
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -92,6 +96,16 @@ export default function CandidatesView() {
       defaultPassword: 'Welcome@123'
     });
     setAcceptDialogOpen(true);
+  };
+
+  const openRejectDialog = (candidate) => {
+    setCandidateToReject(candidate);
+    setRejectDialogOpen(true);
+  };
+
+  const closeRejectDialog = () => {
+    setRejectDialogOpen(false);
+    setCandidateToReject(null);
   };
 
   const openDrawer = (candidate) => {
@@ -291,7 +305,8 @@ export default function CandidatesView() {
                 <Button
                   variant="outlined"
                   onClick={() => {
-                    handleRejectCandidate(selectedCandidate.jobCandidateId);
+                    // Open confirmation dialog then close drawer
+                    openRejectDialog(selectedCandidate);
                     closeDrawer();
                   }}
                   sx={{
@@ -357,6 +372,30 @@ export default function CandidatesView() {
             sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#45a049' } }}
           >
             Aceitar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog para confirmar rejeição */}
+      <Dialog open={rejectDialogOpen} onClose={closeRejectDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Confirmar rejeição</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Tem a certeza que deseja rejeitar o candidato {candidateToReject?.firstName} {candidateToReject?.lastName}?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeRejectDialog}>Cancelar</Button>
+          <Button
+            onClick={async () => {
+              if (!candidateToReject) return;
+              await handleRejectCandidate(candidateToReject.jobCandidateId);
+              closeRejectDialog();
+            }}
+            variant="contained"
+            sx={{ bgcolor: '#f44336', '&:hover': { bgcolor: '#d32f2f' }, color: '#fff' }}
+          >
+            Confirmar Rejeição
           </Button>
         </DialogActions>
       </Dialog>
@@ -476,7 +515,8 @@ export default function CandidatesView() {
                               variant="outlined"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleRejectCandidate(id);
+                                // open confirmation dialog
+                                openRejectDialog(r);
                               }}
                               size="small"
                               sx={{
