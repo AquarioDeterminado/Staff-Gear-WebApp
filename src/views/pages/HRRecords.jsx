@@ -36,6 +36,7 @@ import { useNotification } from '../components/NotificationProvider';
 import Popups from '../components/Popups';
 import { Business } from '@mui/icons-material';
 
+
 const PAYMENT_TAB = 0;
 const JOB_CHANGE_TAB = 1;
 
@@ -432,9 +433,9 @@ export default function HRRecords() {
                 ) : (
                   visiblePayments.map((p, idx) => (
                     <TableRow key={`${p.FullName}-${p.RateChangeDate}-${idx}`}>
-                      <TableCell>{p.Rate}</TableCell>
-                      <TableCell>{p.RateChangeDate}</TableCell>
-                      <TableCell>{p.PayFrequency}</TableCell>
+                      <TableCell>{Math.round((p.Rate + Number.EPSILON) * 100) / 100}€</TableCell>
+                      <TableCell>{new Date(p.RateChangeDate).toLocaleString('fr-FR', {dateStyle: 'short'})}</TableCell>
+                      <TableCell>{p.PayFrequency == 1 ? 'Monthly' : 'Biweekly'}</TableCell>
                       <TableCell>{p.FullName}</TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={1}>

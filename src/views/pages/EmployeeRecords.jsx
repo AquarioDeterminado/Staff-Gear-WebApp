@@ -172,9 +172,9 @@ export default function EmployeeRecords() {
                 ) : (
                   visiblePayments.map((payment, index) => (
                     <TableRow key={`${payment.rateChangeDate}-${index}`}>
-                      <TableCell>{payment.RateChangeDate}</TableCell>
-                      <TableCell>{payment.Rate}</TableCell>
-                      <TableCell>{payment.PayFrequency}</TableCell>
+                      <TableCell>{new Date(payment.RateChangeDate).toLocaleString('fr-FR', {dateStyle: 'short'})}</TableCell>
+                      <TableCell>{Math.round((payment.Rate + Number.EPSILON) * 100) / 100}€</TableCell>
+                      <TableCell>{payment.PayFrequency == 1 ? 'Monthly' : 'Biweekly'}</TableCell>
                     </TableRow>
                   ))
                 )

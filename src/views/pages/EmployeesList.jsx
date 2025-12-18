@@ -19,7 +19,7 @@ import {
   Stack,
   Divider,
 } from '@mui/material';
-
+import Popups from '../components/Popups';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import HeaderBar from '../components/HeaderBar';
@@ -189,7 +189,7 @@ export default function EmployeesList() {
           hireDate: form.hireDate,
           password: form.password
         });
-        setUsers(await EmployeeService.getAllEmployees());
+        setUsers(awaiEmployeeService.getAllEmployees());
       } else {
         await EmployeeService.updateEmployee(form.businessId, {
           FirstName: form.firstName,
@@ -284,10 +284,10 @@ export default function EmployeesList() {
         <Paper
           variant="outlined"
           sx={{
-            bgcolor: '#fff3e0',       // laranja claro
-            borderColor: '#ddd',      // borda suave
+            bgcolor: '#fff3e0',
+            borderColor: '#ddd',
             borderRadius: 1.5,
-            overflow: 'auto',         // evita “derreter” em ecrãs estreitos
+            overflow: 'auto',
           }}
         >
           <Box sx={{ px: 2, pt: 1 }}>
@@ -295,10 +295,10 @@ export default function EmployeesList() {
           </Box>
 
           <Table
-            size="small"            // compacto
+            size="small"
             sx={{
               minWidth: 840,
-              tableLayout: 'fixed', // colunas estáveis
+              tableLayout: 'fixed',
             }}
           >
             <TableHead>
@@ -343,18 +343,22 @@ export default function EmployeesList() {
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1}>
-                        <IconButton
-                          aria-label="delete"
-                          onClick={() => handleDelete(row.BusinessEntityID)}
-                          sx={{
-                            bgcolor: '#fff3e0',
-                            color: '#000000ff',
-                            '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                          }}
-                          size="small"
-                        >
-                          <DeleteOutlineIcon />
-                        </IconButton>
+                          <Popups
+                            title="Remove record"
+                            message="Do you really want to delete this record? This action is irreversible."
+                            onConfirm={() => handleDelete(row.BusinessEntityID)}
+                          >
+                            <IconButton
+                              sx={{
+                                bgcolor: '#fff3e0',
+                                color: '#000000ff',
+                                '&:hover': { bgcolor: '#000000ff', color: '#fff' },
+                              }}
+                              size="small"
+                            >
+                              <DeleteOutlineIcon />
+                            </IconButton>
+                          </Popups>
                         <IconButton
                           aria-label="editar"
                           onClick={() => handleOpenEdit(row)}
