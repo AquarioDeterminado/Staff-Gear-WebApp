@@ -7,18 +7,19 @@ import EmployeeRecords from '../views/pages/EmployeeRecords';
 import HeaderBar from '../views/components/HeaderBar';
 import HRRecords from '../views/pages/HRRecords';
 import AdminConsole from '../views/pages/AdminConsole';
+import PrivateRoute from '../views/components/PrivateRoute';
 
 // ==============================|| ROUTING RENDER ||============================== //
 
 const router = createBrowserRouter(createRoutesFromElements (
         <>
             <Route path="/" element={ <Home />} />
-            <Route path="/candidates" element={ <CandidatesList />} />
-            <Route path="/profile" element={ <EmployeeProfile />} />
-            <Route path="/employees" element={ <EmployeesList />} />
-            <Route path="/records" element={<EmployeeRecords />} />
-            <Route path="/hr/records" element={<HRRecords />} />
-            <Route path="/admin" element={<AdminConsole />} />
+            <Route path="/candidates" element={<PrivateRoute><CandidatesList /></PrivateRoute>} />
+            <Route path="/profile" element={<PrivateRoute><EmployeeProfile /></PrivateRoute>} />
+            <Route path="/employees" element={<PrivateRoute><EmployeesList /></PrivateRoute>} />
+            <Route path="/records" element={<PrivateRoute><EmployeeRecords /></PrivateRoute>} />
+            <Route path="/hr/records" element={<PrivateRoute><HRRecords /></PrivateRoute>} />
+            <Route path="/admin" element={<PrivateRoute><AdminConsole /></PrivateRoute>} />
             
 
         </>

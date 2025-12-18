@@ -29,8 +29,14 @@ api.interceptors.response.use(
   error => {
     const status = error.response?.status;
     if (status === 401) {
-      console.warn('Sessão expirada ou inválida.');
-      // opcional: redirect para login
+        console.warn('Sessão expirada ou inválida.');
+        // Remove token and redirect user to login
+        try {
+          setAuthToken(null);
+        } catch {}
+        // Use location replace to avoid keeping protected page in history
+        // Redirect to root where the login/apply UI lives
+        if (typeof window !== 'undefined') window.location.replace('/');
     }
     
     // Se a resposta de erro é um Blob, tenta converter para texto/JSON
