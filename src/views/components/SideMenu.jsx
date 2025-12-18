@@ -16,7 +16,9 @@ import HistoryIcon from '@mui/icons-material/History';
 import GroupIcon from '@mui/icons-material/Group';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import { useNavigate } from 'react-router-dom';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import MenuIcon from '@mui/icons-material/Menu';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 
 function SideMenu() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -50,12 +52,12 @@ function SideMenu() {
         <ListItemText primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>History</Typography>} />
       </ListItemButton>
 
-      {role === 'HR'? 
+      {role === 'HR' || role === 'Admin'? 
       <>
         <Divider sx={{ my: 0.75 }} />
 
         <ListItemButton onClick={() => navigate('/hr/records')}>
-          <ListItemIcon><GroupIcon sx={{ fontSize: 24 }} /></ListItemIcon>
+          <ListItemIcon><ReceiptLongIcon sx={{ fontSize: 24 }} /></ListItemIcon>
           <ListItemText primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>All Records</Typography>} />
         </ListItemButton>
 
@@ -68,10 +70,23 @@ function SideMenu() {
           <ListItemIcon><GroupAddIcon sx={{ fontSize: 24 }} /></ListItemIcon>
           <ListItemText primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>Candidates</Typography>} />
         </ListItemButton>
+
+        
       </>
-      :
+      : 
         <>
         </>
+      }
+      {role === 'Admin' ?
+      <>
+        <Divider sx={{ my: 0.75 }} />
+        <ListItemButton onClick={() => navigate('/admin')}>
+          <ListItemIcon><AdminPanelSettingsIcon sx={{ fontSize: 24 }} /></ListItemIcon>
+          <ListItemText primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>Admin Console</Typography>} />
+        </ListItemButton>
+      </>
+        :
+        <></>
       }
 
       

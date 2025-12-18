@@ -6,7 +6,7 @@ import EmployeesList from '../views/pages/EmployeesList';
 import EmployeeRecords from '../views/pages/EmployeeRecords';
 import HeaderBar from '../views/components/HeaderBar';
 import HRRecords from '../views/pages/HRRecords';
-
+import AdminConsole from '../views/pages/AdminConsole';
 
 // ==============================|| ROUTING RENDER ||============================== //
 
