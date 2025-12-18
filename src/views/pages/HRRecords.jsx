@@ -21,11 +21,19 @@ import {
   TextField,
   InputAdornment,
   Typography,
+  Card,
+  CardContent,
+  CardHeader,
+  Select,
+  MenuItem,
+  Collapse,
 } from '@mui/material';
 
 import AddIcon from '@mui/icons-material/AddCircleOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 import HeaderBar from '../components/HeaderBar';
 import { useNavigate } from 'react-router-dom';
@@ -49,6 +57,23 @@ export default function HRRecords() {
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
 
+  // --- Estados dos Filtros ---
+  // Filtros Payments
+  const [filterPaymentEmployee, setFilterPaymentEmployee] = useState('');
+  const [filterRateMin, setFilterRateMin] = useState('');
+  const [filterRateMax, setFilterRateMax] = useState('');
+  const [filterPayFrequency, setFilterPayFrequency] = useState('');
+  const [filterPaymentDateFrom, setFilterPaymentDateFrom] = useState('');
+  const [filterPaymentDateTo, setFilterPaymentDateTo] = useState('');
+  const [filterPaymentsExpanded, setFilterPaymentsExpanded] = useState(false);
+
+  // Filtros Job Changes
+  const [filterJobEmployee, setFilterJobEmployee] = useState('');
+  const [filterDepartment, setFilterDepartment] = useState('');
+  const [filterJobDateFrom, setFilterJobDateFrom] = useState('');
+  const [filterJobDateTo, setFilterJobDateTo] = useState('');
+  const [filterJobChangesExpanded, setFilterJobChangesExpanded] = useState(false);
+
 
   // --- Colunas ---
   const paymentsColumns = ['Rate', 'Changed Rate',  'Pay Frequency', 'Employee'];
@@ -60,20 +85,85 @@ export default function HRRecords() {
   const [jobChangesPage, setJobChangesPage] = useState(1);
   const ROWS_PER_PAGE = 10;
 
-  const paymentsCount = Math.max(1, Math.ceil(payments.length / ROWS_PER_PAGE));
-  const jobChangesCount = Math.max(1, Math.ceil(jobChanges.length / ROWS_PER_PAGE));
+  // Aplicar filtros
+  const filteredPayments = useMemo(() => {
+    return payments.filter((p) => {
+      // Filtro Employee
+      if (filterPaymentEmployee.trim()) {
+        const query = filterPaymentEmployee.toLowerCase();
+        if (!(p.FullName || '').toLowerCase().includes(query)) return false;
+      }
+      // Filtro Rate Min
+      if (filterRateMin) {
+        const minVal = parseFloat(filterRateMin);
+        if (p.Rate < minVal) return false;
+      }
+      // Filtro Rate Max
+      if (filterRateMax) {
+        const maxVal = parseFloat(filterRateMax);
+        if (p.Rate > maxVal) return false;
+      }
+      // Filtro Pay Frequency
+      if (filterPayFrequency) {
+        if (p.PayFrequency !== parseInt(filterPayFrequency, 10)) return false;
+      }
+      // Filtro Data From
+      if (filterPaymentDateFrom) {
+        const payDate = new Date(p.RateChangeDate);
+        const fromDate = new Date(filterPaymentDateFrom);
+        if (payDate < fromDate) return false;
+      }
+      // Filtro Data To
+      if (filterPaymentDateTo) {
+        const payDate = new Date(p.RateChangeDate);
+        const toDate = new Date(filterPaymentDateTo);
+        if (payDate > toDate) return false;
+      }
+      return true;
+    });
+  }, [payments, filterPaymentEmployee, filterRateMin, filterRateMax, filterPayFrequency, filterPaymentDateFrom, filterPaymentDateTo]);
+
+  const filteredJobChanges = useMemo(() => {
+    return jobChanges.filter((j) => {
+      // Filtro Employee
+      if (filterJobEmployee.trim()) {
+        const query = filterJobEmployee.toLowerCase();
+        if (!(j.FullName || '').toLowerCase().includes(query)) return false;
+      }
+      // Filtro Department
+      if (filterDepartment) {
+        if (j.DepartmentName !== filterDepartment) return false;
+      }
+      // Filtro Data From
+      if (filterJobDateFrom) {
+        const jobDate = new Date(j.StartDate);
+        const fromDate = new Date(filterJobDateFrom);
+        if (jobDate < fromDate) return false;
+      }
+      // Filtro Data To
+      if (filterJobDateTo) {
+        const jobDate = new Date(j.StartDate);
+        const toDate = new Date(filterJobDateTo);
+        if (jobDate > toDate) return false;
+      }
+      return true;
+    });
+  }, [jobChanges, filterJobEmployee, filterDepartment, filterJobDateFrom, filterJobDateTo]);
+
+  const paymentsCount = Math.max(1, Math.ceil(filteredPayments.length / ROWS_PER_PAGE));
+  const jobChangesCount = Math.max(1, Math.ceil(filteredJobChanges.length / ROWS_PER_PAGE));
 
   const paymentsStart = (paymentsPage - 1) * ROWS_PER_PAGE;
   const jobChangesStart = (jobChangesPage - 1) * ROWS_PER_PAGE;
 
   const visiblePayments = useMemo(
-    () => payments.slice(paymentsStart, paymentsStart + ROWS_PER_PAGE),
-    [payments, paymentsStart]
+    () => filteredPayments.slice(paymentsStart, paymentsStart + ROWS_PER_PAGE),
+    [filteredPayments, paymentsStart]
   );
 
   const visibleJobChanges = useMemo(
-    () => jobChanges.slice(jobChangesStart, jobChangesStart + ROWS_PER_PAGE),
-    [jobChanges, jobChangesStart]
+    () => filteredJobChanges.slice(jobChangesStart, jobChangesStart + ROWS_PER_PAGE),
+    [filteredJobChanges, jobChangesStart]
   );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [mode, setMode] = useState('add');
@@ -297,9 +387,9 @@ export default function HRRecords() {
     const realIndex = tab === 0 ? paymentsStart + indexInPage : jobChangesStart + indexInPage;
     if (tab === 0) {
       try {
-        const item = payments[realIndex];
+        const item = filteredPayments[indexInPage];
         await HRService.deletePayment({BusinessEntityID: item.BusinessEntityID, RateChangeDate: item.RateChangeDate});
-        setPayments((prev) => prev.filter((_, i) => i !== realIndex));
+        setPayments((prev) => prev.filter((p) => !(p.BusinessEntityID === item.BusinessEntityID && p.RateChangeDate === item.RateChangeDate)));
       } catch (error) {
         console.error('Error deleting payment:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
@@ -307,9 +397,9 @@ export default function HRRecords() {
       }
     } else {
       try {
-        const item = jobChanges[realIndex];
+        const item = filteredJobChanges[indexInPage];
         await HRService.deleteMovement({BusinessEntityID: item.BusinessEntityID, StartDate: item.StartDate, DepartmentName: item.DepartmentName});
-        setJobChanges((prev) => prev.filter((_, i) => i !== realIndex));
+        setJobChanges((prev) => prev.filter((j) => !(j.BusinessEntityID === item.BusinessEntityID && j.StartDate === item.StartDate && j.DepartmentName === item.DepartmentName)));
       } catch (error) {
         console.error('Error deleting job change:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
@@ -317,6 +407,31 @@ export default function HRRecords() {
       }
     }
   };
+
+  // Clear filter functions
+  const handleClearFiltersPayments = () => {
+    setFilterPaymentEmployee('');
+    setFilterRateMin('');
+    setFilterRateMax('');
+    setFilterPayFrequency('');
+    setFilterPaymentDateFrom('');
+    setFilterPaymentDateTo('');
+    setPaymentsPage(1);
+  };
+
+  const handleClearFiltersJobChanges = () => {
+    setFilterJobEmployee('');
+    setFilterDepartment('');
+    setFilterJobDateFrom('');
+    setFilterJobDateTo('');
+    setJobChangesPage(1);
+  };
+
+  // Get unique departments for job changes filter
+  const uniqueDepartments = useMemo(() => {
+    const deps = [...new Set(jobChanges.map((j) => j.DepartmentName).filter(Boolean))];
+    return deps.sort();
+  }, [jobChanges]);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
@@ -373,6 +488,199 @@ export default function HRRecords() {
             </Button>
           </Box>
         </Stack>
+
+        {/* Filter Panel - Payments */}
+        {tab === PAYMENT_TAB && (
+          <Card sx={{ mb: 2, bgcolor: '#fff9c4', border: '1px solid #fbc02d' }}>
+            <CardHeader
+              title="Filters"
+              action={
+                <IconButton
+                  onClick={() => setFilterPaymentsExpanded(!filterPaymentsExpanded)}
+                  sx={{ p: 0 }}
+                >
+                  {filterPaymentsExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              }
+              sx={{ pb: 0 }}
+            />
+            <Collapse in={filterPaymentsExpanded}>
+              <CardContent>
+                <Stack direction="column" spacing={2}>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                    <TextField
+                      label="Employee Name"
+                      value={filterPaymentEmployee}
+                      onChange={(e) => {
+                        setFilterPaymentEmployee(e.target.value);
+                        setPaymentsPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      label="Rate Min"
+                      type="number"
+                      value={filterRateMin}
+                      onChange={(e) => {
+                        setFilterRateMin(e.target.value);
+                        setPaymentsPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                      inputProps={{ step: '0.01' }}
+                    />
+                    <TextField
+                      label="Rate Max"
+                      type="number"
+                      value={filterRateMax}
+                      onChange={(e) => {
+                        setFilterRateMax(e.target.value);
+                        setPaymentsPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                      inputProps={{ step: '0.01' }}
+                    />
+                    <Select
+                      value={filterPayFrequency}
+                      onChange={(e) => {
+                        setFilterPayFrequency(e.target.value);
+                        setPaymentsPage(1);
+                      }}
+                      size="small"
+                      displayEmpty
+                      sx={{ flex: 1 }}
+                    >
+                      <MenuItem value="">All Frequencies</MenuItem>
+                      <MenuItem value="1">Weekly</MenuItem>
+                      <MenuItem value="2">Bi-weekly</MenuItem>
+                    </Select>
+                  </Stack>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                    <TextField
+                      label="Date From"
+                      type="date"
+                      value={filterPaymentDateFrom}
+                      onChange={(e) => {
+                        setFilterPaymentDateFrom(e.target.value);
+                        setPaymentsPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                      label="Date To"
+                      type="date"
+                      value={filterPaymentDateTo}
+                      onChange={(e) => {
+                        setFilterPaymentDateTo(e.target.value);
+                        setPaymentsPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <Button
+                      variant="outlined"
+                      onClick={handleClearFiltersPayments}
+                      sx={{ textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Collapse>
+          </Card>
+        )}
+
+        {/* Filter Panel - Job Changes */}
+        {tab === JOB_CHANGE_TAB && (
+          <Card sx={{ mb: 2, bgcolor: '#fff9c4', border: '1px solid #fbc02d' }}>
+            <CardHeader
+              title="Filters"
+              action={
+                <IconButton
+                  onClick={() => setFilterJobChangesExpanded(!filterJobChangesExpanded)}
+                  sx={{ p: 0 }}
+                >
+                  {filterJobChangesExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              }
+              sx={{ pb: 0 }}
+            />
+            <Collapse in={filterJobChangesExpanded}>
+              <CardContent>
+                <Stack direction="column" spacing={2}>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                    <TextField
+                      label="Employee Name"
+                      value={filterJobEmployee}
+                      onChange={(e) => {
+                        setFilterJobEmployee(e.target.value);
+                        setJobChangesPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                    <Select
+                      value={filterDepartment}
+                      onChange={(e) => {
+                        setFilterDepartment(e.target.value);
+                        setJobChangesPage(1);
+                      }}
+                      size="small"
+                      displayEmpty
+                      sx={{ flex: 1 }}
+                    >
+                      <MenuItem value="">All Departments</MenuItem>
+                      {uniqueDepartments.map((dept) => (
+                        <MenuItem key={dept} value={dept}>
+                          {dept}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </Stack>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                    <TextField
+                      label="Date From"
+                      type="date"
+                      value={filterJobDateFrom}
+                      onChange={(e) => {
+                        setFilterJobDateFrom(e.target.value);
+                        setJobChangesPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                      label="Date To"
+                      type="date"
+                      value={filterJobDateTo}
+                      onChange={(e) => {
+                        setFilterJobDateTo(e.target.value);
+                        setJobChangesPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <Button
+                      variant="outlined"
+                      onClick={handleClearFiltersJobChanges}
+                      sx={{ textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Collapse>
+          </Card>
+        )}
 
         <Paper
           variant="outlined"
