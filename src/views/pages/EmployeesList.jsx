@@ -323,7 +323,7 @@ export default function EmployeesList() {
               {visibleUsers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} align="center" sx={{ py: 3, color: '#666' }}>
-                    Sem empregados ainda.
+                    No employees yet.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -511,7 +511,7 @@ export default function EmployeesList() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} sx={{ textTransform: 'none' }}>
-            Cancelar
+            Cancel
           </Button>
           <Button
             onClick={handleSave}
@@ -525,7 +525,7 @@ export default function EmployeesList() {
               '&:hover': { bgcolor: '#222' },
             }}
           >
-            Guardar
+            Save
           </Button>
         </DialogActions>
       </Dialog>

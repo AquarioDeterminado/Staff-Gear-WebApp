@@ -24,10 +24,13 @@ import {
   DialogActions,
   Drawer
 } from '@mui/material';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import DownloadIcon from '@mui/icons-material/Download';
 import CloseIcon from '@mui/icons-material/Close';
 import HeaderBar from '../components/HeaderBar';
 import CandidateService from '../../services/CandidateService';
+import HRService from '../../services/HRService';
 import { useNavigate } from 'react-router-dom';
 import UserService from '../../utils/UserSession';
 import useNotification  from '../../utils/UseNotification';
@@ -48,9 +51,11 @@ export default function CandidatesView() {
   const [candidateToAccept, setCandidateToAccept] = useState(null);
   const [acceptFormData, setAcceptFormData] = useState({
     jobTitle: '',
-    department: 'Sales',
+    department: '',
     defaultPassword: 'Welcome@123'
   });
+
+  const [departments, setDepartments] = useState([]);
 
   // Dialog para confirmar rejeição
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -92,7 +97,7 @@ export default function CandidatesView() {
     setCandidateToAccept(candidate);
     setAcceptFormData({
       jobTitle: '',
-      department: 'Sales',
+      department: departments && departments.length > 0 ? departments[0] : 'Sales',
       defaultPassword: 'Welcome@123'
     });
     setAcceptDialogOpen(true);
@@ -120,7 +125,7 @@ export default function CandidatesView() {
 
   const handleAcceptCandidate = async () => {
     try {
-      const result = await CandidateService.accept(candidateToAccept.jobCandidateId, {
+      await CandidateService.accept(candidateToAccept.jobCandidateId, {
         jobTitle: acceptFormData.jobTitle || undefined,
         department: acceptFormData.department || undefined,
         defaultPassword: acceptFormData.defaultPassword || undefined
@@ -205,7 +210,20 @@ export default function CandidatesView() {
     }
 
     fetchCandidates();
-    
+
+    async function fetchDepartments() {
+      try {
+        const movements = await HRService.getAllMovements();
+        const deps = Array.isArray(movements) ? [...new Set(movements.map((m) => m.DepartmentName).filter(Boolean))] : [];
+        deps.sort();
+        setDepartments(deps);
+      } catch (err) {
+        console.debug('Could not fetch departments for accept dialog', err);
+      }
+    }
+
+    fetchDepartments();
+
   }, [navigate, showNotification]);
 
   return (
@@ -344,15 +362,25 @@ export default function CandidatesView() {
               size="small"
               helperText="Leave empty to use 'New Hire'"
             />
-            <TextField
-              label="Department"
-              placeholder="Ex: IT"
-              value={acceptFormData.department}
-              onChange={(e) => setAcceptFormData({ ...acceptFormData, department: e.target.value })}
-              fullWidth
-              size="small"
-              helperText="Default: Sales"
-            />
+            <Box>
+              <Select
+                value={acceptFormData.department}
+                onChange={(e) => setAcceptFormData({ ...acceptFormData, department: e.target.value })}
+                size="small"
+                displayEmpty
+                sx={{ width: '100%' }}
+              >
+                <MenuItem value="">-- Select Department --</MenuItem>
+                {departments.map((d) => (
+                  <MenuItem key={d} value={d}>
+                    {d}
+                  </MenuItem>
+                ))}
+              </Select>
+              <Typography variant="caption" sx={{ color: '#666' }}>
+                Default: Sales
+              </Typography>
+            </Box>
             <TextField
               label="Password"
               type="password"
