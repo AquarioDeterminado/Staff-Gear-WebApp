@@ -109,15 +109,17 @@ export default function EmployeeRecords() {
               m: 0.5,
               borderRadius: 0.75,
               textTransform: 'none',
-              fontWeight: 700,
+              fontWeight: 600,
               fontSize: 14,
-              color: '#000',
-              bgcolor: '#ff9800',
+              color: '#666',
+              bgcolor: '#f5f5f5',
+              transition: 'all 0.3s ease',
             },
             '& .MuiTab-root.Mui-selected': {
               bgcolor: '#ff9800',
-              color: '#000',
-              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.15)',
+              color: '#fff',
+              fontWeight: 700,
+              boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)',
             },
           }}
         >

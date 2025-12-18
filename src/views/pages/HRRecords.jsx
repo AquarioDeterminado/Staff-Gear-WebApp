@@ -277,11 +277,12 @@ export default function HRRecords() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const isValidDateYMD = (str) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(str);
+  const isValidDateYMD = (str) => /^\d{4}-\d{2}-\d{2}$/.test(str);
 
   const canSave = useMemo(() => {
     if (tab === PAYMENT_TAB) {
-      return form.Rate?.trim() && (form.PayFrequency == 1 || form.PayFrequency == 2);
+      return form.Rate?.trim() && (form.PayFrequency == 1 || form.PayFrequency == 2)
+        && isValidDateYMD(form.RateChangeDate);
     }
     return form.JobTitle?.trim() && form.DepartmentName?.trim() && form.StartDate?.trim();
   }, [form, tab]);
@@ -305,7 +306,7 @@ export default function HRRecords() {
             BusinessEntityID: newItem.BusinessEntityID,
             PFullName: newItem.P_FullName,
             Rate: newItem.Rate,
-            RateChangeDate: newItem.RateChangeDate,
+            RateChangeDate: newItem.RateChangeDate + 'T00:00:00',
             PayFrequency: newItem.PayFrequency,
           });
           setPayments(await HRService.getAllPayments());
@@ -501,15 +502,17 @@ export default function HRRecords() {
                 m: 0.5,
                 borderRadius: 0.75,
                 textTransform: 'none',
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: 14,
-                color: '#000',
-                bgcolor: '#ff9800',
+                color: '#666',
+                bgcolor: '#f5f5f5',
+                transition: 'all 0.3s ease',
               },
               '& .MuiTab-root.Mui-selected': {
                 bgcolor: '#ff9800',
-                color: '#000',
-                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.15)',
+                color: '#fff',
+                fontWeight: 700,
+                boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)',
               },
             }}
           >

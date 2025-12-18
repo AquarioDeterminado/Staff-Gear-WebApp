@@ -32,6 +32,7 @@ import { useNavigate } from 'react-router-dom';
 import EmployeeService from '../../services/EmployeeService';
 import UserSession from '../../utils/UserSession';
 import { ConfirmationNumber } from '@mui/icons-material';
+import ErrorHandler from '../../utils/ErrorHandler';
 
 const CARD_W = 280;
 const CARD_H = 72;
@@ -182,7 +183,7 @@ export default function EmployeeProfile() {
       const status = error?.response?.status || error?.status || 'N/A';
       console.error('Error while updating the profile:', error);
       UserSession.verifyAuthorize(navigate, status);
-      setSnackbar({ open: true, severity: 'error', message: `Error while updating the profile. Code: ${status}` });
+      setSnackbar({ open: true, severity: 'error', message: ErrorHandler.getErrorMessage(error) });
     } finally {
       setIsSavingProfile(false);
     }

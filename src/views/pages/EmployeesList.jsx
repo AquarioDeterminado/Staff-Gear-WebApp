@@ -373,7 +373,7 @@ export default function EmployeesList() {
                           }}
                         >
                           <IconButton
-                            aria-label="apagar"
+                            aria-label="Delete"
                             sx={{
                               bgcolor: '#fff3e0',
                               color: '#000000ff',
