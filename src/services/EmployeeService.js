@@ -93,9 +93,9 @@ const EmployeeService = {
     const response = await api.post(`${EMPLOYEE_PATH}/alterpassword/${id}`, payload);
 
     if (!response || response.status !== 200) {
-      throw new Error('Erro ao alterar senha do funcionário! Error code: ' + response?.status);
+      throw new Error('Error while changing the employees password! Error code: ' + response?.status);
     } else {
-      console.log('Senha do funcionário alterada com sucesso!');
+      console.log('Employees password changed sucessfully!');
     }
   },
 
@@ -103,9 +103,9 @@ const EmployeeService = {
     const response = await api.get(`${EMPLOYEE_PATH}/Payments/${id}`);
 
     if (!response || (response.status !== 200 && response.status !== 204)) {
-      throw new Error('Erro ao obter pagamentos do funcionário! Error code: ' + response?.status);
+      throw new Error('Error while retrieving the employee payments! Error code: ' + response?.status);
     } else {
-      console.log('Pagamentos do funcionário obtidos com sucesso!');
+      console.log('Employee payments retrieved with success!');
     }
 
     var data = response.data.length ? response.data : [];
@@ -127,9 +127,9 @@ const EmployeeService = {
     const response = await api.get(`${EMPLOYEE_PATH}/Movements/${id}`);
 
     if (!response || (response.status !== 200 && response.status !== 204)) {
-      throw new Error('Erro ao obter movimentos do funcionário! Error code: ' + response?.status);
+      throw new Error('Error retrieving employee movements! Error code: ' + response?.status);
     } else {
-      console.log('Movimentos do funcionário obtidos com sucesso!');
+      console.log('Employee movements retrieved with success!');
     }
 
     var data = response.data.length ? response.data : [];
@@ -152,9 +152,9 @@ const EmployeeService = {
     const response = await api.delete(`${EMPLOYEE_PATH}/${id}`);
 
     if (!response || response.status !== 200) {
-      throw new Error('Erro ao deletar funcionário! Error code: ' + response?.status);
+      throw new Error('Error deleting the employee! Error code: ' + response?.status);
     } else {
-      console.log('Funcionário deletado com sucesso!');
+      console.log('Employee deleted with success!');
        }
   }
 };

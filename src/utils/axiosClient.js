@@ -1,11 +1,10 @@
-
 import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL
 });
 
-// Token em memória ou localStorage
+// Token in local storage
 export function setAuthToken(token) {
   if (token) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -16,20 +15,19 @@ export function setAuthToken(token) {
   }
 }
 
-// Restaurar token do localStorage ao inicializar
+// Restoring token from the local storage when initializing
 const storedToken = localStorage.getItem('access_token');
 if (storedToken) {
   setAuthToken(storedToken);
-  console.log('Token restaurado do localStorage ao iniciar a aplicação');
+  console.log('Token restored from the local storage when initializing');
 }
 
-// Interceptor para erros globais
 api.interceptors.response.use(
   response => response,
   error => {
     const status = error.response?.status;
     if (status === 401) {
-        console.warn('Sessão expirada ou inválida.');
+        console.warn('Invalid session or expired');
         // Remove token and redirect user to login
         try {
           setAuthToken(null);
@@ -39,13 +37,13 @@ api.interceptors.response.use(
         if (typeof window !== 'undefined') window.location.replace('/');
     }
     
-    // Se a resposta de erro é um Blob, tenta converter para texto/JSON
+    // If the answer gives an error it's a blob, tried to convert to text/JSON
     if (error.response?.data instanceof Blob) {
       return error.response.data.text().then(text => {
         try {
           error.response.data = JSON.parse(text);
         } catch {
-          // Se não for JSON, guarda o texto como string
+          // If it's not JSON saves the text as a string
           error.response.data = text;
         }
         return Promise.reject(error);

@@ -17,7 +17,9 @@ const UserSession = {
         if (status === 401 || status === 403 || status === 405 || status === 500 || status === undefined) {
             try {
                 localStorage.removeItem('access_token');
-            } catch {}
+            } catch (e) {
+                console.error('Error removing access_token from localStorage:', e);
+            }
             navigator('/', { replace: true });
         } 
     }

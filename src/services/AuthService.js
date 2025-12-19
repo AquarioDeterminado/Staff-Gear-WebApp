@@ -10,9 +10,9 @@ const AuthService = {
         var response = await api.post(AUTH_PATH, credentials);
 
         if (!response || response.status !== 200) {
-            throw new Error('Erro ao efetuar login! Error code: ' + response?.status);
+            throw new Error('Error logging in! Error code: ' + response?.status);
         } else {
-            console.log('Login efetuado com sucesso!');
+            console.log('Logged in successfully!');
         }
 
         var token = new AuthTokenViewModel({
@@ -31,7 +31,7 @@ const AuthService = {
         localStorage.removeItem('access_token');
         localStorage.removeItem('BusinessID');
         localStorage.removeItem('user_role');
-        console.log('Logout efetuado com sucesso!');
+        console.log('Logout made successully!');
     }
 }
 

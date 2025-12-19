@@ -46,7 +46,7 @@ export default function CandidatesView() {
   const [filterId, setFilterId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Dialog para aceitar candidato
+  // Dialog to accept candidate
   const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
   const [candidateToAccept, setCandidateToAccept] = useState(null);
   const [acceptFormData, setAcceptFormData] = useState({
@@ -57,18 +57,18 @@ export default function CandidatesView() {
 
   const [departments, setDepartments] = useState([]);
 
-  // Dialog para confirmar rejeição
+  // Dialog to confirm the rejection
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [candidateToReject, setCandidateToReject] = useState(null);
 
-  // Drawer para detalhes do candidato
+  // Drawer for candidate details
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const filtered = useMemo(() => {
     let result = rows;
 
-    // Filtro por ID
+    // ID Filter
     if (filterId) {
       const n = parseInt(filterId, 10);
       if (!Number.isNaN(n)) {
@@ -76,7 +76,7 @@ export default function CandidatesView() {
       }
     }
 
-    // Filtro por nome ou email (em tempo real)
+    // Filtro for name and email
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter((r) => {
@@ -131,11 +131,11 @@ export default function CandidatesView() {
         defaultPassword: acceptFormData.defaultPassword || undefined
       });
 
-      // Remove candidato da lista
+      // Remove candidate from the list
       setRows((prev) => prev.filter(r => r.jobCandidateId !== candidateToAccept.jobCandidateId));
       
       showNotification({
-        message: `Candidato ${candidateToAccept.firstName} foi aceito como funcionário!`,
+        message: `Candidate ${candidateToAccept.firstName} was accepted as an employee!`,
         severity: 'success'
       });
 
@@ -147,9 +147,9 @@ export default function CandidatesView() {
       if (typeof data === 'string') {
         msg = data;
       } else if (data && typeof data === 'object') {
-        msg = data.message || data.detail || data.title || 'Erro ao aceitar candidato';
+        msg = data.message || data.detail || data.title || 'Error accepting the candidate';
       }
-      if (!msg) msg = error?.message || 'Erro ao aceitar candidato.';
+      if (!msg) msg = error?.message || 'Error accepting the candidate.';
       showNotification({ message: msg, severity: 'error' });
       UserService.verifyAuthorize(navigate, error?.response?.status);
     }
@@ -160,7 +160,7 @@ export default function CandidatesView() {
       await CandidateService.reject(id);
       setRows((prev) => prev.filter(r => r.jobCandidateId !== id));
       showNotification({
-        message: 'Candidato rejeitado com sucesso!',
+        message: 'Candidate rejected with success!',
         severity: 'success'
       });
     } catch (error) {
@@ -169,15 +169,14 @@ export default function CandidatesView() {
       if (typeof data === 'string') {
         msg = data;
       } else if (data && typeof data === 'object') {
-        msg = data.message || data.detail || data.title || 'Erro ao rejeitar candidato';
+        msg = data.message || data.detail || data.title || 'Error rejecting the candidate';
       }
-      if (!msg) msg = error?.message || 'Erro ao rejeitar candidato.';
+      if (!msg) msg = error?.message || 'Error rejecting the candidate.';
       showNotification({ message: msg, severity: 'error' });
       UserService.verifyAuthorize(navigate, error?.response?.status);
     }
   };
 
-  // Filtro - limpar
   const handleClearFilter = () => {
     setFilterId('');
     setSearchQuery('');
@@ -203,7 +202,7 @@ export default function CandidatesView() {
             data.message ||
             (data.errors ? Object.values(data.errors).flat().join(' · ') : null);
         }
-        if (!msg) msg = error?.message || 'Erro a obter candidaturas.';
+        if (!msg) msg = error?.message || 'Error retrieving applications.';
         showNotification({ message: msg, severity: 'error' });
         UserService.verifyAuthorize(navigate, error?.response?.status);
       }
@@ -230,7 +229,7 @@ export default function CandidatesView() {
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
 
-      {/* Drawer para detalhes do candidato */}
+      {/* Drawer for candidate details */}
       <Drawer
         anchor="right"
         open={drawerOpen}
@@ -346,7 +345,7 @@ export default function CandidatesView() {
         </Box>
       </Drawer>
 
-      {/* Dialog para aceitar candidato */}
+      {/* Dialog to accept a candidate */}
       <Dialog open={acceptDialogOpen} onClose={() => setAcceptDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
           Accept Candidate: {candidateToAccept?.firstName} {candidateToAccept?.lastName}
@@ -404,7 +403,7 @@ export default function CandidatesView() {
         </DialogActions>
       </Dialog>
 
-      {/* Dialog para confirmar rejeição */}
+      {/* Dialog to confirm the rejection */}
       <Dialog open={rejectDialogOpen} onClose={closeRejectDialog} maxWidth="xs" fullWidth>
         <DialogTitle>Confirm Reject</DialogTitle>
         <DialogContent>
@@ -438,7 +437,7 @@ export default function CandidatesView() {
             variant="outlined"
             sx={{
               flex: 1,
-              bgcolor: '#fff3e0', // fundo laranja claro
+              bgcolor: '#fff3e0',
               borderColor: '#ddd',
               borderRadius: 1.5,
               overflow: 'auto'
@@ -502,7 +501,7 @@ export default function CandidatesView() {
                                     data.message ||
                                     (data.errors ? Object.values(data.errors).flat().join(' · ') : null);
                                 }
-                                if (!msg) msg = error?.message || 'Erro ao transferir resume.';
+                                if (!msg) msg = error?.message || 'Error downloading the resume.';
                                 console.error('Error downloading resume:', error);
                                 showNotification({ message: msg, severity: 'error' });
                                 UserService.verifyAuthorize(navigate, error.response?.status);
@@ -602,8 +601,6 @@ export default function CandidatesView() {
                 Filters
               </Typography>
               <Divider sx={{ mb: 2 }} />
-
-              {/* Pesquisa por Nome ou Email */}
               <TextField
                 label="Name or Email"
                 placeholder="Search..."
@@ -626,7 +623,7 @@ export default function CandidatesView() {
                 inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
               />
 
-              {/* Botão Limpar */}
+              {/*Clean button */}
               <Button
                 variant="outlined"
                 onClick={handleClearFilter}

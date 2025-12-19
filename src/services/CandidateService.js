@@ -1,8 +1,5 @@
-
-// src/services/CandidateService.js
 import api from '../utils/axiosClient';
 
-// Usa apenas uma variável base do .env (ex.: VITE_API_CANDIDATE=/api/v1/candidate)
 const CANDIDATE_BASE = import.meta.env.VITE_API_CANDIDATE ?? '/api/v1/candidate';
 
 const CandidateService = {
@@ -24,18 +21,10 @@ const CandidateService = {
         });
     },
 
-    /**
-     * Lista candidatos (RH) com paginação e filtros.
-     * params: { page?: number, pageSize?: number, q?: string }
-     */
     list: (params = {}, opts = {}) => {
         return api.get(CANDIDATE_BASE, { params, ...opts });
     },
 
-    /**
-     * Aceita candidato e integra como funcionário com dados opcionais.
-     * Agora é POST para enviar jobTitle, department, defaultPassword
-     */
     accept: (id, data = {}, opts = {}) => {
         return api.post(`${CANDIDATE_BASE}/accept/${id}`, {
             jobTitle: data.jobTitle || null,
@@ -44,24 +33,17 @@ const CandidateService = {
         }, opts);
     },
 
-    /**
-     * Rejeita/deleta um candidato.
-     */
     reject: (id, opts = {}) => {
         return api.delete(`${CANDIDATE_BASE}/${id}`, opts);
     },
 
-    /**
-     * Download do CV (binário) de um candidato (só RH).
-     * Retorna Blob — usa URL.createObjectURL(blob) para abrir/guardar.
-     */
     downloadResume: async (id, opts = {}) => {
         const res = await api.get(`${CANDIDATE_BASE}/${id}/resume`, {
             responseType: 'blob',
             headers: { Accept: 'application/octet-stream' },
             ...opts
         });
-        return res.data; // blob
+        return res.data;
     }
 };
 

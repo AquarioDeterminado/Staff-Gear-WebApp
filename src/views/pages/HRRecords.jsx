@@ -63,8 +63,7 @@ export default function HRRecords() {
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
 
-  // --- Estados dos Filtros ---
-  // Filtros Payments
+  // Filter Payments
   const [filterPaymentEmployee, setFilterPaymentEmployee] = useState('');
   const [filterRateMin, setFilterRateMin] = useState('');
   const [filterRateMax, setFilterRateMax] = useState('');
@@ -73,19 +72,19 @@ export default function HRRecords() {
   const [filterPaymentDateTo, setFilterPaymentDateTo] = useState('');
   const [filterPaymentsExpanded, setFilterPaymentsExpanded] = useState(false);
 
-  // Filtros Job Changes
+  // Job Changes Filter
   const [filterJobEmployee, setFilterJobEmployee] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
   const [filterJobDateFrom, setFilterJobDateFrom] = useState('');
   const [filterJobDateTo, setFilterJobDateTo] = useState('');
   const [filterJobChangesExpanded, setFilterJobChangesExpanded] = useState(false);
 
-  // --- Colunas ---
+  // Columns
   const paymentsColumns = ['Rate', 'Changed Rate', 'Pay Frequency', 'Employee'];
   const jobChangesColumns = ['Job Title', 'Department', 'Start Date', 'End Date', 'Employee'];
   const columns = tab === PAYMENT_TAB ? paymentsColumns : jobChangesColumns;
 
-  // --- Paginação ---
+  // Pages
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [jobChangesPage, setJobChangesPage] = useState(1);
   const ROWS_PER_PAGE = 9;

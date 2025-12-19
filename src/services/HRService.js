@@ -80,7 +80,7 @@ const HRService = {
     editMovement: async (movement) => {
         const response = await api.put(`${MOVEMENTS_PATH}`, new MovementViewModel({BusinessEntityID: movement.BusinessEntityID, FullName: movement.FullName, DepartmentName: movement.DepartmentName, JobTitle: movement.JobTitle, StartDate: movement.StartDate, EndDate: movement.EndDate}));
         if (!response || response.status !== 200) {
-            throw new Error('Erro editing transaction! Error code: ' + response?.status);
+            throw new Error('Error editing transaction! Error code: ' + response?.status);
         } else {
             console.log('Transaction edited with success!');
         }
