@@ -1,7 +1,7 @@
 
 import { Box, Typography } from '@mui/material';
 import Login from '../components/LogInPage';
-import ApplyCandidatePage from '../components/ApplyCandidatePage';
+import ApplyFormComponent from '../components/ApplyFormComponent';
 
 export default function Home() {
   
@@ -34,7 +34,7 @@ export default function Home() {
           }}
         >
           <Box sx={{ width: '100%', maxWidth: 680 }}>
-            <ApplyCandidatePage />
+            <ApplyFormComponent />
           </Box>
         </Box>
         <Box

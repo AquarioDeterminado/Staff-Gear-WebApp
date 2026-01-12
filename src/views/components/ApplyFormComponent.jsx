@@ -38,7 +38,7 @@ const ui = {
     },
 };
 
-export default function ApplyCandidatePage() {
+export default function ApplyFormComponent() {
     const [form, setForm] = useState({
         firstName: '',
         middleName: '',
