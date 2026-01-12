@@ -33,6 +33,7 @@ import EmployeeService from '../../services/EmployeeService';
 import UserSession from '../../utils/UserSession';
 import { ConfirmationNumber } from '@mui/icons-material';
 import ErrorHandler from '../../utils/ErrorHandler';
+import useNotification from '../../utils/UseNotification';
 
 const CARD_W = 280;
 const CARD_H = 72;
@@ -75,18 +76,15 @@ export default function EmployeeProfile() {
     Email: '',
     Role: ''
   });
+  const [updateProfileError, setUpdateProfileError] = useState({"FirstName": "", "LastName": "", "Email": ""});
+  const [updatePwdError, setUpdatePwdError] = useState({"OldPassword": "", "NewPassword": "", "ConfirmPassword": ""});
 
   const [isPwdDialogOpen, setIsPwdDialogOpen] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmittingPwd, setIsSubmittingPwd] = useState(false);
-
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    severity: 'success',
-    message: ''
-  });
+  const notif = useNotification();
 
   useEffect(() => {
     if (!BusinessID) {
@@ -112,12 +110,12 @@ export default function EmployeeProfile() {
         console.error('Error fetching profile info:', error);
         const status = error?.response?.status || error?.status;
         UserSession.verifyAuthorize(navigate, status);
-        setSnackbar({ open: true, severity: 'error', message: 'Error while loading the profile.' });
+        notif({ severity: 'error', message: 'Error while loading the profile.' });
       }
     }
 
     GetEmployeeInfo();
-  }, [BusinessID, navigate]);
+  }, [BusinessID, navigate, notif]);
 
   useEffect(() => {
     if (profileInfo && !isEditMode) {
@@ -149,16 +147,27 @@ export default function EmployeeProfile() {
   };
 
   const validateProfile = () => {
-    if (!formData.FirstName?.trim() || !formData.LastName?.trim() || !formData.Email?.trim()) {
-      setSnackbar({ open: true, severity: 'warning', message: 'First name, last name and email are mandatory.' });
-      return false;
+    var isValid = true;
+
+    setUpdateProfileError({"FirstName": "", "LastName": "", "Email": ""});
+    if (!formData.FirstName?.trim() ){
+      setUpdateProfileError(prev => ({...prev, FirstName: "First name is required."}));
+      isValid = false;
+    } 
+    if (!formData.LastName?.trim()){
+      setUpdateProfileError(prev => ({...prev, LastName: "Last name is required."}));
+      isValid = false;
+    }
+    if (!formData.Email?.trim()){
+      setUpdateProfileError(prev => ({...prev, Email: "Email is required."}));
+      isValid = false;
     }
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.Email);
     if (!emailOk) {
-      setSnackbar({ open: true, severity: 'warning', message: 'Insert a valid email.' });
-      return false;
+      setUpdateProfileError(prev => ({...prev, Email: "Insert a valid email."}));
+      isValid = false;
     }
-    return true;
+    return isValid;
   };
 
   const saveProfile = async () => {
@@ -178,7 +187,7 @@ export default function EmployeeProfile() {
 
       setProfileInfo((prev) => ({ ...(prev || {}), ...payload }));
       setIsEditMode(false);
-      setSnackbar({ open: true, severity: 'success', message: 'Profile updated with success!' });
+      notif({ severity: 'success', message: 'Profile updated with success!' });
     } catch (error) {
       const status = error?.response?.status || error?.status || 'N/A';
       console.error('Error while updating the profile:', error);
@@ -186,11 +195,11 @@ export default function EmployeeProfile() {
       if(status === 409) {
         const data = error?.response?.data;
         const conflictMsg = (data && (data.message || data.detail)) || 'Email already in use';
-        setSnackbar({ open: true, severity: 'error', message: conflictMsg });
+        notif({ severity: 'error', message: conflictMsg });
       }
       else{
         const msg = ErrorHandler(error);
-        setSnackbar({ open: true, severity: 'error', message: msg });
+        notif({ severity: 'error', message: msg });
       }
     } finally {
       setIsSavingProfile(false);
@@ -207,26 +216,35 @@ export default function EmployeeProfile() {
   };
 
   const handleChangePassword = async () => {
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      setSnackbar({ open: true, severity: 'warning', message: 'Fill all the password fields.' });
-      return;
+    setUpdatePwdError({"OldPassword": "", "NewPassword": "", "ConfirmPassword": ""});
+    var isValid = true;
+
+    if (!oldPassword || oldPassword.trim() === '') {
+      setUpdatePwdError(prev => ({...prev, OldPassword: "Current password is required."}));
+      isValid = false;
+    }
+    if (!newPassword || newPassword.trim() === '') {
+      setUpdatePwdError(prev => ({...prev, NewPassword: "New password is required."}));
+      isValid = false;
     }
     if (newPassword !== confirmPassword) {
-      setSnackbar({ open: true, severity: 'warning', message: 'The confirmation isnt the same as the new password.' });
-      return;
+      setUpdatePwdError(prev => ({...prev, ConfirmPassword: "The confirmation isn't the same as the new password."}));
+      isValid = false;
     }
+
+    if (!isValid) return;
 
     try {
       setIsSubmittingPwd(true);
       const payload = { CurrentPassword: oldPassword, NewPassword: newPassword, ConfirmPassword: confirmPassword };
       await EmployeeService.alterEmployeePassword(BusinessID, payload);
 
-      setSnackbar({ open: true, severity: 'success', message: 'Password changed with success!' });
+      notif({ severity: 'success', message: 'Password changed with success!' });
       closePwdDialog();
     } catch (error) {
       const message = error?.response?.data || error?.status || 'N/A';
       console.error('Error while changing the password:', error);
-      setSnackbar({ open: true, severity: 'error', message: `Error while changing the password. ${message}` });
+      notif({ severity: 'error', message: `Error while changing the password. ${message}` });
     } finally {
       setIsSubmittingPwd(false);
     }
@@ -297,6 +315,8 @@ export default function EmployeeProfile() {
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, FirstName: e.target.value }))
                   }
+                  error={updateProfileError.FirstName}
+                  helperText={updateProfileError.FirstName}
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">                 
@@ -320,6 +340,8 @@ export default function EmployeeProfile() {
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, MiddleName: e.target.value }))
                   }
+                  error={updateProfileError.MiddleName}
+                  helperText={updateProfileError.MiddleName}
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
@@ -343,6 +365,8 @@ export default function EmployeeProfile() {
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, LastName: e.target.value }))
                   }
+                  error={updateProfileError.LastName}
+                  helperText={updateProfileError.LastName}
                 />
               ) : (
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
@@ -403,6 +427,8 @@ export default function EmployeeProfile() {
                       </InputAdornment>
                     )
                   }}
+                  error={updateProfileError.Email}
+                  helperText={updateProfileError.Email}
                 />
               ) : (
                 <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center">
@@ -449,6 +475,8 @@ export default function EmployeeProfile() {
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
               autoComplete="current-password"
+              error={updatePwdError.OldPassword}
+              helperText={updatePwdError.OldPassword}
             />
             <TextField
               label="New password"
@@ -457,6 +485,8 @@ export default function EmployeeProfile() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               autoComplete="new-password"
+              error={updatePwdError.NewPassword}
+              helperText={updatePwdError.NewPassword}
             />
             <TextField
               label="Confirm the password"
@@ -465,6 +495,8 @@ export default function EmployeeProfile() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
+              error={updatePwdError.ConfirmPassword}
+              helperText={updatePwdError.ConfirmPassword}
             />
           </Stack>
         </DialogContent>
@@ -480,21 +512,6 @@ export default function EmployeeProfile() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

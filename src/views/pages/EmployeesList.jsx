@@ -19,6 +19,8 @@ import {
   TextField,
   Stack,
   Divider,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import Popups from '../components/Popups';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -38,6 +40,8 @@ export default function EmployeesList() {
   const notifs = useNotification();
 
   const [Users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  
 
   const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessId)) + 1);
 
@@ -256,6 +260,18 @@ export default function EmployeesList() {
       }
     }
     if (Users.length === 0) fetchData();
+
+    async function fetchDepartments() {
+      try {
+        const deps = await EmployeeService.getAllDepartments();
+        deps.sort();
+        setDepartments(deps);
+      } catch (err) {
+        console.debug('Could not fetch departments for accept dialog', err);
+      }
+    }
+    
+    fetchDepartments();
   }, [Users.length, navigate, notifs]);
 
   return (
@@ -461,17 +477,21 @@ export default function EmployeesList() {
               error={!!errors.email}
               helperText={errors.email}
             />
-            <TextField
-              label="Department"
-              value={form.department}
-              onChange={onChange('department')}
-              placeholder="Ex.: Executive, Sales, Finance..."
-              fullWidth
-              size="small"
-              required
-              error={!!errors.department}
-              helperText={errors.department}
-            />
+            <Select
+                value={form.department}
+                onChange={(e) => setForm({ ...form, department: e.target.value })}
+                size="small"
+                displayEmpty
+
+                sx={{ width: '100%' }}
+              >
+                <MenuItem value="">-- Select Department --</MenuItem>
+                {departments.map((d) => (
+                  <MenuItem key={d} value={d}>
+                    {d}
+                  </MenuItem>
+                ))}
+              </Select>
             <TextField
               label="Job Title"
               value={form.jobTitle}
@@ -487,8 +507,12 @@ export default function EmployeesList() {
               label="Hire Date"
               value={form.hireDate}
               onChange={onChange('hireDate')}
+              type='date'
               placeholder="Ex.: 2024-03-12"
               fullWidth
+              slotProps={{
+                      inputLabel: { shrink: true }
+              }}
               size="small"
               required
               error={!!errors.hireDate}

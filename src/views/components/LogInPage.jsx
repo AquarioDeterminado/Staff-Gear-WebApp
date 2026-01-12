@@ -30,7 +30,7 @@ const ui = {
 export default function Login() {
   const navigate = useNavigate();
   const [login, setLogin] = useState({ email: '', password: '' });
-  const [feedback, setFeedback] = useState(null);
+  const [feedback, setFeedback] = useState({"email": {"error": ""}, "password": {"error": ""}});
   const [loading, setLoading] = useState(false);
   const notif = useNotification();
 
@@ -39,26 +39,17 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFeedback(null);
+    setFeedback({"email": {"error": ""}, "password": {"error": ""}});
+
+    if (!checkInput()) return;
 
     try {
-      if (!login.email || !login.password) {
-        throw new Error('Please, fill all the fields.');
-      }
       setLoading(true);
       await AuthService.login({ Username: login.email, Password: login.password });
       navigate('/profile');
     } catch (error) {
-      const msg =
-        (error?.response?.data &&
-          (typeof error.response.data === 'string'
-            ? error.response.data
-            : error.response.data.detail ||
-            error.response.data.title ||
-            error.response.data.message)) ||
-        error?.message ||
-        'Error while logging in.';
-      notif({ severity: 'error', message: msg });
+      console.error('Login error:', error);
+      notif({severity: 'error', message: error.response.data || 'Login failed. Please try again.'});
     } finally {
       setLoading(false);
     }
@@ -79,21 +70,16 @@ export default function Login() {
           Login
         </Typography>
 
-        {feedback && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {feedback.text}
-          </Alert>
-        )}
-
         <Stack spacing={2} sx={{ mb: 3 }}>
           <TextField
             fullWidth
             label="Email"
-            type="email"
             placeholder="Insert the Email"
             value={login.email}
             onChange={handleChange('email')}
             sx={{ bgcolor: '#fff', borderRadius: 1 }}
+            error={!!feedback.email.error}
+            helperText={feedback.email.error}
           />
           <TextField
             fullWidth
@@ -103,6 +89,8 @@ export default function Login() {
             value={login.password}
             onChange={handleChange('password')}
             sx={{ bgcolor: '#fff', borderRadius: 1 }}
+            error={!!feedback.password.error}
+            helperText={feedback.password.error}
           />
         </Stack>
 
@@ -119,4 +107,19 @@ export default function Login() {
       </Box>
     </Box>
   );
+
+  function checkInput() {
+    var valid = true
+    if (!login.email) {
+      setFeedback((prev) => ({ ...prev, email: { error: 'Email is required.' } }));
+      valid = false;
+    }
+
+    if (!login.password) {
+      setFeedback((prev) => ({ ...prev, password: { error: 'Password is required.' } }));
+      valid = false;
+    }
+
+    return valid;
+  }
 }

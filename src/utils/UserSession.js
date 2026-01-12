@@ -20,7 +20,7 @@ const UserSession = {
             } catch (e) {
                 console.error('Error removing access_token from localStorage:', e);
             }
-            navigator('/', { replace: true });
+            //navigator('/', { replace: true });
         } 
     }
 }

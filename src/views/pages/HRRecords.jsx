@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, Fragment } from 'react';
 import {
   Box,
   Container,
@@ -27,6 +27,9 @@ import {
   Select,
   MenuItem,
   Collapse,
+  InputLabel,
+  Autocomplete,
+  Menu,
 } from '@mui/material';
 
 import AddIcon from '@mui/icons-material/AddCircleOutline';
@@ -42,6 +45,7 @@ import HRService from '../../services/HRService';
 import Pagination from '@mui/material/Pagination';
 import useNotification from '../../utils/UseNotification';
 import Popups from '../components/Popups';
+import EmployeeService from '../../services/EmployeeService';
 
 const PAYMENT_TAB = 0;
 const JOB_CHANGE_TAB = 1;
@@ -60,8 +64,12 @@ export default function HRRecords() {
 
   const [tab, setTab] = useState(0);
 
+  const [inputEmployee,  setInputEmployee] = useState('');
+
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
+
+  const [departments, setDepartments] = useState([]);
 
   // Filter Payments
   const [filterPaymentEmployee, setFilterPaymentEmployee] = useState('');
@@ -184,6 +192,52 @@ export default function HRRecords() {
     J_FullName: '',
   });
 
+  function setFormDefaults() {
+    setForm({
+      BusinessEntityID: '',
+      Rate: '€',
+      RateChangeDate: '',
+      PayFrequency: '',
+      P_FullName: '',
+      JobTitle: '',
+      DepartmentName: '',
+      StartDate: '',
+      EndDate: '',
+      J_FullName: '',
+    });
+
+    setInputEmployee('');
+  }
+
+  const [formErrors, setFormErrors] = useState({
+    BusinessEntityID: "",
+    Rate: "",
+    RateChangeDate: "",
+    PayFrequency: "",
+    P_FullName: "",
+    JobTitle: "",
+    DepartmentName: "",
+    StartDate: "",
+    EndDate: "",
+    J_FullName: ""
+  });
+  
+  function setFormErrorsDefaults() {
+    setFormErrors({
+      BusinessEntityID: "",
+      Rate: "",
+      RateChangeDate: "",
+      PayFrequency: "",
+      P_FullName: "",
+      JobTitle: "",
+      DepartmentName: "",
+      StartDate: "",
+      EndDate: "",
+      J_FullName: ""
+    });
+
+  }
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -206,6 +260,18 @@ export default function HRRecords() {
       setJobChangesPage(1);
     }
     fetchData();
+
+    async function fetchDepartments() {
+      try {
+        const deps = await EmployeeService.getAllDepartments();
+        deps.sort();
+        setDepartments(deps);
+      } catch (err) {
+        console.debug('Could not fetch departments for accept dialog', err);
+      }
+    }
+    
+    fetchDepartments();
   }, [navigate]);
 
   const handleTabChange = (_e, v) => {
@@ -214,24 +280,16 @@ export default function HRRecords() {
 
   const openAdd = () => {
     setMode('add');
+    setFormErrorsDefaults();
     setEditIndex(null);
-    setForm({
-      BusinessEntityID: '',
-      Rate: '€',
-      RateChangeDate: '',
-      PayFrequency: '',
-      P_FullName: '',
-      JobTitle: '',
-      DepartmentName: '',
-      StartDate: '',
-      EndDate: '',
-      J_FullName: '',
-    });
+    setFormDefaults();
     setDialogOpen(true);
   };
 
   const openEdit = (indexInPage) => {
     setMode('edit');
+    setFormErrorsDefaults();
+    setFormDefaults();
     const realIndex = tab === PAYMENT_TAB ? paymentsStart + indexInPage : jobChangesStart + indexInPage;
     setEditIndex(realIndex);
 
@@ -239,7 +297,7 @@ export default function HRRecords() {
       const item = payments[realIndex];
       setForm({
         BusinessEntityID: item?.BusinessEntityID || '',
-        Rate: (item?.Rate || '').toString().trim().startsWith('€') ? item?.Rate : `€${item?.Rate ?? ''}`,
+        Rate: (item?.Rate || '').toString().trim() ? item?.Rate : `€${item?.Rate ?? ''}`,
         RateChangeDate: item?.RateChangeDate || '',
         P_FullName: item?.FullName || '',
         PayFrequency: item?.PayFrequency || '',
@@ -277,23 +335,66 @@ export default function HRRecords() {
 
     if (tab === PAYMENT_TAB && field === 'Amount') {
       value = value.trimStart();
-      if (!value.startsWith('€')) {
-        value = `€${value}`;
-      }
+    } 
+    if (field === 'BusinessEntityID') {
+      const selectedOption = e.target.value;
+      value = selectedOption.BusinessEntityID;
     }
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const canSave = useMemo(() => {
+  function canSave() {
+    setFormErrorsDefaults();
+    var isValid = true;
+
+    console.log(form.BusinessEntityID);
     if (tab === PAYMENT_TAB) {
-      return form.Rate?.trim() && (form.PayFrequency == 1 || form.PayFrequency == 2);    }
-    return form.JobTitle?.trim() && form.DepartmentName?.trim() && form.StartDate?.trim();
-  }, [form, tab]);
+      if (form.BusinessEntityID == '') {
+        setFormErrors((prev) => ({ ...prev, BusinessEntityID: "Employee is required." }));
+        isValid = false;
+      }
+      if (form.RateChangeDate.trim() === '') {
+        setFormErrors((prev) => ({ ...prev, RateChangeDate: "Rate Change Date is required." }));
+        isValid = false;
+      }
+      if (!form.Rate || form.Rate.toString().trim() === '' || isNaN(form.Rate)) {
+        setFormErrors((prev) => ({ ...prev, Rate: "Valid Rate is required." }));
+        isValid = false;
+      }
+      if (form.Rate < 6.5 || form.Rate > 200) {
+        setFormErrors((prev) => ({ ...prev, Rate: "Rate must be between 6.5€ and 200€." }));
+        isValid = false;
+      }
+      if (form.PayFrequency != 1 && form.PayFrequency != 2) {
+        setFormErrors((prev) => ({ ...prev, PayFrequency: "Pay Frequency must be Monthly or Biweekly." }));
+        isValid = false;
+      }
+    } else {
+      if (form.BusinessEntityID.toString().trim() === '') {
+        setFormErrors((prev) => ({ ...prev, BusinessEntityID: "Employee is required." }));
+        isValid = false;
+      }
+      if (form.DepartmentName.trim() === '') {
+        setFormErrors((prev) => ({ ...prev, DepartmentName: "Department is required." }));
+        isValid = false;
+      }
+      if (form.JobTitle.trim() === '') {
+        setFormErrors((prev) => ({ ...prev, JobTitle: "Job Title is required." }));
+        isValid = false;
+      }
+      if (form.StartDate.trim() === '') {
+        setFormErrors((prev) => ({ ...prev, StartDate: "Start Date is required." }));
+        isValid = false;
+      }
+    }
+    console.log(formErrors);
+    return isValid
+  }
 
   const handleAddOrSave = async () => {
     let errorMessage = null;
 
-    if (!canSave) return;
+    if (!canSave()) return;
 
     if (tab === PAYMENT_TAB) {
       if (mode === 'add') {
@@ -327,7 +428,7 @@ export default function HRRecords() {
         const newItem = {
           BusinessEntityID: payment.BusinessEntityID,
           P_FullName: payment.FullName,
-          Rate: parseFloat(form.Rate.replace('€', '').trim()),
+          Rate:form.Rate,
           RateChangeDate: payment.RateChangeDate,
           PayFrequency: parseInt(form.PayFrequency, 10),
         };
@@ -920,72 +1021,101 @@ export default function HRRecords() {
             {tab === PAYMENT_TAB ? (
               mode === 'add' ? (
                 <>
+                  <EmployeeSearchField
+                  values={payments}
+                  inputEmployee={inputEmployee}
+                  onChange={(event, newValue) => {
+                    setInputEmployee(newValue);
+                    setForm((prev => ({ ...prev, BusinessEntityID: newValue ? newValue.BusinessEntityID : '' }))  );
+                  }}
+                  error={formErrors.BusinessEntityID}
+                  helperText={formErrors.BusinessEntityID}
+                />
                   <TextField
-                    label="Employee"
-                    value={form.BusinessEntityID}
-                    onChange={onChange('BusinessEntityID')}
-                    fullWidth
-                    size="small"
-                    required
-                  />
-                  <TextField
-                    label="Rate Change Date (yyyy-mm-ddThh:mm:ss)"
+                    label="Rate Change Date"
                     value={form.RateChangeDate}
+                    type='date'
                     onChange={onChange('RateChangeDate')}
+                    placeholder="dd-mm-yyyy"
                     fullWidth
                     size="small"
+                    slotProps={{
+                      inputLabel: { shrink: true }
+                    }}
                     required
+                    error={!!formErrors.RateChangeDate}
+                    helperText={formErrors.RateChangeDate}
                   />
                   <TextField
                     label="Rate"
+                    type='number'
                     value={form.Rate}
                     onChange={onChange('Rate')}
                     fullWidth
                     size="small"
                     required
                     InputProps={{
-                      startAdornment: <InputAdornment position="start"></InputAdornment>,
+                      startAdornment: <InputAdornment position="start">€</InputAdornment>,
                     }}
+                    error={!!formErrors.Rate}
+                    helperText={formErrors.Rate}
                   />
-                  <TextField
-                    label="Pay Frequency"
-                    value={form.PayFrequency}
-                    onChange={onChange('PayFrequency')}
-                    fullWidth
-                    size="small"
-                    required
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start"></InputAdornment>,
-                    }}
-                  />
+                  <Select
+                      value={form.PayFrequency}
+                      onChange={onChange('PayFrequency')}
+                      size="small"
+                      displayEmpty
+                      sx={{ flex: 1 }}
+                      error={!!formErrors.PayFrequency}
+                    >
+                      <MenuItem value="">Pay Rate</MenuItem>
+                      {["Monthly", "Biweekly"].map((freq) => (
+                        <MenuItem key={freq} value={freq === "Monthly" ? 1 : 2}>
+                          {freq}
+                        </MenuItem>
+                      ))}
+                    </Select>
                 </>
               ) : (
                 <>
                   <TextField
                     label="Rate"
+                    type='number'
+                    min={6.5}
+                    max={200}
+                    step={0.01}
+                    placeholder={form.Rate}
                     value={form.Rate}
                     onChange={onChange('Rate')}
                     fullWidth
                     size="small"
                     required
                     InputProps={{
-                      startAdornment: <InputAdornment position="start"></InputAdornment>,
+                      startAdornment: <InputAdornment position="start">€</InputAdornment>,
                     }}
+                    error={!!formErrors.Rate}
+                    helperText={formErrors.Rate}
                   />
-                  <TextField
-                    label="Pay Frequency"
-                    value={form.PayFrequency}
-                    onChange={onChange('PayFrequency')}
-                    fullWidth
-                    size="small"
-                    required
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start"></InputAdornment>,
-                    }}
-                  />
+                  <Select
+                      value={form.PayFrequency}
+                      onChange={onChange('PayFrequency')}
+                      size="small"
+                      displayEmpty
+                      sx={{ flex: 1 }}
+                      error={!!formErrors.PayFrequency}
+                      helperText={formErrors.PayFrequency}
+                    >
+                      <MenuItem value="">Pay Rate</MenuItem>
+                      {["Monthly", "Biweekly"].map((freq) => (
+                        <MenuItem key={freq} value={freq === "Monthly" ? 1 : (freq === "Biweekly" ? 2 : -1)}>
+                          {freq}
+                        </MenuItem>
+                      ))}
+                    </Select>
                 </>
               )
             ) : (
+              mode === 'add' ? (
               <>
                 <TextField
                   label="Job Title"
@@ -994,39 +1124,83 @@ export default function HRRecords() {
                   fullWidth
                   size="small"
                   required
+                  error={!!formErrors.JobTitle}
+                  helperText={formErrors.JobTitle}
                 />
-                <TextField
-                  label="Department"
+                <Select
                   value={form.DepartmentName}
                   onChange={onChange('DepartmentName')}
-                  fullWidth
-                  size="small"
-                  required
-                />
+                  size='small'
+                  error={!!formErrors.DepartmentName}
+                >
+                  <MenuItem value="">-- Select Department --</MenuItem>
+                  {departments.map((d) => (
+                    <MenuItem key={d} value={d}>
+                      {d} 
+                    </MenuItem>
+                  ))}
+                </Select>
                 <TextField
                   label="Start Date (yyyy-mm-dd)"
+                  type='date'
                   value={form.StartDate}
                   onChange={onChange('StartDate')}
+                  slotProps={{
+                    inputLabel: { shrink: true }
+                  }}
                   fullWidth
                   size="small"
                   required
+                  error={!!formErrors.StartDate}
+                  helperText={formErrors.StartDate}
                 />
                 <TextField
-                  label="End Date (yyyy-mm-dd, optional)"
+                  label="End Date (yyyy-mm-dd)"
+                  type='date'
                   value={form.EndDate}
                   onChange={onChange('EndDate')}
+                  slotProps={{
+                    inputLabel: { shrink: true }
+                  }}
                   fullWidth
                   size="small"
                 />
+                <EmployeeSearchField
+                  values={jobChanges}
+                  inputEmployee={inputEmployee}
+                  onChange={(event, newValue) => {
+                    setInputEmployee(newValue);
+                    setForm((prev => ({ ...prev, BusinessEntityID: newValue ? newValue.BusinessEntityID : '' }))  );
+                  }}
+                  error={formErrors.BusinessEntityID}
+                  helperText={formErrors.BusinessEntityID}
+                />
+              </>
+              ) : (
+                <>
                 <TextField
-                  label="Employee"
-                  value={form.BusinessEntityID}
-                  onChange={onChange('BusinessEntityID')}
+                  label="Job Title"
+                  value={form.JobTitle}
+                  onChange={onChange('JobTitle')}
                   fullWidth
                   size="small"
                   required
+                  error={!!formErrors.JobTitle}
+                  helperText={formErrors.JobTitle}
+                />
+                  <TextField
+                  label="End Date (yyyy-mm-dd)"
+                  type='date'
+                  value={form.EndDate}
+                  onChange={onChange('EndDate')}
+                  slotProps={{
+                    inputLabel: { shrink: true }
+                  }}
+                  fullWidth
+                  size="small"
                 />
               </>
+              )
             )}
           </Stack>
         </DialogContent>
@@ -1052,5 +1226,29 @@ export default function HRRecords() {
         </DialogActions>
       </Dialog>
     </Box>
+  );
+}
+
+const EmployeeSearchField = ({ inputEmployee, values, onChange, error }) => {
+  return (
+    <Autocomplete
+      disbalePortal
+      value={inputEmployee}
+      onChange={onChange}
+      options={values.filter((value, index, self) => index === self.findIndex((p) => (
+                      p.FullName === value.FullName
+                    )
+                  )
+                ).map((p) => ({
+                  BusinessEntityID: p.BusinessEntityID,
+                  FullName: p.FullName,
+                  label: `${p.FullName} (Id: ${p.BusinessEntityID})`,
+                }))
+              }
+      error={!!error}
+      helperText={error}
+      getOptionLabel={(option) => option? option.label : ""}
+      renderInput={(params) => <TextField error={!!error} helperText={error} {...params} label="Employee" />}
+    />        
   );
 }

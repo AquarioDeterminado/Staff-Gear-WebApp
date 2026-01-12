@@ -34,6 +34,7 @@ import HRService from '../../services/HRService';
 import { useNavigate } from 'react-router-dom';
 import UserService from '../../utils/UserSession';
 import useNotification  from '../../utils/UseNotification';
+import EmployeeService from '../../services/EmployeeService';
 
 export default function CandidatesView() {
   const navigate = useNavigate();
@@ -212,8 +213,7 @@ export default function CandidatesView() {
 
     async function fetchDepartments() {
       try {
-        const movements = await HRService.getAllMovements();
-        const deps = Array.isArray(movements) ? [...new Set(movements.map((m) => m.DepartmentName).filter(Boolean))] : [];
+        const deps = await EmployeeService.getAllDepartments();
         deps.sort();
         setDepartments(deps);
       } catch (err) {

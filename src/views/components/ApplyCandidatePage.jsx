@@ -49,7 +49,7 @@ export default function ApplyCandidatePage() {
         resumeFile: null,
     });
     const [resumeFileName, setResumeFileName] = useState('');
-    const [feedback, setFeedback] = useState(null);
+    const [feedback, setFeedback] = useState({"firstName":"","middleName":"","lastName":"","email":"","phone":"","message":"","resumeFile":""});
     const [loading, setLoading] = useState(false);
     const abortRef = useRef(null);
 
@@ -61,38 +61,56 @@ export default function ApplyCandidatePage() {
             const file = files?.[0] ?? null;
             setForm((prev) => ({ ...prev, resumeFile: file }));
             setResumeFileName(file ? file.name : '');
-            setFeedback(null);
+            setFeedback((prev) => ({ ...prev, resumeFile: '' }));
             return;
         }
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
     const validate = () => {
-        if (!form.firstName?.trim()) return 'First Name é obrigatório.';
-        if (!form.email?.trim()) return 'E-mail é obrigatório.';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'E-mail inválido.';
-        if (!form.message?.trim()) return 'Mensagem é obrigatória.';
-        if (!form.resumeFile) return 'CV é obrigatório.';
+        let isValid = true;
+        setFeedback({"firstName":"","middleName":"","lastName":"","email":"","phone":"","message":"","resumeFile":""});
+
+        if (!form.firstName?.trim()) {
+            setFeedback((prev) => ({ ...prev, firstName: 'First Name required.' }));
+            isValid = false;
+        }
+        if (!form.email?.trim()) {
+            setFeedback((prev) => ({ ...prev, email: 'E-mail is required.' }));
+            isValid = false;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+            setFeedback((prev) => ({ ...prev, email: 'Invalid e-mail.' }));
+            isValid = false;
+        }
+        if (!form.message?.trim()) {
+            setFeedback((prev) => ({ ...prev, message: 'Message is required.' }));
+            isValid = false;
+        }
+        if (!form.resumeFile) {
+            setFeedback((prev) => ({ ...prev, resumeFile: 'CV is required.' }));
+            isValid = false;
+        }
         const allowed = [
             'application/pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         ];
         if (form.resumeFile && !allowed.includes(form.resumeFile.type)) {
-            return 'CV deve ser PDF/DOC/DOCX.';
+            setFeedback((prev) => ({ ...prev, resumeFile: 'CV must be PDF/DOC/DOCX.' }));
+            isValid = false;
         }
         if (form.resumeFile && form.resumeFile.size > 10 * 1024 * 1024) {
-            return 'CV excede 10MB.';
+            setFeedback((prev) => ({ ...prev, resumeFile: 'CV exceeds 10MB.' }));
+            isValid = false;
         }
-        return null;
+        return isValid;
     };
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        setFeedback(null);
-        const err = validate();
-        if (err) {
-            setFeedback({ type: 'error', text: err });
+        const valid = validate();
+        if (!valid) {
             return;
         }
 
@@ -115,7 +133,7 @@ export default function ApplyCandidatePage() {
 
             const ok = res?.data?.WasSaved ?? res?.WasSaved ?? true;
             if (ok) {
-                setFeedback({ type: 'success', text: 'Candidatura enviada com sucesso!' });
+                notif({ severity: 'success', message: 'Application submitted successfully!' });
                 setForm({
                     firstName: '',
                     middleName: '',
@@ -127,10 +145,7 @@ export default function ApplyCandidatePage() {
                 });
                 setResumeFileName('');
             } else {
-                setFeedback({
-                    type: 'error',
-                    text: 'Não foi possível confirmar a candidatura.',
-                });
+                notif({ severity: 'error', message: 'Unable to confirm application.' });
             }
         } catch (error) {
             let msg;
@@ -144,7 +159,7 @@ export default function ApplyCandidatePage() {
                     data.message ||
                     (data.errors ? Object.values(data.errors).flat().join(' · ') : null);
             }
-            if (!msg) msg = error?.message || 'Falha ao submeter candidatura.';
+            if (!msg) msg = error?.message || 'Error Submitting Application.';
             notif({ severity: 'error', message: msg });
         } finally {
             setLoading(false);
@@ -162,23 +177,16 @@ export default function ApplyCandidatePage() {
                 Apply for a Job
             </Typography>
 
-            {feedback && (
-                <Alert
-                    severity={feedback.type === 'success' ? 'success' : 'error'}
-                    sx={{ mb: 2 }}
-                >
-                    {feedback.text}
-                </Alert>
-            )}
-
             <Stack spacing={2} sx={{ mb: 2 }}>
                 <TextField
                     name="firstName"
-                    label="First Name"
+                    label="First Name*"
                     value={form.firstName}
                     onChange={onChange}
                     fullWidth
                     sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                    error={!!feedback.firstName}
+                    helperText={feedback.firstName}
                 />
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <TextField
@@ -188,6 +196,8 @@ export default function ApplyCandidatePage() {
                         onChange={onChange}
                         fullWidth
                         sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                        error={!!feedback.middleName}
+                        helperText={feedback.middleName}
                     />
                     <TextField
                         name="lastName"
@@ -196,17 +206,21 @@ export default function ApplyCandidatePage() {
                         onChange={onChange}
                         fullWidth
                         sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                        error={!!feedback.lastName}
+                        helperText={feedback.lastName}
                     />
                 </Stack>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <TextField
                         type="email"
                         name="email"
-                        label="E-mail"
+                        label="E-mail*"
                         value={form.email}
                         onChange={onChange}
                         fullWidth
                         sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                        error={!!feedback.email}
+                        helperText={feedback.email}
                     />
                     <TextField
                         name="phone"
@@ -215,17 +229,21 @@ export default function ApplyCandidatePage() {
                         onChange={onChange}
                         fullWidth
                         sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                        error={!!feedback.phone}
+                        helperText={feedback.phone}
                     />
                 </Stack>
                 <TextField
                     name="message"
-                    label="Message"
+                    label="Message*"
                     value={form.message}
                     onChange={onChange}
                     fullWidth
                     multiline
                     rows={5}
                     sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                    error={!!feedback.message}
+                    helperText={feedback.message}
                 />
             </Stack>
 
@@ -254,7 +272,7 @@ export default function ApplyCandidatePage() {
                         bgcolor: '#fff',
                     }}
                 >
-                    {resumeFileName || 'No file selected'}
+                    {feedback.resumeFile ? <p style={{ color: 'red' }}>{feedback.resumeFile}</p> : resumeFileName || 'No file selected'}
                 </Box>
             </Stack>
 

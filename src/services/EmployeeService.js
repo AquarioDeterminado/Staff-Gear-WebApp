@@ -156,6 +156,16 @@ const EmployeeService = {
     } else {
       console.log('Employee deleted with success!');
        }
+  },
+
+  getAllDepartments: async () => {
+    const response = await api.get(`${EMPLOYEE_PATH}/Departments`);
+    if (!response || (response.status !== 200 && response.status !== 201)) {
+      throw new Error('Error retrieving departments! Error code: ' + response?.status);
+    } else {
+      console.log('Departments retrieved successfully!');
+    }
+    return response.data;
   }
 };
 
