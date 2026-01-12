@@ -56,7 +56,7 @@ export default function AdminConsole() {
     const [logs, setLogs] = useState([]);
 
     // --- Colunas ---
-    const logsColumns = ['ID', 'Actor ID', 'Target', 'Action', 'Created At'];
+    const logsColumns = ['ID', 'Actor ID', 'Actor Email', 'Target', 'Action', 'Created At'];
     const usersColumns = ['User ID', 'Username', 'Employee ID', 'Is Active', 'Role'];
     const columns = tab === LOGS_TAB ? logsColumns : usersColumns;
 
@@ -204,6 +204,7 @@ export default function AdminConsole() {
                                         <TableRow key={`log-${idx}`}>
                                             <TableCell>{l.LogID}</TableCell>
                                             <TableCell>{l.ActorID}</TableCell>
+                                            <TableCell>{l.ActorName}</TableCell>
                                             <TableCell>{l.Target}</TableCell>
                                             <TableCell>{l.Action}</TableCell>
                                             <TableCell>{new Date(l.CreatedAt).toLocaleString('fr-FR')}</TableCell>

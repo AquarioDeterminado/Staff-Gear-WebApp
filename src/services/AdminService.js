@@ -16,7 +16,7 @@ const AdminService = {
     },
     getLogs: async () => {
         const response = await api.get(`${API_ADMIN_BASE}/logs`);
-        return response.data.map(log => (new LogDTO({LogID: log.logID, ActorID: log.actorID, Target: log.target, Action: log.action, CreatedAt: log.createdAt})));
+        return response.data.map(log => (new LogDTO({LogID: log.logID, ActorID: log.actorID, ActorName: log.actorName, Target: log.target, Action: log.action, CreatedAt: log.createdAt})));
     },
 };
 

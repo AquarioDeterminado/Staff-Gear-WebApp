@@ -1,8 +1,9 @@
 class LogDTO
 {   
-    constructor({LogID, ActorID, Target,  Action,  CreatedAt}) {
+    constructor({LogID, ActorID, ActorName, Target,  Action,  CreatedAt}) {
         this.LogID = LogID;
         this.ActorID = ActorID || null;
+        this.ActorName = ActorName || null;
         this.Target = Target || null;
         this.Action = Action || null;
         this.CreatedAt = CreatedAt || null;
