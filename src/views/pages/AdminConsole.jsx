@@ -58,7 +58,7 @@ export default function AdminConsole() {
     const [logs, setLogs] = useState([]);
 
     // --- Colunas ---
-    const logsColumns = [{ label: 'ID', parameter: 'LogID' }, { label: 'Actor ID', parameter: 'ActorID' }, { label: 'Target', parameter: 'Target' }, { label: 'Action', parameter: 'Action' }, { label: 'Created At', parameter: 'CreatedAt' }];
+    const logsColumns = [{ label: 'ID', parameter: 'LogID' }, { label: 'Actor ID', parameter: 'ActorID' }, { label: 'Target', parameter: 'Target' }, { label: 'Action', parameter: 'Action' }, {label:'Description'}, { label: 'Created At', parameter: 'CreatedAt' }];
     const usersColumns = [{ label: 'User ID', parameter: 'UserID' }, { label: 'Username', parameter: 'Username' }, { label: 'Employee ID', parameter: 'EmployeeId' }, { label: 'Is Active', parameter: 'IsActive' }, { label: 'Role', parameter: 'Role' }];
     const columns = tab === LOGS_TAB ? logsColumns : usersColumns;
 
@@ -494,7 +494,7 @@ export default function AdminConsole() {
                             <TableRow sx={{ '& th': { fontWeight: 700 } }}>
                                 {columns.map((c, i) => (
                                     <TableCell
-                                        onClick={() => clickHeader(c.parameter)}
+                                        onClick={() => { if (c.parameter) clickHeader(c.parameter); }}
                                         key={c.label}
                                         sx={{
                                             borderRight: i < columns.length - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
