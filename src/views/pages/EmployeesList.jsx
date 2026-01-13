@@ -1,10 +1,7 @@
-
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Box, Container, Typography, Button, Dialog, DialogTitle,
-  DialogContent, DialogActions, TextField, Stack,
+  Box, Container, Typography, Button, TextField, Stack, IconButton
 } from '@mui/material';
-import Popups from '../components/ui/Popups';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import HeaderBar from '../components/layout/HeaderBar';
@@ -16,7 +13,9 @@ import ErrorHandler from '../../utils/ErrorHandler';
 import useNotification from '../../utils/UseNotification';
 import DataTable from '../components/table/DataTable';
 import Paginator from '../components/table/Paginator';
-import SectionPaper from '../components/ui/SectionPaper';
+import SectionPaper from '../components/ui/surfaces/SectionPaper';
+import FormPopup from '../components/ui/popups/FormPopup';
+import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 
 export default function EmployeesList() {
   const navigate = useNavigate();
@@ -34,8 +33,12 @@ export default function EmployeesList() {
     firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '',
   });
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmId, setConfirmId] = useState(null);
+
   const isValidDateYMD = (str) => /^\d{4}-\d{2}-\d{2}$/.test(str);
   const isValidEmailBasic = (str) => /^[^@\s]+@[^@\s]+$/.test(str);
+
   const validateForm = (curr) => {
     const newErrors = {
       firstName: curr.firstName?.trim() ? '' : 'Mandatory.',
@@ -133,7 +136,8 @@ export default function EmployeesList() {
     }
   };
 
-  const onChange = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+  const setField = (field) => (value) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
 
   useEffect(() => {
     async function fetchData() {
@@ -150,7 +154,7 @@ export default function EmployeesList() {
 
   const columns = [
     { label: 'BusinessId', width: '12%', render: (r) => r.BusinessEntityID },
-    { label: 'Name', width: '16%', render: (r) => `${r.FirstName}${r.MiddleName ? ' ' + r.MiddleName : ''} ${r.LastName}` },
+    { label: 'Name', width: '16%', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}` },
     { label: 'Email', width: '20%', render: (r) => r.Email },
     { label: 'Department', width: '16%', render: (r) => r.Department },
     { label: 'Job Title', width: '18%', render: (r) => r.JobTitle },
@@ -159,14 +163,20 @@ export default function EmployeesList() {
       label: 'Actions', width: '6%',
       render: (row) => (
         <Stack direction="row" spacing={1}>
-          <Button onClick={() => handleOpenEdit(row)} size="small" startIcon={<EditOutlinedIcon />} />
-          <Popups
-            title="Remove record"
-            message="Do you really want to delete this employee? This action is irreversible."
-            onConfirm={async () => { await handleDelete(row.BusinessEntityID); }}
+          <IconButton
+            onClick={() => handleOpenEdit(row)}
+            sx={{ bgcolor: '#fff3e0', color: '#000', '&:hover': { bgcolor: '#000', color: '#fff' } }}
+            size="small"
           >
-            <Button size="small" startIcon={<DeleteOutlineIcon />} />
-          </Popups>
+            <EditOutlinedIcon />
+          </IconButton>
+          <IconButton
+            onClick={() => { setConfirmId(row.BusinessEntityID); setConfirmOpen(true); }}
+            sx={{ bgcolor: '#fff3e0', color: '#000', '&:hover': { bgcolor: '#000', color: '#fff' } }}
+            size="small"
+          >
+            <DeleteOutlineIcon />
+          </IconButton>
         </Stack>
       ),
     },
@@ -196,30 +206,37 @@ export default function EmployeesList() {
         </SectionPaper>
       </Container>
 
-      {/* Dialog Add/Edit */}
-      <Dialog open={dialogOpen} onClose={handleClose} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>{mode === 'add' ? 'Add User' : 'Edit User'}</DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={1.5}>
-            <TextField label="First Name" value={form.firstName} onChange={onChange('firstName')} fullWidth size="small" required error={!!errors.firstName} helperText={errors.firstName} />
-            <TextField label="Middle Name" value={form.middleName} onChange={onChange('middleName')} fullWidth size="small" />
-            <TextField label="Last Name" value={form.lastName} onChange={onChange('lastName')} fullWidth size="small" required error={!!errors.lastName} helperText={errors.lastName} />
-            <TextField label="Email" value={form.email} onChange={onChange('email')} fullWidth size="small" required error={!!errors.email} helperText={errors.email} />
-            <TextField label="Department" value={form.department} onChange={onChange('department')} fullWidth size="small" required error={!!errors.department} helperText={errors.department} />
-            <TextField label="Job Title" value={form.jobTitle} onChange={onChange('jobTitle')} fullWidth size="small" required error={!!errors.jobTitle} helperText={errors.jobTitle} />
-            <TextField label="Hire Date" value={form.hireDate} onChange={onChange('hireDate')} fullWidth size="small" required error={!!errors.hireDate} helperText={errors.hireDate} />
-            {mode === 'add' && (
-              <TextField label="Password" value={form.password} onChange={onChange('password')} fullWidth size="small" required error={!!errors.password} helperText={errors.password} />
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained" disabled={!canSave} sx={{ bgcolor: '#000', color: '#fff' }}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <FormPopup
+        open={dialogOpen}
+        title={mode === 'add' ? 'Add User' : 'Edit User'}
+        fields={[
+          { type: 'text',     label: 'First Name', value: form.firstName,  onChange: setField('firstName'),  required: true, error: !!errors.firstName,  helperText: errors.firstName },
+          { type: 'text',     label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
+          { type: 'text',     label: 'Last Name',  value: form.lastName,   onChange: setField('lastName'),   required: true, error: !!errors.lastName,   helperText: errors.lastName },
+          { type: 'email',    label: 'Email',      value: form.email,      onChange: setField('email'),      required: true, error: !!errors.email,      helperText: errors.email },
+          { type: 'text',     label: 'Department', value: form.department, onChange: setField('department'), required: true, error: !!errors.department, helperText: errors.department },
+          { type: 'text',     label: 'Job Title',  value: form.jobTitle,   onChange: setField('jobTitle'),   required: true, error: !!errors.jobTitle,   helperText: errors.jobTitle },
+          { type: 'text',     label: 'Hire Date',  value: form.hireDate,   onChange: setField('hireDate'),   required: true, error: !!errors.hireDate,   helperText: errors.hireDate },
+          ...(mode === 'add'
+            ? [{ type: 'password', label: 'Password', value: form.password, onChange: setField('password'), required: true, error: !!errors.password, helperText: errors.password }]
+            : [])
+        ]}
+        onCancel={handleClose}
+        onSubmit={handleSave}
+        submitLabel="Save"
+        submitDisabled={!canSave}
+        submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
+      />
+
+      <ConfirmPopup
+        open={confirmOpen}
+        title="Remove record"
+        content="Do you really want to delete this employee? This action is irreversible."
+        onCancel={() => { setConfirmOpen(false); setConfirmId(null); }}
+        onConfirm={async () => { if (!confirmId) return; await handleDelete(confirmId); setConfirmOpen(false); setConfirmId(null); }}
+        confirmLabel="Delete"
+        confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
+      />
     </Box>
   );
 }

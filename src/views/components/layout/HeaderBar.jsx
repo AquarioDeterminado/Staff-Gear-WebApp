@@ -1,7 +1,6 @@
 /*
 Barra superior fixa usada em todas as páginas
 */
-
 import { useEffect, useState } from 'react';
 import {
   AppBar,

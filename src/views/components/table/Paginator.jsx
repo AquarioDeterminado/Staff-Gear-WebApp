@@ -1,7 +1,6 @@
 /*
 Paginação para tabelas
 */
-
 import { Box, Pagination } from '@mui/material';
 
 export default function Paginator({ count, page, onChange }) {

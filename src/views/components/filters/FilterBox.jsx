@@ -1,7 +1,6 @@
 /*
 Caixa lateral
 */
-
 import { Card, CardHeader, CardContent, Button, Stack } from '@mui/material';
 
 export default function SideFilter({
@@ -16,8 +15,8 @@ export default function SideFilter({
     <Card
       sx={{
         mb: 2,
-        bgcolor: '#f7f7f7ff',
-        border: '2px solid #fff7cbff',
+        bgcolor: '#fff3e0',
+        border: '2px solid #ffe0b2',
         position: sticky ? 'sticky' : 'static',
         top: sticky ? 16 : 'auto',
         width,

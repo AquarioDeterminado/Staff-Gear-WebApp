@@ -1,7 +1,6 @@
 /*
 Formulário de candidatura
 */
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Typography, TextField, Button, Stack, Alert } from '@mui/material';
 import CandidateService from '../../../services/CandidateService';

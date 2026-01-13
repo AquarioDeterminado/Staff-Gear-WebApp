@@ -1,7 +1,6 @@
 /*
 Card genérico para campos do perfil
 */
-
 import React from 'react';
 import { Paper, Stack, Typography, TextField, InputAdornment } from '@mui/material';
 

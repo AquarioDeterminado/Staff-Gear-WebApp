@@ -1,7 +1,6 @@
 /*
 Renderiza uma tabela dinâmica
 */
-
 import { Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
 
 export default function DataTable({

@@ -22,11 +22,11 @@ import useNotification from '../../utils/UseNotification';
 import DataTable from '../components/table/DataTable';
 import Paginator from '../components/table/Paginator';
 import FilterPanel from '../components/filters/FilterPanel';
-import { StyledTabs, StyledTab } from '../components/ui/StyledTabs';
-import SectionPaper from '../components/ui/SectionPaper';
+import { StyledTabs, StyledTab } from '../components/ui/surfaces/StyledTabs';
+import SectionPaper from '../components/ui/surfaces/SectionPaper';
 
-import FormDialog from '../components/ui/FormDialog';
-import ConfirmDialog from '../components/ui/ConfirmDialog';
+import FormPopup from '../components/ui/popups/FormPopup';
+import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 
 const PAYMENT_TAB = 0;
 const JOB_CHANGE_TAB = 1;
@@ -556,7 +556,6 @@ export default function HRRecords() {
       <HeaderBar />
 
       <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
-        {/* Tabs */}
         <Box sx={{ mb: 2 }}>
           <StyledTabs value={tab} onChange={handleTabChange}>
             <StyledTab label="Payments" />
@@ -564,7 +563,6 @@ export default function HRRecords() {
           </StyledTabs>
         </Box>
 
-        {/* Botão Add */}
         <Stack direction="row" alignItems="center" sx={{ mb: 1 }}>
           <Box sx={{ ml: 'auto' }}>
             <Button
@@ -585,7 +583,6 @@ export default function HRRecords() {
           </Box>
         </Stack>
 
-        {/* Filtros Payments */}
         {tab === PAYMENT_TAB && (
           <FilterPanel
             title="Filters"
@@ -768,8 +765,7 @@ export default function HRRecords() {
         </SectionPaper>
       </Container>
 
-      {/* Add/Edit via FormDialog */}
-      <FormDialog
+      <FormPopup
         open={dialogOpen}
         title={mode === 'add' ? 'Add Record' : 'Edit Record'}
         fields={
@@ -796,11 +792,10 @@ export default function HRRecords() {
         onCancel={closeDialog}
         onSubmit={handleAddOrSave}
         submitLabel="Save"
-        submitSx={{ bgcolor: '#000', color: '#fff' }}
+        submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
       />
 
-      {/* Confirm Delete */}
-      <ConfirmDialog
+      <ConfirmPopup
         open={confirmOpen}
         title="Remove record"
         content="Do you really want to delete this record? This action is irreversible."
@@ -812,7 +807,7 @@ export default function HRRecords() {
           setConfirmIndex(null);
         }}
         confirmLabel="Delete"
-        confirmSx={{ bgcolor: '#000', color: '#fff' }}
+        confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
       />
     </Box>
   );

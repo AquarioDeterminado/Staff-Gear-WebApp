@@ -1,7 +1,6 @@
 /*
 Drawer lateral para detalhes
 */
-
 import React from 'react';
 import { Drawer, Box, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';

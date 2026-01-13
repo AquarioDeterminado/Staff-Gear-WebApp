@@ -17,8 +17,8 @@ import EmployeeService from '../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
 import UserSession from '../../utils/UserSession';
 import useNotification from '../../utils/UseNotification';
-import { StyledTabs, StyledTab } from '../components/ui/StyledTabs';
-import SectionPaper from '../components/ui/SectionPaper';
+import { StyledTabs, StyledTab } from '../components/ui/surfaces/StyledTabs';
+import SectionPaper from '../components/ui/surfaces/SectionPaper';
 
 export default function EmployeeRecords() {
   const [tab, setTab] = useState(0);

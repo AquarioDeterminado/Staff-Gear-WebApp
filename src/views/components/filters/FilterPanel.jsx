@@ -1,7 +1,6 @@
 /*
 Painel expansível
 */
-
 import { Card, CardHeader, CardContent, Collapse, IconButton, Button, Stack } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';

@@ -28,7 +28,7 @@ import UserSession from '../../utils/UserSession';
 import ErrorHandler from '../../utils/ErrorHandler';
 
 import ProfileFieldCard from '../components/ui/ProfileFieldCard';
-import FormDialog from '../components/ui/FormDialog';
+import FormPopup from '../components/ui/popups/FormPopup';
 
 const CARD_W = 280;
 const EMAIL_W = 360;
@@ -158,12 +158,11 @@ export default function EmployeeProfile() {
       const status = error?.response?.status || error?.status || 'N/A';
       console.error('Error while updating the profile:', error);
       UserSession.verifyAuthorize(navigate, status);
-      if(status === 409) {
+      if (status === 409) {
         const data = error?.response?.data;
         const conflictMsg = (data && (data.message || data.detail)) || 'Email already in use';
         setSnackbar({ open: true, severity: 'error', message: conflictMsg });
-      }
-      else{
+      } else {
         const msg = ErrorHandler(error);
         setSnackbar({ open: true, severity: 'error', message: msg });
       }
@@ -253,7 +252,6 @@ export default function EmployeeProfile() {
 
       <Container maxWidth="md" sx={{ pb: { xs: 5, md: 7 } }}>
         <Stack alignItems="center" spacing={2}>
-          {/* First/Middle/Last */}
           <Box
             sx={{
               display: 'grid',
@@ -284,7 +282,6 @@ export default function EmployeeProfile() {
             />
           </Box>
 
-          {/* Job Title & Department */}
           <Box
             sx={{
               display: 'grid',
@@ -308,7 +305,6 @@ export default function EmployeeProfile() {
             />
           </Box>
 
-          {/* Email */}
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <ProfileFieldCard
               label="Email"
@@ -322,7 +318,6 @@ export default function EmployeeProfile() {
             />
           </Box>
 
-          {/* Change Password */}
           <Stack direction="row" justifyContent="center" sx={{ pt: 0.5 }}>
             <Button
               variant="contained"
@@ -346,8 +341,7 @@ export default function EmployeeProfile() {
         </Stack>
       </Container>
 
-      {/* Change Password Dialog via FormDialog */}
-      <FormDialog
+      <FormPopup
         open={isPwdDialogOpen}
         title="Change Password"
         fields={[
@@ -358,6 +352,8 @@ export default function EmployeeProfile() {
         onCancel={closePwdDialog}
         onSubmit={handleChangePassword}
         submitLabel={isSubmittingPwd ? 'Saving...' : 'Save'}
+        submitDisabled={isSubmittingPwd}
+        submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
       />
 
       <Snackbar
