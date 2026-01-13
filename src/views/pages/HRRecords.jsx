@@ -1229,22 +1229,33 @@ export default function HRRecords() {
   );
 }
 
-const EmployeeSearchField = ({ inputEmployee, values, onChange, error }) => {
+const EmployeeSearchField = ({values, onChange, error }) => {
+
+  const [inputEmployee, setInputEmployee] = useState(null);
+  const [employees, setEmployees] = useState([]);
+
+  useEffect(() => {
+    async function getAllEmployees() {
+      const response = await EmployeeService.getAllEmployees();
+      setEmployees(response);
+      console.log(response);
+    }
+
+    getAllEmployees();
+  }, [values]);
+
   return (
     <Autocomplete
       disbalePortal
       value={inputEmployee}
-      onChange={onChange}
-      options={values.filter((value, index, self) => index === self.findIndex((p) => (
-                      p.FullName === value.FullName
-                    )
-                  )
-                ).map((p) => ({
-                  BusinessEntityID: p.BusinessEntityID,
-                  FullName: p.FullName,
-                  label: `${p.FullName} (Id: ${p.BusinessEntityID})`,
-                }))
-              }
+      onChange={(event, newValue) => {
+        setInputEmployee(newValue);
+        onChange(event, newValue);
+      }}
+        options={employees ? employees.map((emp) => ({
+          label: `${emp.FirstName} ${emp.LastName} (ID: ${emp.BusinessEntityID})`,
+          BusinessEntityID: emp.BusinessEntityID,
+        })) : []}
       error={!!error}
       helperText={error}
       getOptionLabel={(option) => option? option.label : ""}
