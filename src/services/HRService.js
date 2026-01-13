@@ -6,38 +6,36 @@ const PAYMENTS_PATH = import.meta.env.VITE_API_URL + import.meta.env.VITE_API_PA
 const MOVEMENTS_PATH = import.meta.env.VITE_API_URL + import.meta.env.VITE_API_MOVEMENTS;
 
 const HRService = {
-    getAllPayments: async () => {
-        const response = await api.get(PAYMENTS_PATH);
+    getAllPayments: async (pageNumber, pageSize) => {
+        const response = await api.get(PAYMENTS_PATH, {
+            params: {
+                pageNumber,
+                pageSize
+            }
+        });
         if (!response || response.status !== 200) {
             throw new Error('Error searching for payments! Error code: ' + response?.status);
         } else {
             console.log('Payments retrieved successfully!');
         }
 
-        var payments = [];
-        for (let payment of response.data) {
-            var newPayment = new PaymentViewModel({BusinessEntityID: payment.businessEntityID, FullName: payment.fullName, Rate: payment.rate, RateChangeDate: payment.rateChangeDate, PayFrequency: payment.payFrequency}); // Supondo que payment já esteja no formato desejado
-            payments.push(newPayment);
-        }
-
-        return payments;
+        return response.data;
     },
 
-    getAllMovements: async () => {
-        const response = await api.get(MOVEMENTS_PATH);
+    getAllMovements: async (pageNumber, pageSize) => {
+        const response = await api.get(MOVEMENTS_PATH, {
+            params: {
+                pageNumber,
+                pageSize
+            }
+        });
         if (!response || response.status !== 200) {
             throw new Error('Error fetching transactions! Error code: ' + response?.status);
         } else {
             console.log('Transactions retrieved with success!');
         }
-
-        var movements = [];
-        for (let movement of response.data) {
-            var newMovement = new MovementViewModel({BusinessEntityID: movement.businessEntityID, FullName: movement.fullName, DepartmentName: movement.departmentName, JobTitle: movement.jobTitle, StartDate: movement.startDate, EndDate: movement.endDate}); // Supondo que movement já esteja no formato desejado
-            movements.push(newMovement);
-        }
         
-        return movements;
+        return response.data;
     },
 
     createPayment: async (payment) => {

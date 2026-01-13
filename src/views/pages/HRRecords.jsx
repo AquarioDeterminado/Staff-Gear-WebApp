@@ -51,6 +51,8 @@ import EmployeeService from '../../services/EmployeeService';
 import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
 import { EmployeeSearchField } from '../components/EmployeeSearchField';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
+import PaymentViewModel from '../../models/viewModels/PaymentViewModel.js';
+import MovementViewModel from '../../models/viewModels/MovementViewModel.js';
 
 const PAYMENT_TAB = 0;
 const JOB_CHANGE_TAB = 1;
@@ -72,8 +74,6 @@ export default function HRRecords() {
   }, [navigate]);
 
   const [tab, setTab] = useState(0);
-
-  const [inputEmployee, setInputEmployee] = useState('');
 
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
@@ -101,8 +101,11 @@ export default function HRRecords() {
   const [sorting, setSorting] = useState({ parameter: '', order: '' });
   // Pages
   const [paymentsPage, setPaymentsPage] = useState(1);
+  const [paymentsPageCount, setPaymentsPageCount] = useState(1);
+
   const [jobChangesPage, setJobChangesPage] = useState(1);
-  const ROWS_PER_PAGE = 9;
+  const [jobChangesPageCount, setJobChangesPageCount] = useState(1);
+  const ROWS_PER_PAGE = 10;
 
   const filteredPayments = useMemo(() => {
     return payments.filter((p) => {
@@ -166,21 +169,11 @@ export default function HRRecords() {
     });
   }, [jobChanges, filterJobEmployee, filterDepartment, filterJobDateFrom, filterJobDateTo]);
 
-  const paymentsCount = Math.max(1, Math.ceil(filteredPayments.length / ROWS_PER_PAGE));
-  const jobChangesCount = Math.max(1, Math.ceil(filteredJobChanges.length / ROWS_PER_PAGE));
 
-  const paymentsStart = (paymentsPage - 1) * ROWS_PER_PAGE;
-  const jobChangesStart = (jobChangesPage - 1) * ROWS_PER_PAGE;
 
-  const visiblePayments = useMemo(
-    () => filteredPayments.slice(paymentsStart, paymentsStart + ROWS_PER_PAGE),
-    [filteredPayments, paymentsStart]
-  );
+  const visiblePayments = filteredPayments;
 
-  const visibleJobChanges = useMemo(
-    () => filteredJobChanges.slice(jobChangesStart, jobChangesStart + ROWS_PER_PAGE),
-    [filteredJobChanges, jobChangesStart]
-  );
+  const visibleJobChanges = filteredJobChanges;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [mode, setMode] = useState('add');
@@ -212,8 +205,6 @@ export default function HRRecords() {
       EndDate: '',
       J_FullName: '',
     });
-
-    setInputEmployee('');
   }
 
   const [formErrors, setFormErrors] = useState({
@@ -248,30 +239,52 @@ export default function HRRecords() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const paymentsData = await HRService.getAllPayments();
-        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
+        const data = await HRService.getAllPayments(paymentsPage, ROWS_PER_PAGE);
+
+        setPaymentsPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+        const paymentsData = data.items;
+
+        var payments = [];
+        for (let payment of paymentsData) {
+            var newPayment = new PaymentViewModel({BusinessEntityID: payment.businessEntityID, FullName: payment.fullName, Rate: payment.rate, RateChangeDate: payment.rateChangeDate, PayFrequency: payment.payFrequency}); // Supondo que payment já esteja no formato desejado
+            payments.push(newPayment);
+        }
+
+        setPayments(payments);
       } catch (error) {
         console.error('Error fetching payments:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
       }
+    }
+    fetchData();
 
+  }, [navigate, paymentsPage]);
+
+  useEffect(() => {
+    async function fetchJobChangesData() {
       try {
-        const jobChangesData = await HRService.getAllMovements();
-        jobChangesData.forEach(element => {
+        const data = await HRService.getAllMovements(jobChangesPage, ROWS_PER_PAGE);
+
+        setJobChangesPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+        var items = data.items;
+        var movements = [];
+        for (let movement of items) {
+            var newMovement = new MovementViewModel({BusinessEntityID: movement.businessEntityID, FullName: movement.fullName, DepartmentName: movement.departmentName, JobTitle: movement.jobTitle, StartDate: movement.startDate, EndDate: movement.endDate}); // Supondo que movement já esteja no formato desejado
+            movements.push(newMovement);
+        }
+        movements.forEach(element => {
           element.JobTitle = CapitalizeFirstLetter(element.JobTitle);
         });
-        setJobChanges(Array.isArray(jobChangesData) ? jobChangesData : []);
+        setJobChanges(movements);
       } catch (error) {
         console.error('Error fetching job changes:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
       }
-
-      setPaymentsPage(1);
-      setJobChangesPage(1);
     }
-    fetchData();
-
-  }, [navigate]);
+    fetchJobChangesData();
+  }, [navigate, jobChangesPage]);
 
   const handleTabChange = (_e, v) => {
     setTab(v);
@@ -289,11 +302,10 @@ export default function HRRecords() {
     setMode('edit');
     setFormErrorsDefaults();
     setFormDefaults();
-    const realIndex = tab === PAYMENT_TAB ? paymentsStart + indexInPage : jobChangesStart + indexInPage;
-    setEditIndex(realIndex);
+    setEditIndex(indexInPage);
 
     if (tab === PAYMENT_TAB) {
-      const item = payments[realIndex];
+      const item = payments[indexInPage];
       setForm({
         BusinessEntityID: item?.BusinessEntityID || '',
         Rate: (item?.Rate || '').toString().trim() ? item?.Rate : `€${item?.Rate ?? ''}`,
@@ -307,7 +319,7 @@ export default function HRRecords() {
         J_FullName: '',
       });
     } else {
-      const item = jobChanges[realIndex];
+      const item = jobChanges[indexInPage];
       setForm({
         BusinessEntityID: item?.BusinessEntityID || '',
         Rate: '',
@@ -1048,7 +1060,7 @@ export default function HRRecords() {
           <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
             {tab === PAYMENT_TAB ? (
               <Pagination
-                count={paymentsCount}
+                count={paymentsPageCount}
                 page={paymentsPage}
                 onChange={(_, p) => setPaymentsPage(p)}
                 sx={{
@@ -1060,7 +1072,7 @@ export default function HRRecords() {
               />
             ) : (
               <Pagination
-                count={jobChangesCount}
+                count={jobChangesPageCount}
                 page={jobChangesPage}
                 onChange={(_, p) => setJobChangesPage(p)}
                 sx={{

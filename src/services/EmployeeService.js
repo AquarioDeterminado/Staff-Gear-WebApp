@@ -30,30 +30,20 @@ const EmployeeService = {
     }
   },
 
-  getAllEmployees: async () => {
-    const response = await api.get(EMPLOYEE_PATH);
+  getAllEmployees: async (pageNumber, pageSize) => {
+    const response = await api.get(EMPLOYEE_PATH, {
+      params: {
+        pageNumber,
+        pageSize
+      }
+    });
 
     if (!response || (response.status !== 200 && response.status !== 201)) {
       throw new Error('Error retrieving the employee! Error code: ' + response?.status);
     } else {
       console.log('Employees retrieved successfully!');
     }
-
-    const employees = response.data.map(
-      (empData) =>
-        new EmployeeViewModel({
-          BusinessEntityID: empData.businessEntityID,
-          FirstName: empData.firstName,
-          MiddleName: empData.middleName,
-          LastName: empData.lastName,
-          JobTitle: empData.jobTitle,
-          Department: empData.department,
-          Email: empData.email,
-          HireDate: empData.hireDate,
-          Role: empData.role
-        })
-    );
-    return employees;
+    return response.data;
   },
 
   getEmployee: async (id) => {

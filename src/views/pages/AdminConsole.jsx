@@ -44,6 +44,8 @@ import HRService from '../../services/HRService';
 import Pagination from '@mui/material/Pagination';
 import useNotification from '../../utils/UseNotification';
 import Popups from '../components/Popups';
+import UserDTO from '../../models/dtos/UserDTO.js';
+import LogDTO from '../../models/dtos/LogDTO.js';
 
 const LOGS_TAB = 0;
 const USER_CHANGE_TAB = 1;
@@ -209,46 +211,49 @@ export default function AdminConsole() {
     const [usersPage, setUsersPage] = useState(1);
     const ROWS_PER_PAGE = 9;
 
-    const logsStart = (logsPage - 1) * ROWS_PER_PAGE;
-    const usersStart = (usersPage - 1) * ROWS_PER_PAGE;
+    const [logsCount, setLogsCount] = useState(1);
+    const [usersCount, setUsersCount] = useState(1);
 
-    const logsCount = Math.max(1, Math.ceil(filteredLogs.length / ROWS_PER_PAGE));
-    const usersCount = Math.max(1, Math.ceil(filteredUsers.length / ROWS_PER_PAGE));
+    const visibleLogs = filteredLogs;
 
-
-    const visibleLogs = useMemo(
-        () => filteredLogs.slice(logsStart, logsStart + ROWS_PER_PAGE),
-        [filteredLogs, logsStart]
-    );
-
-    const visibleUsers = useMemo(
-        () => filteredUsers.slice(usersStart, usersStart + ROWS_PER_PAGE),
-        [filteredUsers, usersStart]
-    );
+    const visibleUsers = filteredUsers;
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const usersData = await AdminService.getUsers();
-                setUsers(Array.isArray(usersData) ? usersData : []);
+                const data = await AdminService.getUsers(usersPage, ROWS_PER_PAGE);
+
+                setUsersCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+                const usersData = data.items.map(user => (new UserDTO({UserID : user.userID, Username: user.username, EmployeeId: user.employeeId, IsActive: user.isActive, Role: user.role})));
+
+                setUsers(usersData);
             } catch (error) {
                 console.error('Error fetching users:', error);
                 UserSession.verifyAuthorize(navigate, error?.status);
             }
 
+        }
+        fetchData();
+    }, [navigate, usersPage]);
+
+    useEffect(() => {
+        async function fetchData() {
             try {
-                const logsData = await AdminService.getLogs();
-                setLogs(Array.isArray(logsData) ? logsData : []);
+                const data = await AdminService.getLogs(logsPage, ROWS_PER_PAGE);
+
+                setLogsCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+                const logsData = data.items.map(log => (new LogDTO({LogID: log.logID, ActorID: log.actorID, Target: log.target, Action: log.action, Description: log.description, CreatedAt: log.createdAt})));
+
+                setLogs(logsData);
             } catch (error) {
                 console.error('Error fetching logs:', error);
                 UserSession.verifyAuthorize(navigate, error?.status);
             }
-
-            setLogsPage(1);
-            setUsersPage(1);
         }
         fetchData();
-    }, [navigate]);
+    }, [logsPage, navigate]);
 
     const handleTabChange = (_e, v) => {
         console.log("handleTabChange", v);
@@ -552,7 +557,7 @@ export default function AdminConsole() {
                                         <TableCell>
                                             <Select
                                                 value={u.Role || ''}
-                                                onChange={(e) => onChangeRole(usersStart + idx, e.target.value)}
+                                                onChange={(e) => onChangeRole(idx, e.target.value)}
                                                 size="small"
                                                 displayEmpty
                                                 sx={{ width: '100%' }}

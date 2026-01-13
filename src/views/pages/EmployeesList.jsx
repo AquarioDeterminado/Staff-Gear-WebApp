@@ -44,6 +44,7 @@ import ErrorHandler from '../../utils/ErrorHandler';
 import useNotification from '../../utils/UseNotification';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
 import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
+import EmployeeViewModel from '../../models/viewModels/EmployeeViewModel.js';
 
 const SORTING_ASCENDING = 'asc';
 const SORTING_DESCENDING = 'desc';
@@ -199,17 +200,12 @@ export default function EmployeesList() {
   
   const ROWS_PER_PAGE = 10;
   const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
 
-  const pageCount = Math.max(1, Math.ceil(filteredEmployees.length / ROWS_PER_PAGE));
-  const startIndex = (page - 1) * ROWS_PER_PAGE;
   const visibleUsers = useMemo(
-    () => filteredEmployees.slice(startIndex, startIndex + ROWS_PER_PAGE),
-    [filteredEmployees, startIndex]
+    () => filteredEmployees,
+    [filteredEmployees]
   );
-
-  useEffect(() => {
-    setPage(1);
-  }, [Users]);
 
   const handleOpenAdd = () => {
     setMode('add');
@@ -282,7 +278,7 @@ export default function EmployeesList() {
           hireDate: form.hireDate,
           password: form.password
         });
-        setUsers(await EmployeeService.getAllEmployees());
+        setUsers((await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE)).items);
         notifs({ severity: 'success', message: 'Employee created successfully!' });
       } else {
         await EmployeeService.updateEmployee(form.businessId, {
@@ -338,8 +334,26 @@ export default function EmployeesList() {
   useEffect(() => {
     async function fetchData() {
       try {
-        var employees = await EmployeeService.getAllEmployees();
-        console.log(employees);
+        var data = await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE);
+        
+        setPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+        const employees = data.items.map(
+          (empData) =>
+            new EmployeeViewModel({
+              BusinessEntityID: empData.businessEntityID,
+              FirstName: empData.firstName,
+              MiddleName: empData.middleName,
+              LastName: empData.lastName,
+              JobTitle: empData.jobTitle,
+              Department: empData.department,
+              Email: empData.email,
+              HireDate: empData.hireDate,
+              Role: empData.role
+            }
+          )
+        );
+        console.log('Fetched employees:', employees);
         employees.forEach(element => {
           element.FirstName = CapitalizeFirstLetter(element.FirstName);
         });
@@ -350,7 +364,7 @@ export default function EmployeesList() {
         notifs({ severity: 'error', message: ErrorHandler(error) || 'Error fetching employees.' });
       }
     }
-    if (Users.length === 0) fetchData();
+    fetchData();
 
     async function fetchDepartments() {
       try {
@@ -363,7 +377,12 @@ export default function EmployeesList() {
     }
 
     fetchDepartments();
-  }, [Users.length, navigate, notifs]);
+  }, [Users.length, navigate, notifs, page]);
+
+  const changePage = (newPage) => {
+    console.log('Changing to page ', newPage);
+    setPage(newPage);
+  };
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
@@ -617,7 +636,7 @@ export default function EmployeesList() {
             <Pagination
               count={pageCount}
               page={page}
-              onChange={(_, p) => setPage(p)}
+              onChange={(_, p) => changePage(p)}
               sx={{
                 '& .MuiPaginationItem-root.Mui-selected': {
                   bgcolor: '#ff9800',
