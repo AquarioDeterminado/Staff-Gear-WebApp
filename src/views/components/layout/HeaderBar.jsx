@@ -1,3 +1,7 @@
+/*
+Barra superior fixa usada em todas as páginas
+*/
+
 import { useEffect, useState } from 'react';
 import {
   AppBar,
@@ -27,11 +31,11 @@ import PersonIcon from '@mui/icons-material/Person';
 import HistoryIcon from '@mui/icons-material/History';
 import GroupIcon from '@mui/icons-material/Group';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
-import NoticationService from '../../services/NotificationService';
+import NoticationService from '../../../services/NotificationService';
 import { useNavigate } from 'react-router-dom';
-import AuthService from '../../services/AuthService';
+import AuthService from '../../../services/AuthService';
 import SideMenu from './SideMenu';
-import logo from '../../assets/logo.png';
+import logo from '../../../assets/logo.png';
 
 export default function HeaderBar() {
   const navigate = useNavigate();

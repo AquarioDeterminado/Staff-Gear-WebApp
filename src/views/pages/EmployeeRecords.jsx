@@ -1,10 +1,7 @@
-
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Container,
-  Tabs,
-  Tab,
   Paper,
   Table,
   TableHead,
@@ -12,21 +9,20 @@ import {
   TableCell,
   TableBody,
   Divider,
-  Stack,
-  Typography,
   Pagination,
 } from '@mui/material';
 
-import HeaderBar from '../components/HeaderBar';
+import HeaderBar from '../components/layout/HeaderBar';
 import EmployeeService from '../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
 import UserSession from '../../utils/UserSession';
 import useNotification from '../../utils/UseNotification';
+import { StyledTabs, StyledTab } from '../components/ui/StyledTabs';
+import SectionPaper from '../components/ui/SectionPaper';
 
 export default function EmployeeRecords() {
   const [tab, setTab] = useState(0);
   const notifs = useNotification();
-
   const navigate = useNavigate();
 
   const BusinessID = localStorage.getItem('BusinessID');
@@ -95,150 +91,37 @@ export default function EmployeeRecords() {
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
 
-      <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>    
-      <Box sx={{ mb: 2 }}>
-        <Tabs
-          value={tab}
-          onChange={handleTabChange}
-          TabIndicatorProps={{ style: { display: 'none' } }}
-          sx={{
-            '& .MuiTab-root': {
-              minHeight: 36,
-              py: 0.5,
-              px: 2,
-              m: 0.5,
-              borderRadius: 0.75,
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: 14,
-              color: '#666',
-              bgcolor: '#f5f5f5',
-              transition: 'all 0.3s ease',
-            },
-            '& .MuiTab-root.Mui-selected': {
-              bgcolor: '#ff9800',
-              color: '#fff',
-              fontWeight: 700,
-              boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)',
-            },
-          }}
-        >
-          <Tab label="payments" disableRipple />
-          <Tab label="job changes" disableRipple />
-        </Tabs>
-      </Box>
-        <Paper
-          variant="outlined"
-          sx={{
-            bgcolor: '#fff3e0',
-            borderColor: '#ddd',
-            borderRadius: 1.5,
-            overflow: 'auto',
-          }}
-        >
-          <Box sx={{ px: 2, pt: 1 }}>
-            <Divider sx={{ borderColor: '#ccc' }} />
-          </Box>
+      <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
+        <Box sx={{ mb: 2 }}>
+          <StyledTabs value={tab} onChange={handleTabChange}>
+            <StyledTab label="Payments" />
+            <StyledTab label="Job Changes" />
+          </StyledTabs>
+        </Box>
 
-          <Table size="small" sx={{ minWidth: 720, tableLayout: 'fixed' }}>
-            <TableHead>
-              <TableRow sx={{ '& th': { fontWeight: 700 } }}>
-                {columns.map((c, i) => (
-                  <TableCell
-                    key={c}
-                    sx={{
-                      borderRight: i < columns.length - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
-                      color: '#333',
-                    }}
-                  >
-                    {c}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
+        
+      <SectionPaper>
+        <Table size="small" sx={{ minWidth: 720, tableLayout: 'fixed' }}>
+        </Table>
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+          {tab === 0 ? (
+            <Pagination
+              count={Math.max(1, paymentsCount)}
+              page={paymentsPage}
+              onChange={(_, p) => setPaymentsPage(p)}
+              sx={{ '& .MuiPaginationItem-root.Mui-selected': { bgcolor: '#ff9800', color: '#fff' } }}
+            />
+          ) : (
+            <Pagination
+              count={Math.max(1, jobChangesCount)}
+              page={jobChangesPage}
+              onChange={(_, p) => setJobChangesPage(p)}
+              sx={{ '& .MuiPaginationItem-root.Mui-selected': { bgcolor: '#ff9800', color: '#fff' } }}
+            />
+          )}
+        </Box>
+      </SectionPaper>
 
-            <TableBody>
-              {tab === 0 ? (
-                // Payments
-                payments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
-                      No payment records found.
-                    </TableCell>
-                  </TableRow>
-                ) : visiblePayments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
-                      Page out of range.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  visiblePayments.map((payment, index) => (
-                    <TableRow key={`${payment.rateChangeDate}-${index}`}>
-                      <TableCell>{new Date(payment.RateChangeDate).toLocaleString('fr-FR', {dateStyle: 'short'})}</TableCell>
-                      <TableCell>{Math.round((payment.Rate + Number.EPSILON) * 100) / 100}€</TableCell>
-                      <TableCell>{payment.PayFrequency == 1 ? 'Monthly' : 'Biweekly'}</TableCell>
-                    </TableRow>
-                  ))
-                )
-              ) : (
-                // Job changes
-                jobChanges.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
-                      No job change records found.
-                    </TableCell>
-                  </TableRow>
-                ) : visibleJobChanges.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
-                      Page out of range.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  visibleJobChanges.map((change, index) => (
-                    <TableRow key={`${change.JobTitle}-${change.StartDate}-${index}`}>
-                      <TableCell>{change.JobTitle}</TableCell>
-                      <TableCell>{change.DepartmentName}</TableCell>
-                      <TableCell>{change.StartDate}</TableCell>
-                      <TableCell>{change.EndDate || 'Present'}</TableCell>
-                    </TableRow>
-                  ))
-                )
-              )}
-            </TableBody>
-          </Table>
-
-          <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-            {tab === 0 ? (
-              <Pagination
-                count={Math.max(1, paymentsCount)}
-                page={paymentsPage}
-                onChange={(_, p) => setPaymentsPage(p)}
-                sx={{
-                  '& .MuiPaginationItem-root.Mui-selected': {
-                    bgcolor: '#ff9800',
-                    color: '#fff',
-                  },
-                }}
-              />
-            ) : (
-              <Pagination
-                count={Math.max(1, jobChangesCount)}
-                page={jobChangesPage}
-                onChange={(_, p) => setJobChangesPage(p)}
-                sx={{
-                  '& .MuiPaginationItem-root.Mui-selected': {
-                    bgcolor: '#ff9800',
-                    color: '#fff',
-                  },
-                }}
-              />
-            )}
-          </Box>
-
-          <Box sx={{ height: 24 }} />
-        </Paper>
       </Container>
     </Box>
   );

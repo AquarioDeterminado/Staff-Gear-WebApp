@@ -4,10 +4,10 @@ import CandidatesList from '../views/pages/CandidatesList';
 import EmployeeProfile from '../views/pages/EmployeeProfile';
 import EmployeesList from '../views/pages/EmployeesList';
 import EmployeeRecords from '../views/pages/EmployeeRecords';
-import HeaderBar from '../views/components/HeaderBar';
+import HeaderBar from '../views/components/layout/HeaderBar';
 import HRRecords from '../views/pages/HRRecords';
 import AdminConsole from '../views/pages/AdminConsole';
-import PrivateRoute from '../views/components/PrivateRoute';
+import PrivateRoute from '../views/components/routing/PrivateRoute';
 
 // ==============================|| ROUTING RENDER ||============================== //
 

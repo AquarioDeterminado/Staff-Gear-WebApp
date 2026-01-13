@@ -2,22 +2,16 @@ import { useEffect, useState } from 'react';
 import {
   Box,
   Container,
-  Paper,
   Typography,
   Avatar,
-  IconButton,
   Tooltip,
   Button,
   Stack,
   TextField,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Snackbar,
   Alert,
   CircularProgress,
-  InputAdornment
 } from '@mui/material';
 
 import EditIcon from '@mui/icons-material/Edit';
@@ -27,36 +21,17 @@ import ApartmentIcon from '@mui/icons-material/Apartment';
 import PersonIcon from '@mui/icons-material/Person';
 import KeyIcon from '@mui/icons-material/Key';
 
-import HeaderBar from '../components/HeaderBar';
+import HeaderBar from '../components/layout/HeaderBar';
 import { useNavigate } from 'react-router-dom';
 import EmployeeService from '../../services/EmployeeService';
 import UserSession from '../../utils/UserSession';
-import { ConfirmationNumber } from '@mui/icons-material';
 import ErrorHandler from '../../utils/ErrorHandler';
 
-const CARD_W = 280;
-const CARD_H = 72;
-const EMAIL_W = 360;
+import ProfileFieldCard from '../components/ui/ProfileFieldCard';
+import FormDialog from '../components/ui/FormDialog';
 
-function FieldCard({ children, width = CARD_W }) {
-  return (
-    <Paper
-      elevation={3}
-      sx={{
-        width,
-        minHeight: CARD_H,
-        px: 2.75,
-        py: 1.85,
-        borderRadius: 3,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-    >
-      {children}
-    </Paper>
-  );
-}
+const CARD_W = 280;
+const EMAIL_W = 360;
 
 export default function EmployeeProfile() {
   const navigate = useNavigate();
@@ -231,7 +206,8 @@ export default function EmployeeProfile() {
       setIsSubmittingPwd(false);
     }
   };
-   return (
+
+  return (
     <Box sx={{ minHeight: '100vh', width: '100%', bgcolor: '#fff' }}>
       <HeaderBar />
 
@@ -268,6 +244,7 @@ export default function EmployeeProfile() {
           )}
         </Stack>
       </Stack>
+
       <Stack alignItems="center" sx={{ mb: { xs: 2, md: 3 } }}>
         <Avatar sx={{ width: { xs: 110, md: 125 }, height: { xs: 110, md: 125 } }}>
           <PersonIcon sx={{ fontSize: { xs: 52, md: 66 } }} />
@@ -276,6 +253,7 @@ export default function EmployeeProfile() {
 
       <Container maxWidth="md" sx={{ pb: { xs: 5, md: 7 } }}>
         <Stack alignItems="center" spacing={2}>
+          {/* First/Middle/Last */}
           <Box
             sx={{
               display: 'grid',
@@ -284,74 +262,26 @@ export default function EmployeeProfile() {
               gap: 1
             }}
           >
-            {/* FirstName */}
-            <FieldCard>
-              {isEditMode ? (
-                <TextField
-                  label="First Name"
-                  type="text"
-                  fullWidth
-                  size="small"
-                  autoComplete="off"
-                  value={formData.FirstName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, FirstName: e.target.value }))
-                  }
-                />
-              ) : (
-                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">                 
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {profileInfo?.FirstName || ''}
-                  </Typography>
-                </Stack>
-              )}
-            </FieldCard>
+            <ProfileFieldCard
+              label="First Name"
+              value={formData.FirstName}
+              onChange={(v) => setFormData((prev) => ({ ...prev, FirstName: v }))}
+              isEdit={isEditMode}
+            />
 
-            {/* MiddleName */}
-            <FieldCard>
-              {isEditMode ? (
-                <TextField
-                  label="Middle Name"
-                  type="text"
-                  fullWidth
-                  size="small"
-                  autoComplete="off"
-                  value={formData.MiddleName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, MiddleName: e.target.value }))
-                  }
-                />
-              ) : (
-                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {profileInfo?.MiddleName || ''}
-                  </Typography>
-                </Stack>
-              )}
-            </FieldCard>
+            <ProfileFieldCard
+              label="Middle Name"
+              value={formData.MiddleName}
+              onChange={(v) => setFormData((prev) => ({ ...prev, MiddleName: v }))}
+              isEdit={isEditMode}
+            />
 
-            {/* LastName */}
-            <FieldCard>
-              {isEditMode ? (
-                <TextField
-                  label="Last Name"
-                  type="text"
-                  fullWidth
-                  size="small"
-                  autoComplete="off"
-                  value={formData.LastName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, LastName: e.target.value }))
-                  }
-                />
-              ) : (
-                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {profileInfo?.LastName || ''}
-                  </Typography>
-                </Stack>
-              )}
-            </FieldCard>
+            <ProfileFieldCard
+              label="Last Name"
+              value={formData.LastName}
+              onChange={(v) => setFormData((prev) => ({ ...prev, LastName: v }))}
+              isEdit={isEditMode}
+            />
           </Box>
 
           {/* Job Title & Department */}
@@ -363,59 +293,36 @@ export default function EmployeeProfile() {
               gap: 14
             }}
           >
-            <FieldCard>
-              <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                <WorkIcon />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {profileInfo?.JobTitle || ''}
-                </Typography>
-              </Stack>
-            </FieldCard>
- 
-            <FieldCard>
-              <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                <ApartmentIcon />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {profileInfo?.Department || ''}
-                </Typography>
-              </Stack>
-            </FieldCard>
+            <ProfileFieldCard
+              label="Job Title"
+              value={profileInfo?.JobTitle || ''}
+              isEdit={false}
+              icon={<WorkIcon />}
+            />
+
+            <ProfileFieldCard
+              label="Department"
+              value={profileInfo?.Department || ''}
+              isEdit={false}
+              icon={<ApartmentIcon />}
+            />
           </Box>
 
           {/* Email */}
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <FieldCard width={EMAIL_W}>
-              {isEditMode ? (
-                <TextField
-                  label="Email"
-                  type="email"
-                  fullWidth
-                  size="small"
-                  autoComplete="off"
-                  value={formData.Email}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, Email: e.target.value }))
-                  }
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailIcon sx={{ color: 'text.secondary' }} />
-                      </InputAdornment>
-                    )
-                  }}
-                />
-              ) : (
-                <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center">
-                  <EmailIcon />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {profileInfo?.Email || ''}
-                  </Typography>
-                </Stack>
-              )}
-            </FieldCard>
+            <ProfileFieldCard
+              label="Email"
+              value={formData.Email}
+              onChange={(v) => setFormData((prev) => ({ ...prev, Email: v }))}
+              isEdit={isEditMode}
+              icon={<EmailIcon />}
+              width={EMAIL_W}
+              type="email"
+              startAdornment={<EmailIcon sx={{ color: 'text.secondary' }} />}
+            />
           </Box>
 
-          {/* Alterar Password */}
+          {/* Change Password */}
           <Stack direction="row" justifyContent="center" sx={{ pt: 0.5 }}>
             <Button
               variant="contained"
@@ -431,55 +338,27 @@ export default function EmployeeProfile() {
                 boxShadow: '0 4px 10px rgba(0,0,0,0.12)',
                 '&:hover': { bgcolor: '#222' }
               }}
-              onClick={openPwdDialog}
+              onClick={() => setIsPwdDialogOpen(true)}
             >
               Change Password
             </Button>
           </Stack>
         </Stack>
       </Container>
-      <Dialog open={isPwdDialogOpen} onClose={closePwdDialog} fullWidth maxWidth="xs">
-        <DialogTitle>Change Password</DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Current Password"
-              type="password"
-              fullWidth
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-            <TextField
-              label="New password"
-              type="password"
-              fullWidth
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-            <TextField
-              label="Confirm the password"
-              type="password"
-              fullWidth
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closePwdDialog} disabled={isSubmittingPwd}>Cancel</Button>
-          <Button
-            onClick={handleChangePassword}
-            variant="contained"
-            disabled={isSubmittingPwd}
-            startIcon={isSubmittingPwd ? <CircularProgress size={18} color="inherit" /> : <KeyIcon />}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+
+      {/* Change Password Dialog via FormDialog */}
+      <FormDialog
+        open={isPwdDialogOpen}
+        title="Change Password"
+        fields={[
+          { type: 'password', label: 'Current Password', value: oldPassword, onChange: setOldPassword },
+          { type: 'password', label: 'New password', value: newPassword, onChange: setNewPassword },
+          { type: 'password', label: 'Confirm the password', value: confirmPassword, onChange: setConfirmPassword },
+        ]}
+        onCancel={closePwdDialog}
+        onSubmit={handleChangePassword}
+        submitLabel={isSubmittingPwd ? 'Saving...' : 'Save'}
+      />
 
       <Snackbar
         open={snackbar.open}

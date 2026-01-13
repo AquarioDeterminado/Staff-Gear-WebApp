@@ -1,3 +1,6 @@
+/*
+Componente para confirmação de ações
+*/
 
 import React, { useState, cloneElement } from 'react';
 import {
