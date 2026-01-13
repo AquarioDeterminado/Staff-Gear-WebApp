@@ -32,6 +32,8 @@ import {
   Menu,
 } from '@mui/material';
 
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import AddIcon from '@mui/icons-material/AddCircleOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -46,9 +48,16 @@ import Pagination from '@mui/material/Pagination';
 import useNotification from '../../utils/UseNotification';
 import Popups from '../components/Popups';
 import EmployeeService from '../../services/EmployeeService';
+import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
+import { EmployeeSearchField } from '../components/EmployeeSearchField';
+import { DepartmentSelectField } from '../components/DepartmentSelectField';
 
 const PAYMENT_TAB = 0;
 const JOB_CHANGE_TAB = 1;
+
+const SORTING_DESCENDING = 'desc';
+const SORTING_ASCENDING = 'asc';
+
 
 export default function HRRecords() {
   const navigate = useNavigate();
@@ -64,13 +73,10 @@ export default function HRRecords() {
 
   const [tab, setTab] = useState(0);
 
-  const [inputEmployee,  setInputEmployee] = useState('');
+  const [inputEmployee, setInputEmployee] = useState('');
 
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
-
-  const [departments, setDepartments] = useState([]);
-
   // Filter Payments
   const [filterPaymentEmployee, setFilterPaymentEmployee] = useState('');
   const [filterRateMin, setFilterRateMin] = useState('');
@@ -88,10 +94,11 @@ export default function HRRecords() {
   const [filterJobChangesExpanded, setFilterJobChangesExpanded] = useState(false);
 
   // Columns
-  const paymentsColumns = ['Rate', 'Changed Rate', 'Pay Frequency', 'Employee'];
-  const jobChangesColumns = ['Job Title', 'Department', 'Start Date', 'End Date', 'Employee'];
+  const paymentsColumns = [{ label: 'Rate', parameter: 'Rate' }, { label: 'Rate Change Date', parameter: 'RateChangeDate' }, { label: 'Pay Frequency', parameter: 'PayFrequency' }, { label: 'Employee', parameter: 'FullName' }];
+  const jobChangesColumns = [{ label: 'Job Title', parameter: 'JobTitle' }, { label: 'Department', parameter: 'DepartmentName' }, { label: 'Start Date', parameter: 'StartDate' }, { label: 'End Date', parameter: 'EndDate' }, { label: 'Employee', parameter: 'FullName' }];
   const columns = tab === PAYMENT_TAB ? paymentsColumns : jobChangesColumns;
 
+  const [sorting, setSorting] = useState({ parameter: '', order: '' });
   // Pages
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [jobChangesPage, setJobChangesPage] = useState(1);
@@ -221,7 +228,7 @@ export default function HRRecords() {
     EndDate: "",
     J_FullName: ""
   });
-  
+
   function setFormErrorsDefaults() {
     setFormErrors({
       BusinessEntityID: "",
@@ -250,6 +257,9 @@ export default function HRRecords() {
 
       try {
         const jobChangesData = await HRService.getAllMovements();
+        jobChangesData.forEach(element => {
+          element.JobTitle = CapitalizeFirstLetter(element.JobTitle);
+        });
         setJobChanges(Array.isArray(jobChangesData) ? jobChangesData : []);
       } catch (error) {
         console.error('Error fetching job changes:', error);
@@ -261,17 +271,6 @@ export default function HRRecords() {
     }
     fetchData();
 
-    async function fetchDepartments() {
-      try {
-        const deps = await EmployeeService.getAllDepartments();
-        deps.sort();
-        setDepartments(deps);
-      } catch (err) {
-        console.debug('Could not fetch departments for accept dialog', err);
-      }
-    }
-    
-    fetchDepartments();
   }, [navigate]);
 
   const handleTabChange = (_e, v) => {
@@ -335,7 +334,7 @@ export default function HRRecords() {
 
     if (tab === PAYMENT_TAB && field === 'Amount') {
       value = value.trimStart();
-    } 
+    }
     if (field === 'BusinessEntityID') {
       const selectedOption = e.target.value;
       value = selectedOption.BusinessEntityID;
@@ -428,7 +427,7 @@ export default function HRRecords() {
         const newItem = {
           BusinessEntityID: payment.BusinessEntityID,
           P_FullName: payment.FullName,
-          Rate:form.Rate,
+          Rate: form.Rate,
           RateChangeDate: payment.RateChangeDate,
           PayFrequency: parseInt(form.PayFrequency, 10),
         };
@@ -586,6 +585,63 @@ export default function HRRecords() {
     const deps = [...new Set(jobChanges.map((j) => j.DepartmentName).filter(Boolean))];
     return deps.sort();
   }, [jobChanges]);
+
+  function clickHeader(parameter) {
+    let sortingOrder = sorting.parameter === parameter && sorting.order === SORTING_ASCENDING ? SORTING_DESCENDING : sorting.order === SORTING_DESCENDING ? '' : SORTING_ASCENDING;
+    setSorting({ "parameter": parameter, "order": sortingOrder });
+    var sorted = [];
+    console.log(sorting);
+    console.log(sortingOrder);
+
+
+    if (tab === PAYMENT_TAB) {
+      sorted = payments
+      if (sortingOrder === "") {
+        sorted = [...payments].sort((a, b) => {
+          if (a["RateChangeDate"] < b["RateChangeDate"]) return -1;
+          if (a["RateChangeDate"] > b["RateChangeDate"]) return 1;
+          return 0;
+        });
+      } else if (sortingOrder === SORTING_DESCENDING) {
+        sorted = [...payments].sort((a, b) => {
+          if (a[parameter] > b[parameter]) return -1;
+          if (a[parameter] < b[parameter]) return 1;
+          return 0;
+        });
+      } else if (sortingOrder === SORTING_ASCENDING) {
+        sorted = [...payments].sort((a, b) => {
+          if (a[parameter] < b[parameter]) return -1;
+          if (a[parameter] > b[parameter]) return 1;
+          return 0;
+        });
+      }
+      setPayments(sorted);
+    } else {
+      sorted = jobChanges
+      if (sortingOrder === "") {
+        sorted = [...jobChanges].sort((a, b) => {
+          if (a["StartDate"] < b["StartDate"]) return -1;
+          if (a["StartDate"] > b["StartDate"]) return 1;
+          return 0;
+        });
+      } else if (sortingOrder === SORTING_DESCENDING) {
+        sorted = [...jobChanges].sort((a, b) => {
+          if (a[parameter] < b[parameter]) return -1;
+          if (a[parameter] > b[parameter]) return 1;
+          return 0;
+        });
+      } else if (sortingOrder === SORTING_ASCENDING) {
+        sorted = [...jobChanges].sort((a, b) => {
+          if (a[parameter] > b[parameter]) return -1;
+          if (a[parameter] < b[parameter]) return 1;
+          return 0;
+        });
+      }
+
+      console.log(sorting);
+      setJobChanges(sorted);
+    }
+  }
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
@@ -840,13 +896,24 @@ export default function HRRecords() {
               <TableRow sx={{ '& th': { fontWeight: 700 } }}>
                 {columns.map((c, i) => (
                   <TableCell
-                    key={c}
+                    onClick={() => clickHeader(c.parameter)}
+                    key={c.label}
                     sx={{
                       borderRight: i < columns.length - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
                       color: '#333',
                     }}
                   >
-                    {c}
+                    <>
+                      {c.label}
+                      {sorting.parameter === c.parameter ? (
+                        sorting.order === SORTING_ASCENDING ? (
+                          <ArrowUpwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
+                        ) : sorting.order === SORTING_DESCENDING ? (
+                          <ArrowDownwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
+                        ) : null
+                      ) : null}
+
+                    </>
                   </TableCell>
                 ))}
                 <TableCell sx={{ color: '#333' }}>Actions</TableCell>
@@ -1022,15 +1089,15 @@ export default function HRRecords() {
               mode === 'add' ? (
                 <>
                   <EmployeeSearchField
-                  values={payments}
-                  inputEmployee={inputEmployee}
-                  onChange={(event, newValue) => {
-                    setInputEmployee(newValue);
-                    setForm((prev => ({ ...prev, BusinessEntityID: newValue ? newValue.BusinessEntityID : '' }))  );
-                  }}
-                  error={formErrors.BusinessEntityID}
-                  helperText={formErrors.BusinessEntityID}
-                />
+                    values={payments}
+                    inputEmployee={inputEmployee}
+                    onChange={(event, newValue) => {
+                      setInputEmployee(newValue);
+                      setForm((prev => ({ ...prev, BusinessEntityID: newValue ? newValue.BusinessEntityID : '' })));
+                    }}
+                    error={formErrors.BusinessEntityID}
+                    helperText={formErrors.BusinessEntityID}
+                  />
                   <TextField
                     label="Rate Change Date"
                     value={form.RateChangeDate}
@@ -1061,20 +1128,20 @@ export default function HRRecords() {
                     helperText={formErrors.Rate}
                   />
                   <Select
-                      value={form.PayFrequency}
-                      onChange={onChange('PayFrequency')}
-                      size="small"
-                      displayEmpty
-                      sx={{ flex: 1 }}
-                      error={!!formErrors.PayFrequency}
-                    >
-                      <MenuItem value="">Pay Rate</MenuItem>
-                      {["Monthly", "Biweekly"].map((freq) => (
-                        <MenuItem key={freq} value={freq === "Monthly" ? 1 : 2}>
-                          {freq}
-                        </MenuItem>
-                      ))}
-                    </Select>
+                    value={form.PayFrequency}
+                    onChange={onChange('PayFrequency')}
+                    size="small"
+                    displayEmpty
+                    sx={{ flex: 1 }}
+                    error={!!formErrors.PayFrequency}
+                  >
+                    <MenuItem value="">Pay Rate</MenuItem>
+                    {["Monthly", "Biweekly"].map((freq) => (
+                      <MenuItem key={freq} value={freq === "Monthly" ? 1 : 2}>
+                        {freq}
+                      </MenuItem>
+                    ))}
+                  </Select>
                 </>
               ) : (
                 <>
@@ -1097,107 +1164,98 @@ export default function HRRecords() {
                     helperText={formErrors.Rate}
                   />
                   <Select
-                      value={form.PayFrequency}
-                      onChange={onChange('PayFrequency')}
-                      size="small"
-                      displayEmpty
-                      sx={{ flex: 1 }}
-                      error={!!formErrors.PayFrequency}
-                      helperText={formErrors.PayFrequency}
-                    >
-                      <MenuItem value="">Pay Rate</MenuItem>
-                      {["Monthly", "Biweekly"].map((freq) => (
-                        <MenuItem key={freq} value={freq === "Monthly" ? 1 : (freq === "Biweekly" ? 2 : -1)}>
-                          {freq}
-                        </MenuItem>
-                      ))}
-                    </Select>
+                    value={form.PayFrequency}
+                    onChange={onChange('PayFrequency')}
+                    size="small"
+                    displayEmpty
+                    sx={{ flex: 1 }}
+                    error={!!formErrors.PayFrequency}
+                    helperText={formErrors.PayFrequency}
+                  >
+                    <MenuItem value="">Pay Rate</MenuItem>
+                    {["Monthly", "Biweekly"].map((freq) => (
+                      <MenuItem key={freq} value={freq === "Monthly" ? 1 : (freq === "Biweekly" ? 2 : -1)}>
+                        {freq}
+                      </MenuItem>
+                    ))}
+                  </Select>
                 </>
               )
             ) : (
               mode === 'add' ? (
-              <>
-                <TextField
-                  label="Job Title"
-                  value={form.JobTitle}
-                  onChange={onChange('JobTitle')}
-                  fullWidth
-                  size="small"
-                  required
-                  error={!!formErrors.JobTitle}
-                  helperText={formErrors.JobTitle}
-                />
-                <Select
-                  value={form.DepartmentName}
-                  onChange={onChange('DepartmentName')}
-                  size='small'
-                  error={!!formErrors.DepartmentName}
-                >
-                  <MenuItem value="">-- Select Department --</MenuItem>
-                  {departments.map((d) => (
-                    <MenuItem key={d} value={d}>
-                      {d} 
-                    </MenuItem>
-                  ))}
-                </Select>
-                <TextField
-                  label="Start Date (yyyy-mm-dd)"
-                  type='date'
-                  value={form.StartDate}
-                  onChange={onChange('StartDate')}
-                  slotProps={{
-                    inputLabel: { shrink: true }
-                  }}
-                  fullWidth
-                  size="small"
-                  required
-                  error={!!formErrors.StartDate}
-                  helperText={formErrors.StartDate}
-                />
-                <TextField
-                  label="End Date (yyyy-mm-dd)"
-                  type='date'
-                  value={form.EndDate}
-                  onChange={onChange('EndDate')}
-                  slotProps={{
-                    inputLabel: { shrink: true }
-                  }}
-                  fullWidth
-                  size="small"
-                />
-                <EmployeeSearchField
-                  onChange={(event, newValue) => {
-                    //setInputEmployee(newValue);
-                    setForm((prev => ({ ...prev, BusinessEntityID: newValue ? newValue.BusinessEntityID : '' }))  );
-                  }}
-                  error={formErrors.BusinessEntityID}
-                  helperText={formErrors.BusinessEntityID}
-                />
-              </>
+                <>
+                  <TextField
+                    label="Job Title"
+                    value={form.JobTitle}
+                    onChange={onChange('JobTitle')}
+                    fullWidth
+                    size="small"
+                    required
+                    error={!!formErrors.JobTitle}
+                    helperText={formErrors.JobTitle}
+                  />
+                  <DepartmentSelectField
+                    onChange={onChange('DepartmentName')}
+                    error={!!formErrors.DepartmentName}
+                  />
+                  <TextField
+                    label="Start Date (yyyy-mm-dd)"
+                    type='date'
+                    value={form.StartDate}
+                    onChange={onChange('StartDate')}
+                    slotProps={{
+                      inputLabel: { shrink: true }
+                    }}
+                    fullWidth
+                    size="small"
+                    required
+                    error={!!formErrors.StartDate}
+                    helperText={formErrors.StartDate}
+                  />
+                  <TextField
+                    label="End Date (yyyy-mm-dd)"
+                    type='date'
+                    value={form.EndDate}
+                    onChange={onChange('EndDate')}
+                    slotProps={{
+                      inputLabel: { shrink: true }
+                    }}
+                    fullWidth
+                    size="small"
+                  />
+                  <EmployeeSearchField
+                    onChange={(event, newValue) => {
+                      //setInputEmployee(newValue);
+                      setForm((prev => ({ ...prev, BusinessEntityID: newValue ? newValue.BusinessEntityID : '' })));
+                    }}
+                    error={formErrors.BusinessEntityID}
+                    helperText={formErrors.BusinessEntityID}
+                  />
+                </>
               ) : (
                 <>
-                <TextField
-                  label="Job Title"
-                  value={form.JobTitle}
-                  onChange={onChange('JobTitle')}
-                  fullWidth
-                  size="small"
-                  required
-                  error={!!formErrors.JobTitle}
-                  helperText={formErrors.JobTitle}
-                />
                   <TextField
-                  label="End Date (yyyy-mm-dd)"
-                  type='date'
-                  value={form.EndDate}
-                  onChange={onChange('EndDate')}
-                  slotProps={{
-                    inputLabel: { shrink: true }
-                  }}
-                  fullWidth
-                  size="small"
-                />
-              </>
+                    label="Job Title"
+                    value={form.JobTitle}
+                    onChange={onChange('JobTitle')}
+                    fullWidth
+                    size="small"
+                    required
+                    error={!!formErrors.JobTitle}
+                    helperText={formErrors.JobTitle}
+                  />
+                  <TextField
+                    label="End Date (yyyy-mm-dd)"
+                    type='date'
+                    value={form.EndDate}
+                    onChange={onChange('EndDate')}
+                    slotProps={{
+                      inputLabel: { shrink: true }
+                    }}
+                    fullWidth
+                    size="small"
+                  />
+                </>
               )
             )}
           </Stack>
@@ -1224,46 +1282,5 @@ export default function HRRecords() {
         </DialogActions>
       </Dialog>
     </Box>
-  );
-}
-
-const EmployeeSearchField = ({values, onChange, error}) => {
-
-  const [inputEmployee, setInputEmployee] = useState(null);
-  const [employees, setEmployees] = useState([]);
-
-
-  useEffect(() => {
-    async function getAllEmployees() {
-      if(values && values.length > 0){
-        setEmployees(values);
-        return;
-      }
-
-      const response = await EmployeeService.getAllEmployees();
-      setEmployees(response);
-      console.log(response);
-    }
-
-    getAllEmployees();
-  }, [values]);
-
-  return (
-    <Autocomplete
-      disbalePortal
-      value={inputEmployee}
-      onChange={(event, newValue) => {
-        setInputEmployee(newValue);
-        onChange(event, newValue);
-      }}
-        options={employees ? employees.map((emp) => ({
-          label: `${emp.FirstName} ${emp.LastName} (ID: ${emp.BusinessEntityID})`,
-          BusinessEntityID: emp.BusinessEntityID,
-        })) : []}
-      error={!!error}
-      helperText={error}
-      getOptionLabel={(option) => option? option.label : ""}
-      renderInput={(params) => <TextField error={!!error} helperText={error} {...params} label="Employee" />}
-    />        
   );
 }
