@@ -8,12 +8,16 @@ import HeaderBar from '../views/components/HeaderBar';
 import HRRecords from '../views/pages/HRRecords';
 import AdminConsole from '../views/pages/AdminConsole';
 import PrivateRoute from '../views/components/PrivateRoute';
+import JobListingsPage from '../views/pages/JobListingsPage';
+import JobListingDetailsPage from '../views/pages/JobListingDetailsPage';
 
 // ==============================|| ROUTING RENDER ||============================== //
 
 const router = createBrowserRouter(createRoutesFromElements (
         <>
             <Route path="/" element={ <Home />} />
+            <Route path="/job-listings" element={<JobListingsPage />} />
+            <Route path="/job-listings/:id" element={<JobListingDetailsPage />} />
             <Route path="/candidates" element={<PrivateRoute><CandidatesList /></PrivateRoute>} />
             <Route path="/profile" element={<PrivateRoute><EmployeeProfile /></PrivateRoute>} />
             <Route path="/employees" element={<PrivateRoute><EmployeesList /></PrivateRoute>} />
