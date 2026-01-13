@@ -1166,10 +1166,8 @@ export default function HRRecords() {
                   size="small"
                 />
                 <EmployeeSearchField
-                  values={jobChanges}
-                  inputEmployee={inputEmployee}
                   onChange={(event, newValue) => {
-                    setInputEmployee(newValue);
+                    //setInputEmployee(newValue);
                     setForm((prev => ({ ...prev, BusinessEntityID: newValue ? newValue.BusinessEntityID : '' }))  );
                   }}
                   error={formErrors.BusinessEntityID}
@@ -1229,13 +1227,19 @@ export default function HRRecords() {
   );
 }
 
-const EmployeeSearchField = ({values, onChange, error }) => {
+const EmployeeSearchField = ({values, onChange, error}) => {
 
   const [inputEmployee, setInputEmployee] = useState(null);
   const [employees, setEmployees] = useState([]);
 
+
   useEffect(() => {
     async function getAllEmployees() {
+      if(values && values.length > 0){
+        setEmployees(values);
+        return;
+      }
+
       const response = await EmployeeService.getAllEmployees();
       setEmployees(response);
       console.log(response);
