@@ -1022,10 +1022,7 @@ export default function HRRecords() {
               mode === 'add' ? (
                 <>
                   <EmployeeSearchField
-                  values={payments}
-                  inputEmployee={inputEmployee}
                   onChange={(event, newValue) => {
-                    setInputEmployee(newValue);
                     setForm((prev => ({ ...prev, BusinessEntityID: newValue ? newValue.BusinessEntityID : '' }))  );
                   }}
                   error={formErrors.BusinessEntityID}
