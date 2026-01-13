@@ -2,13 +2,13 @@ import { Card, CardContent, Stack, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 const JOB_TYPE_MAP = {
-  0: 'Remoto',
-  1: 'Híbrido',
-  2: 'Presencial'
+    0: 'Remote',
+    1: 'Hybrid',
+    2: 'On-site',
 };
 
 const getJobTypeLabel = (jobTypeValue) => {
-  return JOB_TYPE_MAP[jobTypeValue] || 'Remoto'; //por alguma razão 0/Remoto aparece como undefined (1 e 2 funcionam)
+  return JOB_TYPE_MAP[Number(jobTypeValue)] || 'N/A';
 };
 
 export default function JobListingCard({ job }) {

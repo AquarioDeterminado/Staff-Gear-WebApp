@@ -13,6 +13,9 @@ const CandidateService = {
         fd.append('Phone', payload.Phone ?? '');
         fd.append('Message', payload.Message);
         fd.append('ResumeFile', payload.ResumeFile); // File
+        if (payload.JobListingID) {
+            fd.append('JobListingID', payload.JobListingID);
+        }
 
         // POST para /api/v1/candidate/apply
         return api.post(`${CANDIDATE_BASE}/apply`, fd, {

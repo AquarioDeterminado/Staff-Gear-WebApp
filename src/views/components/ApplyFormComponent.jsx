@@ -7,6 +7,7 @@ import {
     Stack,
     Alert,
 } from '@mui/material';
+import { Send } from '@mui/icons-material';
 import CandidateService from '../../services/CandidateService';
 import useNotification from '../../utils/UseNotification';
 
@@ -18,27 +19,34 @@ const ui = {
         textAlign: 'center',
         mb: 3,
     },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 600,
+        color: '#000',
+        mb: 2,
+    },
     button: {
-        bgcolor: '#000',
+        bgcolor: '#ff9800',
         color: '#fff',
         py: 1.25,
         fontWeight: 600,
         borderRadius: 2,
         textTransform: 'none',
         fontSize: 16,
-        '&:hover': { bgcolor: '#FF9800', color: '#000' },
+        '&:hover': { bgcolor: '#e68a00', color: '#fff' },
     },
     attach: {
-        bgcolor: 'rgba(0,0,0,0.06)',
-        color: '#000',
+        bgcolor: 'rgba(255,152,0,0.1)',
+        color: '#ff9800',
         fontWeight: 600,
         borderRadius: 2,
         textTransform: 'none',
-        '&:hover': { bgcolor: 'rgba(255,152,0,0.25)' },
+        border: '1px solid rgba(255,152,0,0.3)',
+        '&:hover': { bgcolor: 'rgba(255,152,0,0.2)' },
     },
 };
 
-export default function ApplyFormComponent() {
+export default function ApplyFormComponent({ jobListingId = null }) {
     const [form, setForm] = useState({
         firstName: '',
         middleName: '',
@@ -109,6 +117,7 @@ export default function ApplyFormComponent() {
                     Phone: form.phone?.trim(),
                     Message: form.message.trim(),
                     ResumeFile: form.resumeFile,
+                    JobListingID: jobListingId,
                 },
                 { signal: abortRef.current.signal }
             );
@@ -158,9 +167,12 @@ export default function ApplyFormComponent() {
 
     return (
         <Box component="form" onSubmit={onSubmit} noValidate>
-            <Typography variant="h4" sx={ui.title}>
-                Apply for a Job
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <Send sx={{ color: '#ff9800', fontSize: 22 }} />
+                <Typography variant="h6" sx={{ ...ui.sectionTitle, m: 0 }}>
+                    Submit Application
+                </Typography>
+            </Box>
 
             {feedback && (
                 <Alert
@@ -178,7 +190,8 @@ export default function ApplyFormComponent() {
                     value={form.firstName}
                     onChange={onChange}
                     fullWidth
-                    sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                    size="small"
+                    sx={{ bgcolor: '#f5f5f5', borderRadius: 1 }}
                 />
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <TextField
@@ -187,7 +200,8 @@ export default function ApplyFormComponent() {
                         value={form.middleName}
                         onChange={onChange}
                         fullWidth
-                        sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                        size="small"
+                        sx={{ bgcolor: '#f5f5f5', borderRadius: 1 }}
                     />
                     <TextField
                         name="lastName"
@@ -195,7 +209,8 @@ export default function ApplyFormComponent() {
                         value={form.lastName}
                         onChange={onChange}
                         fullWidth
-                        sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                        size="small"
+                        sx={{ bgcolor: '#f5f5f5', borderRadius: 1 }}
                     />
                 </Stack>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -206,7 +221,8 @@ export default function ApplyFormComponent() {
                         value={form.email}
                         onChange={onChange}
                         fullWidth
-                        sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                        size="small"
+                        sx={{ bgcolor: '#f5f5f5', borderRadius: 1 }}
                     />
                     <TextField
                         name="phone"
@@ -214,7 +230,8 @@ export default function ApplyFormComponent() {
                         value={form.phone}
                         onChange={onChange}
                         fullWidth
-                        sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                        size="small"
+                        sx={{ bgcolor: '#f5f5f5', borderRadius: 1 }}
                     />
                 </Stack>
                 <TextField
@@ -225,7 +242,8 @@ export default function ApplyFormComponent() {
                     fullWidth
                     multiline
                     rows={5}
-                    sx={{ bgcolor: '#fff', borderRadius: 1 }}
+                    size="small"
+                    sx={{ bgcolor: '#f5f5f5', borderRadius: 1 }}
                 />
             </Stack>
 
@@ -246,12 +264,13 @@ export default function ApplyFormComponent() {
                         flex: 1,
                         display: 'flex',
                         alignItems: 'center',
-                        border: '1px solid #e6e6e6',
+                        border: '1px solid #ddd',
                         borderRadius: 2,
                         px: 2,
-                        color: resumeFileName ? '#333' : '#888',
+                        color: resumeFileName ? '#333' : '#999',
                         minHeight: 40,
-                        bgcolor: '#fff',
+                        bgcolor: '#f5f5f5',
+                        fontSize: '0.875rem',
                     }}
                 >
                     {resumeFileName || 'No file selected'}
@@ -276,11 +295,11 @@ export default function ApplyFormComponent() {
                         onClick={onCancel}
                         fullWidth
                         sx={{
-                            borderColor: '#000',
-                            color: '#000',
+                            borderColor: '#ff9800',
+                            color: '#ff9800',
                             fontWeight: 600,
                             textTransform: 'none',
-                            '&:hover': { borderColor: '#FF9800', color: '#FF9800' },
+                            '&:hover': { borderColor: '#e68a00', color: '#e68a00', bgcolor: 'rgba(255,152,0,0.05)' },
                         }}
                     >
                         Cancel
