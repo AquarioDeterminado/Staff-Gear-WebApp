@@ -58,8 +58,8 @@ export default function AdminConsole() {
     const [logs, setLogs] = useState([]);
 
     // --- Colunas ---
-    const logsColumns = [{label: 'ID', parameter: 'LogID'}, {label: 'Actor ID', parameter: 'ActorID'}, {label: 'Target', parameter: 'Target'}, {label: 'Action', parameter: 'Action'}, {label: 'Created At', parameter: 'CreatedAt'}];
-    const usersColumns = [{label: 'User ID', parameter: 'UserID'}, {label: 'Username', parameter: 'Username'}, {label: 'Employee ID', parameter: 'EmployeeId'}, {label: 'Is Active', parameter: 'IsActive'}, {label: 'Role', parameter: 'Role'}];
+    const logsColumns = [{ label: 'ID', parameter: 'LogID' }, { label: 'Actor ID', parameter: 'ActorID' }, { label: 'Target', parameter: 'Target' }, { label: 'Action', parameter: 'Action' }, { label: 'Created At', parameter: 'CreatedAt' }];
+    const usersColumns = [{ label: 'User ID', parameter: 'UserID' }, { label: 'Username', parameter: 'Username' }, { label: 'Employee ID', parameter: 'EmployeeId' }, { label: 'Is Active', parameter: 'IsActive' }, { label: 'Role', parameter: 'Role' }];
     const columns = tab === LOGS_TAB ? logsColumns : usersColumns;
 
 
@@ -104,8 +104,8 @@ export default function AdminConsole() {
     const [filterEmployeeId, setFilterEmployeeId] = useState('');
     const [filterActiveStatus, setFilterActiveStatus] = useState('');
     const [filterRole, setFilterRole] = useState('');
-    
-    const filteredUsers = useMemo(() => { 
+
+    const filteredUsers = useMemo(() => {
         return users.filter((p) => {
             if (filterUserId.trim()) {
                 const query = filterUserId.toString().toLowerCase();
@@ -156,51 +156,49 @@ export default function AdminConsole() {
         setSorting({ "parameter": parameter, "order": sortingOrder });
         var sorted = [];
 
-        if (tab === LOGS_TAB)
-        {
+        if (tab === LOGS_TAB) {
             sorted = logs;
             if (sortingOrder === "") {
-            sorted = [...logs].sort((a, b) => {
-                if (a["CreatedAt"] < b["CreatedAt"]) return -1;
-                if (a["CreatedAt"] > b["CreatedAt"]) return 1;
-                return 0;
-            });
+                sorted = [...logs].sort((a, b) => {
+                    if (a["CreatedAt"] < b["CreatedAt"]) return -1;
+                    if (a["CreatedAt"] > b["CreatedAt"]) return 1;
+                    return 0;
+                });
             } else if (sortingOrder === SORTING_DESCENDING) {
-            sorted = [...logs].sort((a, b) => {
-                if (a[parameter] > b[parameter]) return -1;
-                if (a[parameter] < b[parameter]) return 1;
-                return 0;
-            });
+                sorted = [...logs].sort((a, b) => {
+                    if (a[parameter] > b[parameter]) return -1;
+                    if (a[parameter] < b[parameter]) return 1;
+                    return 0;
+                });
             } else if (sortingOrder === SORTING_ASCENDING) {
-            sorted = [...logs].sort((a, b) => {
-                if (a[parameter] < b[parameter]) return -1;
-                if (a[parameter] > b[parameter]) return 1;
-                return 0;
-            });
+                sorted = [...logs].sort((a, b) => {
+                    if (a[parameter] < b[parameter]) return -1;
+                    if (a[parameter] > b[parameter]) return 1;
+                    return 0;
+                });
             }
             setLogs(sorted);
         }
-        else if (tab === USER_CHANGE_TAB)
-        {
+        else if (tab === USER_CHANGE_TAB) {
             sorted = users;
             if (sortingOrder === "") {
-            sorted = [...users].sort((a, b) => {
-                if (a["HireDate"] < b["HireDate"]) return -1;
-                if (a["HireDate"] > b["HireDate"]) return 1;
-                return 0;
-            });
+                sorted = [...users].sort((a, b) => {
+                    if (a["HireDate"] < b["HireDate"]) return -1;
+                    if (a["HireDate"] > b["HireDate"]) return 1;
+                    return 0;
+                });
             } else if (sortingOrder === SORTING_DESCENDING) {
-            sorted = [...users].sort((a, b) => {
-                if (a[parameter] > b[parameter]) return -1;
-                if (a[parameter] < b[parameter]) return 1;
-                return 0;
-            });
+                sorted = [...users].sort((a, b) => {
+                    if (a[parameter] > b[parameter]) return -1;
+                    if (a[parameter] < b[parameter]) return 1;
+                    return 0;
+                });
             } else if (sortingOrder === SORTING_ASCENDING) {
-            sorted = [...users].sort((a, b) => {
-                if (a[parameter] < b[parameter]) return -1;
-                if (a[parameter] > b[parameter]) return 1;
-                return 0;
-            });
+                sorted = [...users].sort((a, b) => {
+                    if (a[parameter] < b[parameter]) return -1;
+                    if (a[parameter] > b[parameter]) return 1;
+                    return 0;
+                });
             }
             setUsers(sorted);
         }
@@ -270,181 +268,181 @@ export default function AdminConsole() {
         }
     };
 
-    
+
 
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
             <HeaderBar />
-            <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }} />
-            <Stack direction="row" alignItems="center" sx={{ mb: 2 }}>
-                <Typography variant="h4" sx={{ fontWeight: 800, color: '#000' }}>
-                    Employees
-                </Typography>
-            </Stack>
-            <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
-                <CardHeader
-                    title="Filters"
-                    action={
-                        <IconButton onClick={() => setFilterExpanded(!filterExpanded)} sx={{ p: 0 }}>
-                            {filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                        </IconButton>
-                    }
-                    sx={{ pb: 0 }}
-                />
-                <Collapse in={filterExpanded}>
-                    <CardContent>
-                        <Stack direction="column" spacing={2}>
-                            {tab === LOGS_TAB ? (
-                                <>
-                                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                                        <TextField
-                                            label="Actor ID"
-                                            type='number'
-                                            value={filterActorId}
-                                            onChange={(e) => {
-                                                setFilterActorId(e.target.value);
-                                                setLogsPage(1);
-                                            }}
-                                            size="small"
-                                            sx={{ flex: 1 }}
-                                        />
-                                        <TextField
-                                            label="Target"
-                                            value={filterTarget}
-                                            onChange={(e) => {
-                                                setFilterTarget(e.target.value);
-                                                setLogsPage(1);
-                                            }}
-                                            size="small"
-                                            sx={{ flex: 1 }}
-                                        />
-                                    </Stack>
-                                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                                        <Select
-                                            label="Action"
-                                            value={filterAction  === null || filterAction === '' ? "default" : filterAction}
-                                            onChange={(e) => {
-                                                setFilterAction(e.target.value);
-                                                setLogsPage(1);
-                                            }}
-                                            size="small"
-                                            sx={{ flex: 1 }}
-                                        >
-                                            <MenuItem disabled value="default">-- Select Action --</MenuItem>
-                                            {["Create", "Update", "Delete", "Login", "Logout", "Read"].map((d) => (
-                                                <MenuItem key={d} value={d}>
-                                                    {d}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                        <TextField
-                                            label="Date From"
-                                            type="date"
-                                            value={filterCreateDateFrom}
-                                            onChange={(e) => {
-                                                setFilterCreateDateFrom(e.target.value);
-                                                setLogsPage(1);
-                                            }}
-                                            size="small"
-                                            sx={{ flex: 1 }}
-                                            InputLabelProps={{ shrink: true }}
-                                        />
-                                        <TextField
-                                            label="Date To"
-                                            type="date"
-                                            value={filterCreateDateTo}
-                                            onChange={(e) => {
-                                                setFilterCreateDateTo(e.target.value);
-                                                setLogsPage(1);
-                                            }}
-                                            size="small"
-                                            sx={{ flex: 1 }}
-                                            InputLabelProps={{ shrink: true }}
-                                        />
-                                        <Button variant="outlined" onClick={handleClearFilters} sx={{ textTransform: 'none', fontWeight: 600 }}>
-                                            Clear Filters
-                                        </Button>
-                                    </Stack>
-                                </>) : (
-                                <>
-                                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                                        <TextField
-                                            label="User ID"
-                                            type='number'
-                                            value={filterUserId}
-                                            onChange={(e) => {
-                                                setFilterUserId(e.target.value);
-                                                setUsersPage(1);
-                                            }}
-                                            size="small"
-                                            sx={{ flex: 1 }}
-                                        />
-                                        <TextField
-                                            label="User Name"
-                                            value={filterUserName}
-                                            onChange={(e) => {
-                                                setFilterUserName(e.target.value);
-                                                setUsersPage(1);
-                                            }}
-                                            size="small"
-                                            sx={{ flex: 1 }}
-                                        />
-                                    </Stack>
-                                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                                        <TextField
-                                            label="Employee ID"
-                                            type='number'
-                                            value={filterEmployeeId}
-                                            onChange={(e) => {
-                                                setFilterEmployeeId(e.target.value);
-                                                setUsersPage(1);
-                                            }}
-                                            size="small"
-                                            sx={{ flex: 1 }}
-                                        />
-                                        <Select
-                                            label="Active Status"
-                                            type='number'
-                                            value={filterActiveStatus === null || filterActiveStatus === '' ? "default" : filterActiveStatus}
-                                            onChange={(e) => {
-                                                setFilterActiveStatus(e.target.value);
-                                                setUsersPage(1);
-                                            }}
-                                            size="small"
-                                            sx={{ flex: 1 }}
-                                        >
-                                            <MenuItem value="default">-- Select Status --</MenuItem>
-                                            <MenuItem value="1">Active</MenuItem>
-                                            <MenuItem value="0">Inactive</MenuItem>
-                                        </Select>
-                                        <Select
-                                            label="Role"
-                                            value={filterRole === null || filterRole === '' ? "default" : filterRole}
-                                            onChange={(e) => {
-                                                setFilterRole(e.target.value);
-                                                setUsersPage(1);
-                                            }}
-                                            size="small"
-                                            sx={{ flex: 1 }}
-                                        >
-                                            <MenuItem disabled value="default" >-- Select Role --</MenuItem>
-                                            {["Employee", "HR", "Admin"].map((d) => (
-                                                <MenuItem key={d} value={d}>
-                                                    {d}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                        <Button variant="outlined" onClick={handleClearFilters} sx={{ textTransform: 'none', fontWeight: 600 }}>
-                                            Clear Filters
-                                        </Button>
-                                    </Stack>
-                                </>
-                            )}
-                        </Stack>
-                    </CardContent>
-                </Collapse>
-            </Card>
             <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
+                <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }} />
+                <Stack direction="row" alignItems="center" sx={{ mb: 2 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 800, color: '#000' }}>
+                        Employees
+                    </Typography>
+                </Stack>
+                <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
+                    <CardHeader
+                        title="Filters"
+                        action={
+                            <IconButton onClick={() => setFilterExpanded(!filterExpanded)} sx={{ p: 0 }}>
+                                {filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            </IconButton>
+                        }
+                        sx={{ pb: 0 }}
+                    />
+                    <Collapse in={filterExpanded}>
+                        <CardContent>
+                            <Stack direction="column" spacing={2}>
+                                {tab === LOGS_TAB ? (
+                                    <>
+                                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                                            <TextField
+                                                label="Actor ID"
+                                                type='number'
+                                                value={filterActorId}
+                                                onChange={(e) => {
+                                                    setFilterActorId(e.target.value);
+                                                    setLogsPage(1);
+                                                }}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                            />
+                                            <TextField
+                                                label="Target"
+                                                value={filterTarget}
+                                                onChange={(e) => {
+                                                    setFilterTarget(e.target.value);
+                                                    setLogsPage(1);
+                                                }}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                            />
+                                        </Stack>
+                                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                                            <Select
+                                                label="Action"
+                                                value={filterAction === null || filterAction === '' ? "default" : filterAction}
+                                                onChange={(e) => {
+                                                    setFilterAction(e.target.value);
+                                                    setLogsPage(1);
+                                                }}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                            >
+                                                <MenuItem disabled value="default">-- Select Action --</MenuItem>
+                                                {["Create", "Update", "Delete", "Login", "Read"].map((d) => (
+                                                    <MenuItem key={d} value={d}>
+                                                        {d}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                            <TextField
+                                                label="Date From"
+                                                type="date"
+                                                value={filterCreateDateFrom}
+                                                onChange={(e) => {
+                                                    setFilterCreateDateFrom(e.target.value);
+                                                    setLogsPage(1);
+                                                }}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                                InputLabelProps={{ shrink: true }}
+                                            />
+                                            <TextField
+                                                label="Date To"
+                                                type="date"
+                                                value={filterCreateDateTo}
+                                                onChange={(e) => {
+                                                    setFilterCreateDateTo(e.target.value);
+                                                    setLogsPage(1);
+                                                }}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                                InputLabelProps={{ shrink: true }}
+                                            />
+                                            <Button variant="outlined" onClick={handleClearFilters} sx={{ textTransform: 'none', fontWeight: 600 }}>
+                                                Clear Filters
+                                            </Button>
+                                        </Stack>
+                                    </>) : (
+                                    <>
+                                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                                            <TextField
+                                                label="User ID"
+                                                type='number'
+                                                value={filterUserId}
+                                                onChange={(e) => {
+                                                    setFilterUserId(e.target.value);
+                                                    setUsersPage(1);
+                                                }}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                            />
+                                            <TextField
+                                                label="User Name"
+                                                value={filterUserName}
+                                                onChange={(e) => {
+                                                    setFilterUserName(e.target.value);
+                                                    setUsersPage(1);
+                                                }}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                            />
+                                        </Stack>
+                                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                                            <TextField
+                                                label="Employee ID"
+                                                type='number'
+                                                value={filterEmployeeId}
+                                                onChange={(e) => {
+                                                    setFilterEmployeeId(e.target.value);
+                                                    setUsersPage(1);
+                                                }}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                            />
+                                            <Select
+                                                label="Active Status"
+                                                type='number'
+                                                value={filterActiveStatus === null || filterActiveStatus === '' ? "default" : filterActiveStatus}
+                                                onChange={(e) => {
+                                                    setFilterActiveStatus(e.target.value);
+                                                    setUsersPage(1);
+                                                }}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                            >
+                                                <MenuItem value="default">-- Select Status --</MenuItem>
+                                                <MenuItem value="1">Active</MenuItem>
+                                                <MenuItem value="0">Inactive</MenuItem>
+                                            </Select>
+                                            <Select
+                                                label="Role"
+                                                value={filterRole === null || filterRole === '' ? "default" : filterRole}
+                                                onChange={(e) => {
+                                                    setFilterRole(e.target.value);
+                                                    setUsersPage(1);
+                                                }}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                            >
+                                                <MenuItem disabled value="default" >-- Select Role --</MenuItem>
+                                                {["Employee", "HR", "Admin"].map((d) => (
+                                                    <MenuItem key={d} value={d}>
+                                                        {d}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                            <Button variant="outlined" onClick={handleClearFilters} sx={{ textTransform: 'none', fontWeight: 600 }}>
+                                                Clear Filters
+                                            </Button>
+                                        </Stack>
+                                    </>
+                                )}
+                            </Stack>
+                        </CardContent>
+                    </Collapse>
+                </Card>
                 {/* Tabs */}
                 <Box sx={{ mb: 2 }}>
                     <Tabs
@@ -505,12 +503,12 @@ export default function AdminConsole() {
                                     >
                                         {c.label}
                                         {sorting.parameter === c.parameter ? (
-                                                                sorting.order === SORTING_ASCENDING ? (
-                                                                  <ArrowUpwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                                                                ) : sorting.order === SORTING_DESCENDING ? (
-                                                                  <ArrowDownwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                                                                ) : null
-                                                              ) : null}
+                                            sorting.order === SORTING_ASCENDING ? (
+                                                <ArrowUpwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
+                                            ) : sorting.order === SORTING_DESCENDING ? (
+                                                <ArrowDownwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
+                                            ) : null
+                                        ) : null}
                                     </TableCell>
                                 ))}
                             </TableRow>
