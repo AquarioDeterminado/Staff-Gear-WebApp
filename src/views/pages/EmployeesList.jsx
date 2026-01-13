@@ -21,8 +21,16 @@ import {
   Divider,
   Select,
   MenuItem,
+  Card,
+  CardHeader,
+  CardContent,
 } from '@mui/material';
 import Popups from '../components/Popups';
+import Collapse from '@mui/material/Collapse';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import HeaderBar from '../components/HeaderBar';
@@ -34,6 +42,11 @@ import UserSession from '../../utils/UserSession';
 import AddIcon from '@mui/icons-material/AddCircleOutline';
 import ErrorHandler from '../../utils/ErrorHandler';
 import useNotification from '../../utils/UseNotification';
+import { DepartmentSelectField } from '../components/DepartmentSelectField';
+import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
+
+const SORTING_ASCENDING = 'asc';
+const SORTING_DESCENDING = 'desc';
 
 export default function EmployeesList() {
   const navigate = useNavigate();
@@ -41,14 +54,18 @@ export default function EmployeesList() {
 
   const [Users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
-  
 
-  const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessId)) + 1);
+  const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessEntityID)) + 1);
+
+  const columns = [{label: 'Business ID', parameter: 'BusinessEntityID'}, {label: 'Name', parameter: 'FirstName'}, {label: 'Email', parameter: 'Email'}, {label: 'Department', parameter: 'Department'}, {label: 'Job Title', parameter: 'JobTitle'}, {label: 'Hire Date', parameter: 'HireDate'}];
+
+  const [sorting, setSorting] = useState({ parameter: '', order: '' });
+  
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [mode, setMode] = useState('add');
   const [form, setForm] = useState({
-    businessId: null, 
+    businessId: null,
     firstName: '',
     middleName: '',
     lastName: '',
@@ -89,20 +106,105 @@ export default function EmployeesList() {
           ? ''
           : 'Format should be yyyy-mm-dd.'
         : 'Mandatory.',
-      password: curr.password == '' ||curr.password?.trim() ? '' : 'Mandatory.',
+      password: curr.password == '' || curr.password?.trim() ? '' : 'Mandatory.',
     };
     setErrors(newErrors);
     return Object.values(newErrors).every((e) => e === '');
   };
 
+  
+  const [filterExpanded, setFilterExpanded] = useState(false);
+  const [filterBusinessId, setFilterBusinessId] = useState('');
+  const [filterName, setFilterName] = useState('');
+  const [filterEmail, setFilterEmail] = useState('');
+  const [filterEntryDateFrom, setFilterEntryDateFrom] = useState('');
+  const [filterEntryDateTo, setFilterEntryDateTo] = useState('');
+  const [filterDepartment, setFilterDepartment] = useState('');
+  const [filterJobTitle, setFilterJobTitle] = useState('');
+  const handleClearFilterss = () => {
+    setFilterBusinessId('');
+    setFilterName('');
+    setFilterEmail('');
+    setFilterEntryDateFrom('');
+    setFilterEntryDateTo('');
+    setFilterDepartment('');
+    setFilterJobTitle('');
+  };
+
+  const filteredEmployees = useMemo(() => {
+    return Users.filter((p) => {
+      if (filterBusinessId.trim()) {
+        const query = filterBusinessId.toString().toLowerCase();
+        if (!(p.BusinessEntityID.toString() || '').toLowerCase().includes(query)) return false;
+      }
+      if (filterName.trim()) {
+        const query = filterName.toLowerCase();
+        if (!(p.FirstName + p.MiddleName + p.LastName || '').toLowerCase().includes(query)) return false;
+      }
+      if (filterEmail.trim()) {
+        const query = filterEmail.toLowerCase();
+        if (!(p.Email || '').toLowerCase().includes(query)) return false;
+      }
+      if (filterEntryDateFrom) {
+        const entryDate = new Date(p.HireDate);
+        const fromDate = new Date(filterEntryDateFrom);
+        if (entryDate < fromDate) return false;
+      }
+      if (filterEntryDateTo) {
+        const entryDate = new Date(p.HireDate);
+        const toDate = new Date(filterEntryDateTo);
+        if (entryDate > toDate) return false;
+      }
+      if (filterDepartment.trim()) {
+        const query = filterDepartment.toLowerCase();
+        if (!(p.Department || '').toLowerCase().includes(query)) return false;
+      }
+      if (filterJobTitle.trim()) {
+        const query = filterJobTitle.toLowerCase();
+        if (!(p.JobTitle || '').toLowerCase().includes(query)) return false;
+      }
+      return true;
+    });
+  }, [Users, filterBusinessId, filterName, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterDepartment, filterJobTitle]);
+
+  function clickHeader(parameter) {
+    let sortingOrder = sorting.parameter === parameter && sorting.order === SORTING_ASCENDING ? SORTING_DESCENDING : sorting.order === SORTING_DESCENDING ? '' : SORTING_ASCENDING;
+    setSorting({ "parameter": parameter, "order": sortingOrder });
+    var sorted = [];
+
+    sorted = Users;
+    if (sortingOrder === "") {
+      sorted = [...Users].sort((a, b) => {
+        if (a["HireDate"] < b["HireDate"]) return -1;
+        if (a["HireDate"] > b["HireDate"]) return 1;
+        return 0;
+      });
+    } else if (sortingOrder === SORTING_DESCENDING) {
+      sorted = [...Users].sort((a, b) => {
+        if (a[parameter] > b[parameter]) return -1;
+        if (a[parameter] < b[parameter]) return 1;
+        return 0;
+      });
+    } else if (sortingOrder === SORTING_ASCENDING) {
+      sorted = [...Users].sort((a, b) => {
+        if (a[parameter] < b[parameter]) return -1;
+        if (a[parameter] > b[parameter]) return 1;
+        return 0;
+      });
+    }
+
+    console.log(sorting);
+    setUsers(sorted);
+  }
+  
   const ROWS_PER_PAGE = 10;
   const [page, setPage] = useState(1);
 
-  const pageCount = Math.max(1, Math.ceil(Users.length / ROWS_PER_PAGE));
+  const pageCount = Math.max(1, Math.ceil(filteredEmployees.length / ROWS_PER_PAGE));
   const startIndex = (page - 1) * ROWS_PER_PAGE;
   const visibleUsers = useMemo(
-    () => Users.slice(startIndex, startIndex + ROWS_PER_PAGE),
-    [Users, startIndex]
+    () => filteredEmployees.slice(startIndex, startIndex + ROWS_PER_PAGE),
+    [filteredEmployees, startIndex]
   );
 
   useEffect(() => {
@@ -238,6 +340,9 @@ export default function EmployeesList() {
       try {
         var employees = await EmployeeService.getAllEmployees();
         console.log(employees);
+        employees.forEach(element => {
+          element.FirstName = CapitalizeFirstLetter(element.FirstName);
+        });
         setUsers(employees);
       } catch (error) {
         console.error('Error fetching initial users:', error);
@@ -256,7 +361,7 @@ export default function EmployeesList() {
         console.debug('Could not fetch departments for accept dialog', err);
       }
     }
-    
+
     fetchDepartments();
   }, [Users.length, navigate, notifs]);
 
@@ -288,7 +393,106 @@ export default function EmployeesList() {
             </Button>
           </Box>
         </Stack>
-
+        <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
+          <CardHeader
+            title="Filters"
+            action={
+              <IconButton onClick={() => setFilterExpanded(!filterExpanded)} sx={{ p: 0 }}>
+                {filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            }
+            sx={{ pb: 0 }}
+          />
+          <Collapse in={filterExpanded}>
+            <CardContent>
+              <Stack direction="column" spacing={2}>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                  <TextField
+                    label="Business ID"
+                    type='number'
+                    value={filterBusinessId}
+                    onChange={(e) => {
+                      setFilterBusinessId(e.target.value);
+                      setPage(1);
+                    }}
+                    size="small"
+                    sx={{ flex: 1 }}
+                  />
+                  <TextField
+                    label="Name"
+                    value={filterName}
+                    onChange={(e) => {
+                      setFilterName(e.target.value);
+                      setPage(1);
+                    }}
+                    size="small"
+                    sx={{ flex: 1 }}
+                  />
+                </Stack>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                  <TextField
+                    label="Email"
+                    value={filterEmail}
+                    onChange={(e) => {
+                      setFilterEmail(e.target.value);
+                      setPage(1);
+                    }}
+                    size="small"
+                    sx={{ flex: 1 }}
+                  />
+                  <TextField
+                    label="Date From"
+                    type="date"
+                    value={filterEntryDateFrom}
+                    onChange={(e) => {
+                      setFilterEntryDateFrom(e.target.value);
+                      setPage(1);
+                    }}
+                    size="small"
+                    sx={{ flex: 1 }}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <TextField
+                    label="Date To"
+                    type="date"
+                    value={filterEntryDateTo}
+                    onChange={(e) => {
+                      setFilterEntryDateTo(e.target.value);
+                      setPage(1);
+                    }}
+                    size="small"
+                    sx={{ flex: 1 }}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Stack>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent={"space-evenly"} >
+                  <DepartmentSelectField
+                    onChange={(e) => {
+                      setFilterDepartment(e.target.value);
+                      setPage(1);
+                    }}
+                    inputvalue={filterDepartment}
+                    width="100%"
+                    error={null}
+                  />
+                  <TextField
+                    label="Job Title"
+                    value={filterJobTitle}
+                    onChange={(e) => {
+                      setFilterJobTitle(e.target.value);
+                      setPage(1);
+                    }}
+                    size="small"
+                    sx={{ flex: 1 }}
+                  />
+                  <Button variant="outlined" onClick={handleClearFilterss} sx={{ textTransform: 'none', fontWeight: 600 }}>
+                    Clear Filters
+                  </Button>
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Collapse>
+        </Card>
         <Paper
           variant="outlined"
           sx={{
@@ -311,13 +515,28 @@ export default function EmployeesList() {
           >
             <TableHead>
               <TableRow sx={{ '& th': { fontWeight: 700 } }}>
-                <TableCell sx={{ color: '#333', width: '12%' }}>BusinessId</TableCell>
-                <TableCell sx={{ color: '#333', width: '16%' }}>Name</TableCell>
-                <TableCell sx={{ color: '#333', width: '20%' }}>Email</TableCell>
-                <TableCell sx={{ color: '#333', width: '16%' }}>Department</TableCell>
-                <TableCell sx={{ color: '#333', width: '18%' }}>Job Title</TableCell>
-                <TableCell sx={{ color: '#333', width: '12%' }}>Hire Date</TableCell>
-                <TableCell sx={{ color: '#333', width: '6%' }}>Actions</TableCell>
+                {columns.map((c, i) => (
+                  <TableCell
+                    onClick={() => clickHeader(c.parameter)}
+                    key={c.label}
+                    sx={{
+                      borderRight: i < columns.length - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
+                      color: '#333',
+                    }}
+                  >
+                    <>
+                      {c.label}
+                      {sorting.parameter === c.parameter ? (
+                        sorting.order === SORTING_ASCENDING ? (
+                          <ArrowUpwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
+                        ) : sorting.order === SORTING_DESCENDING ? (
+                          <ArrowDownwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
+                        ) : null
+                      ) : null}
+
+                    </>
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
 
@@ -463,21 +682,21 @@ export default function EmployeesList() {
               helperText={errors.email}
             />
             <Select
-                value={form.department}
-                onChange={(e) => setForm({ ...form, department: e.target.value })}
-                size="small"
-                displayEmpty
-                error={!!errors.department}
-                helperText={errors.department}
-                sx={{ width: '100%' }}
-              >
-                <MenuItem value="">-- Select Department --</MenuItem>
-                {departments.map((d) => (
-                  <MenuItem key={d} value={d}>
-                    {d}
-                  </MenuItem>
-                ))}
-              </Select>
+              value={form.department}
+              onChange={(e) => setForm({ ...form, department: e.target.value })}
+              size="small"
+              displayEmpty
+              error={!!errors.department}
+              helperText={errors.department}
+              sx={{ width: '100%' }}
+            >
+              <MenuItem value="">-- Select Department --</MenuItem>
+              {departments.map((d) => (
+                <MenuItem key={d} value={d}>
+                  {d}
+                </MenuItem>
+              ))}
+            </Select>
             <TextField
               label="Job Title"
               value={form.jobTitle}
@@ -497,7 +716,7 @@ export default function EmployeesList() {
               placeholder="Ex.: 2024-03-12"
               fullWidth
               slotProps={{
-                      inputLabel: { shrink: true }
+                inputLabel: { shrink: true }
               }}
               size="small"
               required
