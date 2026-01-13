@@ -95,21 +95,6 @@ export default function EmployeesList() {
     return Object.values(newErrors).every((e) => e === '');
   };
 
-  const canSave = useMemo(() => {
-    const allFilled = [
-      form.firstName,
-      form.lastName,
-      form.email,
-      form.department,
-      form.hireDate,
-    ].every((v) => v && v.trim().length > 0);
-
-    const emailOk = isValidEmailBasic(form.email || '');
-    const dateOk = isValidDateYMD(form.hireDate || '');
-
-    return allFilled && emailOk && dateOk;
-  }, [form]);
-
   const ROWS_PER_PAGE = 10;
   const [page, setPage] = useState(1);
 
@@ -174,6 +159,7 @@ export default function EmployeesList() {
       password: '',
     });
     setDialogOpen(true);
+    console.log(form);
   };
 
   const handleClose = () => setDialogOpen(false);
@@ -451,7 +437,6 @@ export default function EmployeesList() {
               placeholder="Insert middle name."
               fullWidth
               size="small"
-              required
               error={!!errors.middleName}
               helperText={errors.middleName}
             />
@@ -482,7 +467,8 @@ export default function EmployeesList() {
                 onChange={(e) => setForm({ ...form, department: e.target.value })}
                 size="small"
                 displayEmpty
-
+                error={!!errors.department}
+                helperText={errors.department}
                 sx={{ width: '100%' }}
               >
                 <MenuItem value="">-- Select Department --</MenuItem>
@@ -526,7 +512,6 @@ export default function EmployeesList() {
                 placeholder="123Abc"
                 fullWidth
                 size="small"
-                required
                 error={!!errors.password}
                 helperText={errors.password}
               />
@@ -540,7 +525,6 @@ export default function EmployeesList() {
           <Button
             onClick={handleSave}
             variant="contained"
-            disabled={!canSave}
             sx={{
               bgcolor: '#000',
               color: '#fff',
