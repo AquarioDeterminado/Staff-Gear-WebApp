@@ -18,6 +18,7 @@ import { AccessTime, LocationOn, Work, Business, Description, Send, ArrowDownwar
 import JobListingService from '../../services/JobListingService';
 import ApplyFormComponent from '../components/ApplyFormComponent';
 import useNotification from '../../utils/UseNotification';
+import HeaderBar from '../components/HeaderBar';
 
 const formatJobType = (type) => {
   const types = {
@@ -147,7 +148,9 @@ export default function JobListingDetailsPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <>
+      <HeaderBar />
+      <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack spacing={4} sx={{ alignItems: 'center' }}>
         {/* Back Button */}
         <Box sx={{ alignSelf: 'flex-start', width: '100%' }}>
@@ -356,7 +359,7 @@ export default function JobListingDetailsPage() {
           height: 80,
           bgcolor: '#ff9800',
           color: '#fff',
-          borderRadius: '50%', // mantém circular (podes trocar para 12 para ficar rounded)
+          borderRadius: '50%', 
           '&:hover': {
             bgcolor: '#e68a00',
             boxShadow: '0 6px 20px rgba(255,152,0,0.4)',
@@ -379,5 +382,6 @@ export default function JobListingDetailsPage() {
     
       )}
     </Container>
+    </>
   );
 }

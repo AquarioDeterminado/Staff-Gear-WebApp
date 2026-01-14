@@ -36,6 +36,7 @@ import logo from '../../assets/logo.png';
 export default function HeaderBar() {
   const navigate = useNavigate();
   const BusinessId = localStorage.getItem('BusinessID');
+  const isAuthenticated = !!localStorage.getItem('access_token');
 
   const [notifications, setNotifications] = useState([]);
 
@@ -45,15 +46,17 @@ export default function HeaderBar() {
   useEffect(() => {
     async function fetchNotifications() {
       try {
-        var notifs = await NoticationService.getAllNotifications(BusinessId);
-        setNotifications(Array.isArray(notifs) ? notifs : []);
-        console.log(notifs);
+        if (isAuthenticated) {
+          var notifs = await NoticationService.getAllNotifications(BusinessId);
+          setNotifications(Array.isArray(notifs) ? notifs : []);
+          console.log(notifs);
+        }
       } catch (error) {
         console.error('Error fetching notifications:', error);
       }
     }
     fetchNotifications();
-  }, []);
+  }, [isAuthenticated, BusinessId]);
 
   function handleDismissNotification(id) {
     try {
@@ -85,10 +88,12 @@ export default function HeaderBar() {
             minHeight: 64,
           }}
         >
-          {/* Hamburguer */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <SideMenu />
-          </Box>
+          {/* Hamburguer - Only show when authenticated */}
+          {isAuthenticated && (
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <SideMenu />
+            </Box>
+          )}
 
           <Box
             sx={{
@@ -106,70 +111,112 @@ export default function HeaderBar() {
                 height: 50,
                 objectFit: 'contain',
                 display: 'block',
+                cursor: 'pointer',
               }}
+              onClick={() => navigate('/')}
             />
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, marginLeft: 'auto' }}>
-            <IconButton onClick={(e) => setAnchorNotif(e.currentTarget)} aria-label="notificações">
-              <Badge badgeContent={notifications.length} color="error">
-                <NotificationsIcon sx={{ fontSize: 26 }} />
-              </Badge>
-            </IconButton>
-            
-            <Button
-              variant="contained"
-              startIcon={<LogoutIcon />}
-              sx={{
-                bgcolor: '#000',
-                color: '#fff',
-                textTransform: 'none',
-                fontWeight: 700,
-                px: 2,
-                '&:hover': { bgcolor: '#222' }
-              }}
-              onClick={() => { AuthService.logout(); navigate('/'); }}
-            >
-              Log out
-            </Button>
+            {isAuthenticated ? (
+              <>
+                {/* Authenticated header: Notifications, Logout, Profile */}
+                <IconButton onClick={(e) => setAnchorNotif(e.currentTarget)} aria-label="notificações">
+                  <Badge badgeContent={notifications.length} color="error">
+                    <NotificationsIcon sx={{ fontSize: 26 }} />
+                  </Badge>
+                </IconButton>
+                
+                <Button
+                  variant="contained"
+                  startIcon={<LogoutIcon />}
+                  sx={{
+                    bgcolor: '#000',
+                    color: '#fff',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 2,
+                    '&:hover': { bgcolor: '#222' }
+                  }}
+                  onClick={() => { AuthService.logout(); navigate('/'); }}
+                >
+                  Log out
+                </Button>
 
-            <IconButton onClick={() => navigate('/profile')} aria-label="perfil">
-              <Avatar sx={{ bgcolor: '#607d8b' }}>
-                <PersonIcon />
-              </Avatar>
-            </IconButton>
+                <IconButton onClick={() => navigate('/profile')} aria-label="perfil">
+                  <Avatar sx={{ bgcolor: '#607d8b' }}>
+                    <PersonIcon />
+                  </Avatar>
+                </IconButton>
+              </>
+            ) : (
+              <>
+                {/* Public header: Home and Login buttons */}
+                <Button
+                  variant="text"
+                  sx={{
+                    color: '#000',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 2,
+                    '&:hover': { bgcolor: '#f5f5f5' }
+                  }}
+                  onClick={() => navigate('/')}
+                >
+                  Home
+                </Button>
+
+                <Button
+                  variant="contained"
+                  sx={{
+                    bgcolor: '#000',
+                    color: '#fff',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 2,
+                    '&:hover': { bgcolor: '#222' }
+                  }}
+                  disabled
+                  title="Login will be implemented soon"
+                >
+                  Login
+                </Button>
+              </>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
 
-      {/* Menu de notificações */}
-      <Menu
-        anchorEl={anchorNotif}
-        open={notifOpen}
-        onClose={() => setAnchorNotif(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        MenuListProps={{ dense: true }}
-      >
-        {notifications.length > 0 ? (
-          notifications.map((n) => (
-            <MenuItem key={n.NotificationID} divider>
-              <ListItemText primary={n.Message} secondary={new Date(n.CreatedAt).toLocaleString('fr-FR')} sx={{ mr: 2 }} onClick={() => {sendToPage(n.Message)}} />
-              <Button
-                size="small"
-                color="error"
-                onClick={() => handleDismissNotification(n.NotificationID)}
-                sx={{ textTransform: 'none', fontWeight: 700, minWidth: 0, px: 0.75 }}
-              >
-                X
-              </Button>
+      {/* Menu de notificações - Only show when authenticated */}
+      {isAuthenticated && (
+        <Menu
+          anchorEl={anchorNotif}
+          open={notifOpen}
+          onClose={() => setAnchorNotif(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          MenuListProps={{ dense: true }}
+        >
+          {notifications.length > 0 ? (
+            notifications.map((n) => (
+              <MenuItem key={n.NotificationID} divider>
+                <ListItemText primary={n.Message} secondary={new Date(n.CreatedAt).toLocaleString('fr-FR')} sx={{ mr: 2 }} onClick={() => {sendToPage(n.Message)}} />
+                <Button
+                  size="small"
+                  color="error"
+                  onClick={() => handleDismissNotification(n.NotificationID)}
+                  sx={{ textTransform: 'none', fontWeight: 700, minWidth: 0, px: 0.75 }}
+                >
+                  X
+                </Button>
+              </MenuItem>
+            ))
+          ) : (
+            <MenuItem disabled>
+              <ListItemText primary="Without notifications." />
             </MenuItem>
-          ))
-        ) : (
-          <MenuItem disabled>
-            <ListItemText primary="Without notifications." />
-          </MenuItem>
-        )}
-      </Menu>
+          )}
+        </Menu>
+      )}
     </>
   )};

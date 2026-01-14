@@ -12,6 +12,7 @@ import {
 import JobListingCard from '../components/JobListingCard';
 import JobListingService from '../../services/JobListingService';
 import useNotification from '../../utils/UseNotification';
+import HeaderBar from '../components/HeaderBar';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -72,6 +73,7 @@ export default function JobListingsPage() {
 
   return (
     <>
+      <HeaderBar />
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Stack spacing={3}>
           {/* Header */}
