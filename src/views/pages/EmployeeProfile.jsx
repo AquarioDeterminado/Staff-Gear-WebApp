@@ -2,22 +2,16 @@ import { useEffect, useState } from 'react';
 import {
   Box,
   Container,
-  Paper,
   Typography,
   Avatar,
-  IconButton,
   Tooltip,
   Button,
   Stack,
   TextField,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Snackbar,
   Alert,
   CircularProgress,
-  InputAdornment
 } from '@mui/material';
 
 import EditIcon from '@mui/icons-material/Edit';
@@ -27,37 +21,18 @@ import ApartmentIcon from '@mui/icons-material/Apartment';
 import PersonIcon from '@mui/icons-material/Person';
 import KeyIcon from '@mui/icons-material/Key';
 
-import HeaderBar from '../components/HeaderBar';
+import HeaderBar from '../components/layout/HeaderBar';
 import { useNavigate } from 'react-router-dom';
 import EmployeeService from '../../services/EmployeeService';
 import UserSession from '../../utils/UserSession';
-import { ConfirmationNumber } from '@mui/icons-material';
 import ErrorHandler from '../../utils/ErrorHandler';
+
+import ProfileFieldCard from '../components/ui/ProfileFieldCard';
+import FormPopup from '../components/ui/popups/FormPopup';
 import useNotification from '../../utils/UseNotification';
 
 const CARD_W = 280;
-const CARD_H = 72;
 const EMAIL_W = 360;
-
-function FieldCard({ children, width = CARD_W }) {
-  return (
-    <Paper
-      elevation={3}
-      sx={{
-        width,
-        minHeight: CARD_H,
-        px: 2.75,
-        py: 1.85,
-        borderRadius: 3,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-    >
-      {children}
-    </Paper>
-  );
-}
 
 export default function EmployeeProfile() {
   const navigate = useNavigate();
@@ -192,7 +167,7 @@ export default function EmployeeProfile() {
       const status = error?.response?.status || error?.status || 'N/A';
       console.error('Error while updating the profile:', error);
       UserSession.verifyAuthorize(navigate, status);
-      if(status === 409) {
+      if (status === 409) {
         const data = error?.response?.data;
         const conflictMsg = (data && (data.message || data.detail)) || 'Email already in use';
         notif({ severity: 'error', message: conflictMsg });
@@ -249,7 +224,8 @@ export default function EmployeeProfile() {
       setIsSubmittingPwd(false);
     }
   };
-   return (
+
+  return (
     <Box sx={{ minHeight: '100vh', width: '100%', bgcolor: '#fff' }}>
       <HeaderBar />
 
@@ -286,6 +262,7 @@ export default function EmployeeProfile() {
           )}
         </Stack>
       </Stack>
+
       <Stack alignItems="center" sx={{ mb: { xs: 2, md: 3 } }}>
         <Avatar sx={{ width: { xs: 110, md: 125 }, height: { xs: 110, md: 125 } }}>
           <PersonIcon sx={{ fontSize: { xs: 52, md: 66 } }} />
@@ -378,7 +355,6 @@ export default function EmployeeProfile() {
             </FieldCard>
           </Box>
 
-          {/* Job Title & Department */}
           <Box
             sx={{
               display: 'grid',
@@ -387,26 +363,21 @@ export default function EmployeeProfile() {
               gap: 14
             }}
           >
-            <FieldCard>
-              <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                <WorkIcon />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {profileInfo?.JobTitle || ''}
-                </Typography>
-              </Stack>
-            </FieldCard>
- 
-            <FieldCard>
-              <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                <ApartmentIcon />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {profileInfo?.Department || ''}
-                </Typography>
-              </Stack>
-            </FieldCard>
+            <ProfileFieldCard
+              label="Job Title"
+              value={profileInfo?.JobTitle || ''}
+              isEdit={false}
+              icon={<WorkIcon />}
+            />
+
+            <ProfileFieldCard
+              label="Department"
+              value={profileInfo?.Department || ''}
+              isEdit={false}
+              icon={<ApartmentIcon />}
+            />
           </Box>
 
-          {/* Email */}
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <FieldCard width={EMAIL_W}>
               {isEditMode ? (
@@ -427,8 +398,6 @@ export default function EmployeeProfile() {
                       </InputAdornment>
                     )
                   }}
-                  error={updateProfileError.Email}
-                  helperText={updateProfileError.Email}
                 />
               ) : (
                 <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center">
@@ -441,7 +410,6 @@ export default function EmployeeProfile() {
             </FieldCard>
           </Box>
 
-          {/* Alterar Password */}
           <Stack direction="row" justifyContent="center" sx={{ pt: 0.5 }}>
             <Button
               variant="contained"
@@ -457,7 +425,7 @@ export default function EmployeeProfile() {
                 boxShadow: '0 4px 10px rgba(0,0,0,0.12)',
                 '&:hover': { bgcolor: '#222' }
               }}
-              onClick={openPwdDialog}
+              onClick={() => setIsPwdDialogOpen(true)}
             >
               Change Password
             </Button>
@@ -475,8 +443,6 @@ export default function EmployeeProfile() {
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
               autoComplete="current-password"
-              error={updatePwdError.OldPassword}
-              helperText={updatePwdError.OldPassword}
             />
             <TextField
               label="New password"
@@ -485,8 +451,6 @@ export default function EmployeeProfile() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               autoComplete="new-password"
-              error={updatePwdError.NewPassword}
-              helperText={updatePwdError.NewPassword}
             />
             <TextField
               label="Confirm the password"
@@ -495,8 +459,6 @@ export default function EmployeeProfile() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
-              error={updatePwdError.ConfirmPassword}
-              helperText={updatePwdError.ConfirmPassword}
             />
           </Stack>
         </DialogContent>
@@ -512,6 +474,21 @@ export default function EmployeeProfile() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

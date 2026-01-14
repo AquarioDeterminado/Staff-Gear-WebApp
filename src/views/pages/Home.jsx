@@ -1,7 +1,6 @@
-
 import { Box, Typography } from '@mui/material';
-import Login from '../components/LogInPage';
 import ApplyFormComponent from '../components/ApplyFormComponent';
+import Login from '../components/forms/LogInComponent';
 
 export default function Home() {
   
@@ -24,7 +23,7 @@ export default function Home() {
           gridTemplateColumns: { xs: '1fr', md: '1fr 2px 1fr' },
         }}
       >
-        {/* Esquerda: Candidatura */}
+        {/* Left: Application*/}
         <Box
           sx={{
             display: 'flex',
@@ -34,7 +33,7 @@ export default function Home() {
           }}
         >
           <Box sx={{ width: '100%', maxWidth: 680 }}>
-            <ApplyFormComponent />
+            <ApplyCandidateComponent />
           </Box>
         </Box>
         <Box
@@ -45,7 +44,7 @@ export default function Home() {
           }}
         />
 
-        {/* Direita: Login */}
+        {/* Right: Login */}
         <Box
           sx={{
             display: 'flex',
