@@ -1,33 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-    Box,
-    Container,
-    Tabs,
-    Tab,
-    Paper,
-    Table,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody,
-    Divider,
-    Stack,
-    Button,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    InputAdornment,
-    Typography,
-    Card,
-    CardContent,
-    CardHeader,
-    Select,
-    MenuItem,
-    Collapse,
-} from '@mui/material';
+import { Box, Container, Select, MenuItem, Typography } from '@mui/material';
+import HeaderBar from '../components/layout/HeaderBar';
+import { useNavigate } from 'react-router-dom';
 import AdminService from '../../services/AdminService';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
@@ -37,13 +11,15 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ErrorHandler from '../../utils/ErrorHandler';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import HeaderBar from '../components/HeaderBar';
-import { useNavigate } from 'react-router-dom';
 import UserSession from '../../utils/UserSession';
 import HRService from '../../services/HRService';
 import Pagination from '@mui/material/Pagination';
 import useNotification from '../../utils/UseNotification';
-import Popups from '../components/Popups';
+import DataTable from '../components/table/DataTable';
+import Paginator from '../components/table/Paginator';
+import { StyledTabs, StyledTab } from '../components/ui/surfaces/StyledTabs';
+import SectionPaper from '../components/ui/surfaces/SectionPaper';
+import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 
 const LOGS_TAB = 0;
 const USER_CHANGE_TAB = 1;
@@ -51,9 +27,7 @@ const USER_CHANGE_TAB = 1;
 export default function AdminConsole() {
     const navigate = useNavigate();
     const notif = useNotification();
-
     const [tab, setTab] = useState(0);
-
     const [users, setUsers] = useState([]);
     const [logs, setLogs] = useState([]);
 
@@ -226,49 +200,96 @@ export default function AdminConsole() {
         [filteredUsers, usersStart]
     );
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const usersData = await AdminService.getUsers();
-                setUsers(Array.isArray(usersData) ? usersData : []);
-            } catch (error) {
-                console.error('Error fetching users:', error);
-                UserSession.verifyAuthorize(navigate, error?.status);
-            }
-
-            try {
-                const logsData = await AdminService.getLogs();
-                setLogs(Array.isArray(logsData) ? logsData : []);
-            } catch (error) {
-                console.error('Error fetching logs:', error);
-                UserSession.verifyAuthorize(navigate, error?.status);
-            }
-
-            setLogsPage(1);
-            setUsersPage(1);
-        }
-        fetchData();
-    }, [navigate]);
-
-    const handleTabChange = (_e, v) => {
-        console.log("handleTabChange", v);
-        setTab(v);
-    };
-
-    const onChangeRole = async (index, newRole) => {
-        try {
-            const updatedUser = { ...users[index], Role: newRole };
-            await AdminService.updateUserRole(updatedUser);
-            notif({ severity: 'success', message: 'User role updated successfully.' });
-            setUsers(await AdminService.getUsers());
-        } catch (error) {
-            console.error('Error updating user role:', error);
-            UserSession.verifyAuthorize(navigate, error?.status);
-            notif({ severity: 'error', message: 'Failed to update user role.' });
-        }
-    };
+    // Popup de confirmação de mudança de Role
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [newRole, setNewRole] = useState('');
+  const [loading, setLoading] = useState(false);
 
 
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const usersData = await AdminService.getUsers();
+        setUsers(Array.isArray(usersData) ? usersData : []);
+      } catch (error) {
+        UserSession.verifyAuthorize(navigate, error?.status);
+      }
+      try {
+        const logsData = await AdminService.getLogs();
+        setLogs(Array.isArray(logsData) ? logsData : []);
+      } catch (error) {
+        UserSession.verifyAuthorize(navigate, error?.status);
+      }
+      setLogsPage(1);
+      setUsersPage(1);
+    }
+    fetchData();
+  }, [navigate]);
+
+  const handleTabChange = (_e, v) => setTab(v);
+
+  const handleRoleChangeRequest = (user, role) => {
+    setSelectedUser(user);
+    setNewRole(role);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmRoleChange = async () => {
+    if (!selectedUser || !newRole) return;
+    setLoading(true);
+    try {
+      const updatedUser = { ...selectedUser, Role: newRole };
+      await AdminService.updateUserRole(updatedUser);
+      notif({ severity: 'success', message: 'User role updated successfully.' });
+      setUsers(await AdminService.getUsers());
+    } catch (error) {
+      UserSession.verifyAuthorize(navigate, error?.status);
+      notif({ severity: 'error', message: 'Failed to update user role.' });
+    } finally {
+      setLoading(false);
+      setConfirmOpen(false);
+      setSelectedUser(null);
+      setNewRole('');
+    }
+  };
+
+  const usersWithIdx = visibleUsers.map((r, idx) => ({ ...r, __pageIndex: idx }));
+
+  const logsColumns = [
+    { label: 'ID', width: '14%', render: (l) => l.LogID },
+    { label: 'Actor ID', width: '18%', render: (l) => l.ActorID },
+    { label: 'Target', width: '28%', render: (l) => l.Target },
+    { label: 'Action', width: '20%', render: (l) => l.Action },
+    { label: 'Created At', width: '20%', render: (l) => new Date(l.CreatedAt).toLocaleString('fr-FR') },
+  ];
+
+  const usersColumns = [
+    { label: 'User ID', width: '14%', render: (u) => u.UserID },
+    { label: 'Username', width: '24%', render: (u) => u.Username },
+    { label: 'Employee ID', width: '18%', render: (u) => u.EmployeeId },
+    { label: 'Is Active', width: '14%', render: (u) => (u.IsActive ? 'Active' : 'Inactive') },
+    {
+      label: 'Role', width: '30%',
+      render: (u) => {
+        // Se o utilizador não tiver Role definido, mostramos "Employee" por defeito no Select
+        const currentRole = u.Role || 'Employee';
+        return (
+          <Select
+            value={currentRole}
+            onChange={(e) => handleRoleChangeRequest(u, e.target.value)}
+            size="small"
+            sx={{ width: '100%' }}
+          >
+            {/* REMOVIDO o placeholder "-- Select Role --" */}
+            {['Employee', 'HR', 'Admin'].map((d) => (
+              <MenuItem key={d} value={d}>{d}</MenuItem>
+            ))}
+          </Select>
+        );
+      },
+    },
+  ];
 
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>

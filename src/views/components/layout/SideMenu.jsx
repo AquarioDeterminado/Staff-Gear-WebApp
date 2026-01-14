@@ -1,3 +1,6 @@
+/*
+Menu Hamburguer lateral
+*/
 import React, { useState } from 'react';
 import {
   Box,
