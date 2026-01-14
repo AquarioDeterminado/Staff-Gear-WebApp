@@ -1,6 +1,6 @@
 import React, {useCallback, useState } from 'react';
 import { Snackbar, Alert } from '@mui/material';
-import { NotificationContext } from '../../utils/UseNotification';
+import { NotificationContext } from '../../../utils/UseNotification';
 
 const NotificationProvider = ({ children }) => {
   const [state, setState] = useState({ open: false, message: '', severity: 'info', duration: 6000 });

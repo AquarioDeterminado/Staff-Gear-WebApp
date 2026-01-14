@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
@@ -33,11 +32,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import HeaderBar from '../components/HeaderBar';
-import HRService from '../../services/HRService';
+import HeaderBar from '../components/layout/HeaderBar';
 import EmployeeService from '../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
-import Pagination from '@mui/material/Pagination';
 import UserSession from '../../utils/UserSession';
 import AddIcon from '@mui/icons-material/AddCircleOutline';
 import ErrorHandler from '../../utils/ErrorHandler';
@@ -47,11 +44,15 @@ import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
 
 const SORTING_ASCENDING = 'asc';
 const SORTING_DESCENDING = 'desc';
+import DataTable from '../components/table/DataTable';
+import Paginator from '../components/table/Paginator';
+import SectionPaper from '../components/ui/surfaces/SectionPaper';
+import FormPopup from '../components/ui/popups/FormPopup';
+import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 
 export default function EmployeesList() {
   const navigate = useNavigate();
   const notifs = useNotification();
-
   const [Users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
 
@@ -75,17 +76,12 @@ export default function EmployeesList() {
     hireDate: '',
     password: '',
   });
-
   const [errors, setErrors] = useState({
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    email: '',
-    department: '',
-    jobTitle: '',
-    hireDate: '',
-    password: '',
+    firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '',
   });
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmId, setConfirmId] = useState(null);
 
   const isValidDateYMD = (str) => /^\d{4}-\d{2}-\d{2}$/.test(str);
   const isValidEmailBasic = (str) => /^[^@\s]+@[^@\s]+$/.test(str);
@@ -94,11 +90,7 @@ export default function EmployeesList() {
     const newErrors = {
       firstName: curr.firstName?.trim() ? '' : 'Mandatory.',
       lastName: curr.lastName?.trim() ? '' : 'Mandatory.',
-      email: curr.email?.trim()
-        ? isValidEmailBasic(curr.email)
-          ? ''
-          : 'Invalid Email'
-        : 'Mandatory.',
+      email: curr.email?.trim() ? (isValidEmailBasic(curr.email) ? '' : 'Invalid Email') : 'Mandatory.',
       department: curr.department?.trim() ? '' : 'Mandatory.',
       jobTitle: curr.jobTitle?.trim() ? '' : 'Mandatory.',
       hireDate: curr.hireDate?.trim()
@@ -207,36 +199,14 @@ export default function EmployeesList() {
     [filteredEmployees, startIndex]
   );
 
-  useEffect(() => {
-    setPage(1);
-  }, [Users]);
+  useEffect(() => { setPage(1); }, [Users]);
 
   const handleOpenAdd = () => {
     setMode('add');
-    setForm({
-      businessId: nextBusinessIdRef.current,
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      email: '',
-      department: '',
-      jobTitle: '',
-      hireDate: '',
-      password: '',
-    });
-    setErrors({
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      email: '',
-      department: '',
-      jobTitle: '',
-      hireDate: '',
-      password: '',
-    });
+    setForm({ businessId: nextBusinessIdRef.current, firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '' });
+    setErrors({ firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '' });
     setDialogOpen(true);
   };
-
   const handleOpenEdit = (row) => {
     setMode('edit');
     setForm({
@@ -250,67 +220,40 @@ export default function EmployeesList() {
       hireDate: row.HireDate ?? '',
       password: '',
     });
-    setErrors({
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      email: '',
-      department: '',
-      jobTitle: '',
-      hireDate: '',
-      password: '',
-    });
+    setErrors({ firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '' });
     setDialogOpen(true);
     console.log(form);
   };
-
   const handleClose = () => setDialogOpen(false);
 
   const handleSave = async () => {
     const ok = validateForm(form);
     if (!ok) return;
-
     try {
       if (mode === 'add') {
         await EmployeeService.createEmployee({
-          firstName: form.firstName,
-          middleName: form.middleName,
-          lastName: form.lastName,
-          email: form.email,
-          department: form.department,
-          jobTitle: form.jobTitle,
-          hireDate: form.hireDate,
-          password: form.password
+          firstName: form.firstName, middleName: form.middleName, lastName: form.lastName,
+          email: form.email, department: form.department, jobTitle: form.jobTitle, hireDate: form.hireDate, password: form.password,
         });
         setUsers(await EmployeeService.getAllEmployees());
         notifs({ severity: 'success', message: 'Employee created successfully!' });
       } else {
         await EmployeeService.updateEmployee(form.businessId, {
-          FirstName: form.firstName,
-          MiddleName: form.middleName,
-          LastName: form.lastName,
-          Email: form.email,
-          Department: form.department,
-          JobTitle: form.jobTitle,
-          HireDate: form.hireDate,
+          FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
+          Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate,
         });
-        setUsers((prev) => prev.map((u) => (u.BusinessEntityID === form.businessId ? {
-          BusinessEntityID: form.businessId,
-          FirstName: form.firstName,
-          MiddleName: form.middleName,
-          LastName: form.lastName,
-          Email: form.email,
-          Department: form.department,
-          JobTitle: form.jobTitle,
-          HireDate: form.hireDate,
-        } : u)));
+        setUsers((prev) => prev.map((u) =>
+          (u.BusinessEntityID === form.businessId ? {
+            BusinessEntityID: form.businessId, FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
+            Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate,
+          } : u)
+        ));
         notifs({ severity: 'success', message: 'Employee updated successfully!' });
       }
       setDialogOpen(false);
     } catch (error) {
-      console.error('Error saving employee:', error);
       UserSession.verifyAuthorize(navigate, error.status);
-      notifs({ severity: 'error', message: ErrorHandler(error) || 'Error saving employee.' });
+      notifs({ severity: 'error', message: ErrorHandler(error) ?? 'Error saving employee.' });
     }
   };
 
@@ -318,22 +261,15 @@ export default function EmployeesList() {
     try {
       await EmployeeService.deleteEmployee(businessEntityID);
       setUsers((prev) => prev.filter((u) => u.BusinessEntityID !== businessEntityID));
-      notifs({
-        severity: 'success',
-        message: 'Employee deleted!'
-      });
+      notifs({ severity: 'success', message: 'Employee deleted!' });
     } catch (error) {
-      console.error('Error deleting employee:', error);
       UserSession.verifyAuthorize(navigate, error.status);
-      notifs({ severity: 'error', message: ErrorHandler(error) || 'Error deleting employee.' });
+      notifs({ severity: 'error', message: ErrorHandler(error) ?? 'Error deleting employee.' });
     }
   };
 
-  const onChange = (field) => (e) => {
-    const value = e.target.value;
-    const next = { ...form, [field]: value };
-    setForm(next);
-  };
+  const setField = (field) => (value) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
 
   useEffect(() => {
     async function fetchData() {
@@ -345,9 +281,8 @@ export default function EmployeesList() {
         });
         setUsers(employees);
       } catch (error) {
-        console.error('Error fetching initial users:', error);
         UserSession.verifyAuthorize(navigate, error.status);
-        notifs({ severity: 'error', message: ErrorHandler(error) || 'Error fetching employees.' });
+        notifs({ severity: 'error', message: ErrorHandler(error) ?? 'Error fetching employees.' });
       }
     }
     if (Users.length === 0) fetchData();
@@ -365,29 +300,19 @@ export default function EmployeesList() {
     fetchDepartments();
   }, [Users.length, navigate, notifs]);
 
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
-
       <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
-        {/* Add User */}
         <Stack direction="row" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: '#000' }}>
-            Employees
-          </Typography>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: '#000' }}>Employees</Typography>
           <Box sx={{ ml: 'auto' }}>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={handleOpenAdd}
-              sx={{
-                bgcolor: '#ff9800',
-                color: '#000',
-                textTransform: 'none',
-                fontWeight: 700,
-                px: 2,
-                '&:hover': { bgcolor: '#ff9800' },
-              }}
+              sx={{ bgcolor: '#ff9800', color: '#000', textTransform: 'none', fontWeight: 700 }}
             >
               Add User
             </Button>
@@ -515,28 +440,13 @@ export default function EmployeesList() {
           >
             <TableHead>
               <TableRow sx={{ '& th': { fontWeight: 700 } }}>
-                {columns.map((c, i) => (
-                  <TableCell
-                    onClick={() => clickHeader(c.parameter)}
-                    key={c.label}
-                    sx={{
-                      borderRight: i < columns.length - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
-                      color: '#333',
-                    }}
-                  >
-                    <>
-                      {c.label}
-                      {sorting.parameter === c.parameter ? (
-                        sorting.order === SORTING_ASCENDING ? (
-                          <ArrowUpwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                        ) : sorting.order === SORTING_DESCENDING ? (
-                          <ArrowDownwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                        ) : null
-                      ) : null}
-
-                    </>
-                  </TableCell>
-                ))}
+                <TableCell sx={{ color: '#333', width: '12%' }}>BusinessId</TableCell>
+                <TableCell sx={{ color: '#333', width: '16%' }}>Name</TableCell>
+                <TableCell sx={{ color: '#333', width: '20%' }}>Email</TableCell>
+                <TableCell sx={{ color: '#333', width: '16%' }}>Department</TableCell>
+                <TableCell sx={{ color: '#333', width: '18%' }}>Job Title</TableCell>
+                <TableCell sx={{ color: '#333', width: '12%' }}>Hire Date</TableCell>
+                <TableCell sx={{ color: '#333', width: '6%' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
 
@@ -656,6 +566,7 @@ export default function EmployeesList() {
               placeholder="Insert middle name."
               fullWidth
               size="small"
+              required
               error={!!errors.middleName}
               helperText={errors.middleName}
             />
@@ -681,22 +592,17 @@ export default function EmployeesList() {
               error={!!errors.email}
               helperText={errors.email}
             />
-            <Select
+            <TextField
+              label="Department"
               value={form.department}
-              onChange={(e) => setForm({ ...form, department: e.target.value })}
+              onChange={onChange('department')}
+              placeholder="Ex.: Executive, Sales, Finance..."
+              fullWidth
               size="small"
-              displayEmpty
+              required
               error={!!errors.department}
               helperText={errors.department}
-              sx={{ width: '100%' }}
-            >
-              <MenuItem value="">-- Select Department --</MenuItem>
-              {departments.map((d) => (
-                <MenuItem key={d} value={d}>
-                  {d}
-                </MenuItem>
-              ))}
-            </Select>
+            />
             <TextField
               label="Job Title"
               value={form.jobTitle}
@@ -712,12 +618,8 @@ export default function EmployeesList() {
               label="Hire Date"
               value={form.hireDate}
               onChange={onChange('hireDate')}
-              type='date'
               placeholder="Ex.: 2024-03-12"
               fullWidth
-              slotProps={{
-                inputLabel: { shrink: true }
-              }}
               size="small"
               required
               error={!!errors.hireDate}
@@ -731,6 +633,7 @@ export default function EmployeesList() {
                 placeholder="123Abc"
                 fullWidth
                 size="small"
+                required
                 error={!!errors.password}
                 helperText={errors.password}
               />
@@ -744,6 +647,7 @@ export default function EmployeesList() {
           <Button
             onClick={handleSave}
             variant="contained"
+            disabled={!canSave}
             sx={{
               bgcolor: '#000',
               color: '#fff',
