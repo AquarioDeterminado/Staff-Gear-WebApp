@@ -7,13 +7,9 @@ import EmployeeRecords from '../views/pages/EmployeeRecords';
 import HeaderBar from '../views/components/layout/HeaderBar';
 import HRRecords from '../views/pages/HRRecords';
 import AdminConsole from '../views/pages/AdminConsole';
-<<<<<<< HEAD
-import PrivateRoute from '../views/components/PrivateRoute';
 import JobListingsPage from '../views/pages/JobListingsPage';
 import JobListingDetailsPage from '../views/pages/JobListingDetailsPage';
-=======
 import PrivateRoute from '../views/components/routing/PrivateRoute';
->>>>>>> UI
 
 // ==============================|| ROUTING RENDER ||============================== //
 

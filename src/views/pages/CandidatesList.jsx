@@ -7,11 +7,8 @@ import HeaderBar from '../components/layout/HeaderBar';
 import CandidateService from '../../services/CandidateService';
 import HRService from '../../services/HRService';
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
 import UserService from '../../utils/UserSession';
-import useNotification  from '../../utils/UseNotification';
 import EmployeeService from '../../services/EmployeeService';
-=======
 import UserSession from '../../utils/UserSession';
 import useNotification from '../../utils/UseNotification';
 import DataTable from '../components/table/DataTable';
@@ -21,7 +18,6 @@ import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import DetailsDrawer from '../components/ui/DetailsDrawer';
 import AcceptCandidateDialog from '../components/ui/dialogs/AcceptCandidate';
 import RejectCandidateDialog from '../components/ui/dialogs/RefuseCandidate';
->>>>>>> UI
 
 export default function CandidatesView() {
   const navigate = useNavigate();
@@ -123,14 +119,7 @@ export default function CandidatesView() {
     }
     async function fetchDepartments() {
       try {
-<<<<<<< HEAD
         const deps = await EmployeeService.getAllDepartments();
-=======
-        const movements = await HRService.getAllMovements();
-        const deps = Array.isArray(movements)
-          ? [...new Set(movements.map((m) => m.DepartmentName).filter(Boolean))]
-          : [];
->>>>>>> UI
         deps.sort();
         setDepartments(deps);
       } catch (err) {

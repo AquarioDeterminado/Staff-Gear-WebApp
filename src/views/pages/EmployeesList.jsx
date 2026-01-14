@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-<<<<<<< HEAD
   Box,
   Container,
   Typography,
@@ -25,16 +24,11 @@ import {
   CardHeader,
   CardContent,
 } from '@mui/material';
-import Popups from '../components/Popups';
 import Collapse from '@mui/material/Collapse';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-=======
-  Box, Container, Typography, Button, TextField, Stack, IconButton
-} from '@mui/material';
->>>>>>> UI
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import HeaderBar from '../components/layout/HeaderBar';
@@ -44,26 +38,21 @@ import UserSession from '../../utils/UserSession';
 import AddIcon from '@mui/icons-material/AddCircleOutline';
 import ErrorHandler from '../../utils/ErrorHandler';
 import useNotification from '../../utils/UseNotification';
-<<<<<<< HEAD
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
 import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
 
 const SORTING_ASCENDING = 'asc';
 const SORTING_DESCENDING = 'desc';
-=======
 import DataTable from '../components/table/DataTable';
 import Paginator from '../components/table/Paginator';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import FormPopup from '../components/ui/popups/FormPopup';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
->>>>>>> UI
 
 export default function EmployeesList() {
   const navigate = useNavigate();
   const notifs = useNotification();
   const [Users, setUsers] = useState([]);
-<<<<<<< HEAD
-  const [departments, setDepartments] = useState([]);
 
   const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessEntityID)) + 1);
 
@@ -71,14 +60,10 @@ export default function EmployeesList() {
 
   const [sorting, setSorting] = useState({ parameter: '', order: '' });
   
-=======
-  const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessEntityID)) + 1);
->>>>>>> UI
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [mode, setMode] = useState('add');
   const [form, setForm] = useState({
-<<<<<<< HEAD
     businessId: null,
     firstName: '',
     middleName: '',
@@ -88,13 +73,17 @@ export default function EmployeesList() {
     jobTitle: '',
     hireDate: '',
     password: '',
-=======
-    businessId: null, firstName: '', middleName: '', lastName: '', email: '',
-    department: '', jobTitle: '', hireDate: '', password: '',
   });
+
   const [errors, setErrors] = useState({
-    firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '',
->>>>>>> UI
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    email: '',
+    department: '',
+    jobTitle: '',
+    hireDate: '',
+    password: '',
   });
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -110,24 +99,16 @@ export default function EmployeesList() {
       email: curr.email?.trim() ? (isValidEmailBasic(curr.email) ? '' : 'Invalid Email') : 'Mandatory.',
       department: curr.department?.trim() ? '' : 'Mandatory.',
       jobTitle: curr.jobTitle?.trim() ? '' : 'Mandatory.',
-<<<<<<< HEAD
       hireDate: curr.hireDate?.trim()
         ? isValidDateYMD(curr.hireDate)
           ? ''
           : 'Format should be yyyy-mm-dd.'
         : 'Mandatory.',
       password: curr.password == '' || curr.password?.trim() ? '' : 'Mandatory.',
-=======
-      hireDate: curr.hireDate?.trim() ? (isValidDateYMD(curr.hireDate) ? '' : 'Format should be yyyy-mm-dd.') : 'Mandatory.',
-      password: mode === 'add' ? (curr.password?.trim() ? '' : 'Mandatory.') : '',
-      middleName: '',
->>>>>>> UI
     };
     setErrors(newErrors);
     return Object.values(newErrors).every((e) => e === '');
   };
-
-<<<<<<< HEAD
   
   const [filterExpanded, setFilterExpanded] = useState(false);
   const [filterBusinessId, setFilterBusinessId] = useState('');
@@ -183,11 +164,6 @@ export default function EmployeesList() {
     });
   }, [Users, filterBusinessId, filterName, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterDepartment, filterJobTitle]);
 
-  function clickHeader(parameter) {
-    let sortingOrder = sorting.parameter === parameter && sorting.order === SORTING_ASCENDING ? SORTING_DESCENDING : sorting.order === SORTING_DESCENDING ? '' : SORTING_ASCENDING;
-    setSorting({ "parameter": parameter, "order": sortingOrder });
-    var sorted = [];
-=======
   const canSave = useMemo(() => {
     const allFilled = [form.firstName, form.lastName, form.email, form.department, form.hireDate]
       .every((v) => v && v.trim().length > 0);
@@ -195,8 +171,11 @@ export default function EmployeesList() {
     const dateOk = isValidDateYMD(form.hireDate ?? '');
     return allFilled && emailOk && dateOk && (mode === 'add' ? !!form.password?.trim() : true);
   }, [form, mode]);
->>>>>>> UI
 
+  function clickHeader(parameter) {
+    let sortingOrder = sorting.parameter === parameter && sorting.order === SORTING_ASCENDING ? SORTING_DESCENDING : sorting.order === SORTING_DESCENDING ? '' : SORTING_ASCENDING;
+    setSorting({ "parameter": parameter, "order": sortingOrder });
+    var sorted = [];
     sorted = Users;
     if (sortingOrder === "") {
       sorted = [...Users].sort((a, b) => {
@@ -224,7 +203,6 @@ export default function EmployeesList() {
   
   const ROWS_PER_PAGE = 10;
   const [page, setPage] = useState(1);
-<<<<<<< HEAD
 
   const pageCount = Math.max(1, Math.ceil(filteredEmployees.length / ROWS_PER_PAGE));
   const startIndex = (page - 1) * ROWS_PER_PAGE;
@@ -232,11 +210,6 @@ export default function EmployeesList() {
     () => filteredEmployees.slice(startIndex, startIndex + ROWS_PER_PAGE),
     [filteredEmployees, startIndex]
   );
-=======
-  const pageCount = Math.max(1, Math.ceil(Users.length / ROWS_PER_PAGE));
-  const startIndex = (page - 1) * ROWS_PER_PAGE;
-  const visibleUsers = useMemo(() => Users.slice(startIndex, startIndex + ROWS_PER_PAGE), [Users, startIndex]);
->>>>>>> UI
 
   useEffect(() => { setPage(1); }, [Users]);
 
@@ -313,15 +286,11 @@ export default function EmployeesList() {
   useEffect(() => {
     async function fetchData() {
       try {
-<<<<<<< HEAD
         var employees = await EmployeeService.getAllEmployees();
         console.log(employees);
         employees.forEach(element => {
           element.FirstName = CapitalizeFirstLetter(element.FirstName);
         });
-=======
-        const employees = await EmployeeService.getAllEmployees();
->>>>>>> UI
         setUsers(employees);
       } catch (error) {
         UserSession.verifyAuthorize(navigate, error.status);
@@ -329,49 +298,7 @@ export default function EmployeesList() {
       }
     }
     if (Users.length === 0) fetchData();
-
-    async function fetchDepartments() {
-      try {
-        const deps = await EmployeeService.getAllDepartments();
-        deps.sort();
-        setDepartments(deps);
-      } catch (err) {
-        console.debug('Could not fetch departments for accept dialog', err);
-      }
-    }
-
-    fetchDepartments();
   }, [Users.length, navigate, notifs]);
-
-  const columns = [
-    { label: 'BusinessId', width: '12%', render: (r) => r.BusinessEntityID },
-    { label: 'Name', width: '16%', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}` },
-    { label: 'Email', width: '20%', render: (r) => r.Email },
-    { label: 'Department', width: '16%', render: (r) => r.Department },
-    { label: 'Job Title', width: '18%', render: (r) => r.JobTitle },
-    { label: 'Hire Date', width: '12%', render: (r) => r.HireDate },
-    {
-      label: 'Actions', width: '6%',
-      render: (row) => (
-        <Stack direction="row" spacing={1}>
-          <IconButton
-            onClick={() => handleOpenEdit(row)}
-            sx={{ bgcolor: '#fff3e0', color: '#000', '&:hover': { bgcolor: '#000', color: '#fff' } }}
-            size="small"
-          >
-            <EditOutlinedIcon />
-          </IconButton>
-          <IconButton
-            onClick={() => { setConfirmId(row.BusinessEntityID); setConfirmOpen(true); }}
-            sx={{ bgcolor: '#fff3e0', color: '#000', '&:hover': { bgcolor: '#000', color: '#fff' } }}
-            size="small"
-          >
-            <DeleteOutlineIcon />
-          </IconButton>
-        </Stack>
-      ),
-    },
-  ];
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
@@ -390,7 +317,6 @@ export default function EmployeesList() {
             </Button>
           </Box>
         </Stack>
-<<<<<<< HEAD
         <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
           <CardHeader
             title="Filters"
@@ -491,270 +417,6 @@ export default function EmployeesList() {
             </CardContent>
           </Collapse>
         </Card>
-        <Paper
-          variant="outlined"
-          sx={{
-            bgcolor: '#fff3e0',
-            borderColor: '#ddd',
-            borderRadius: 1.5,
-            overflow: 'auto',
-          }}
-        >
-          <Box sx={{ px: 2, pt: 1 }}>
-            <Divider sx={{ borderColor: '#ccc' }} />
-          </Box>
-
-          <Table
-            size="small"
-            sx={{
-              minWidth: 840,
-              tableLayout: 'fixed',
-            }}
-          >
-            <TableHead>
-              <TableRow sx={{ '& th': { fontWeight: 700 } }}>
-                {columns.map((c, i) => (
-                  <TableCell
-                    onClick={() => clickHeader(c.parameter)}
-                    key={c.label}
-                    sx={{
-                      borderRight: i < columns.length - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
-                      color: '#333',
-                    }}
-                  >
-                    <>
-                      {c.label}
-                      {sorting.parameter === c.parameter ? (
-                        sorting.order === SORTING_ASCENDING ? (
-                          <ArrowUpwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                        ) : sorting.order === SORTING_DESCENDING ? (
-                          <ArrowDownwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                        ) : null
-                      ) : null}
-
-                    </>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {visibleUsers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 3, color: '#666' }}>
-                    No employees yet.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                visibleUsers.map((row) => (
-                  <TableRow key={row.BusinessEntityID}>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.BusinessEntityID}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {`${row.FirstName}${row.MiddleName ? ' ' + row.MiddleName : ''} ${row.LastName}`}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.Email}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.Department}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.JobTitle}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.HireDate}
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <IconButton
-                          aria-label="editar"
-                          onClick={() => handleOpenEdit(row)}
-                          sx={{
-                            bgcolor: '#fff3e0',
-                            color: '#000000ff',
-                            '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                          }}
-                          size="small"
-                        >
-                          <EditOutlinedIcon />
-                        </IconButton>
-                        <Popups
-                          title="Remove record"
-                          message="Do you really want to delete this employee? This action is irreversible."
-                          onConfirm={async () => {
-                            await handleDelete(row.BusinessEntityID);
-                            notifs({
-                              severity: 'success',
-                              message: 'Employee deleted!'
-                            });
-                          }}
-                        >
-                          <IconButton
-                            aria-label="Delete"
-                            sx={{
-                              bgcolor: '#fff3e0',
-                              color: '#000000ff',
-                              '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                            }}
-                            size="small"
-                          >
-                            <DeleteOutlineIcon />
-                          </IconButton>
-                        </Popups>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-
-          <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-            <Pagination
-              count={pageCount}
-              page={page}
-              onChange={(_, p) => setPage(p)}
-              sx={{
-                '& .MuiPaginationItem-root.Mui-selected': {
-                  bgcolor: '#ff9800',
-                  color: '#fff',
-                },
-              }}
-            />
-          </Box>
-
-          <Box sx={{ height: 24 }} />
-        </Paper>
-      </Container>
-
-      {/* Add/Edit */}
-      <Dialog open={dialogOpen} onClose={handleClose} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>
-          {mode === 'add' ? 'Add User' : 'Edit User'}
-        </DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={1.5}>
-            <TextField
-              label="First Name"
-              value={form.firstName}
-              onChange={onChange('firstName')}
-              placeholder="Insert first name."
-              fullWidth
-              size="small"
-              required
-              error={!!errors.firstName}
-              helperText={errors.firstName}
-            />
-            <TextField
-              label="Middle Name"
-              value={form.middleName}
-              onChange={onChange('middleName')}
-              placeholder="Insert middle name."
-              fullWidth
-              size="small"
-              error={!!errors.middleName}
-              helperText={errors.middleName}
-            />
-            <TextField
-              label="Last Name"
-              value={form.lastName}
-              onChange={onChange('lastName')}
-              placeholder="Insert last name."
-              fullWidth
-              size="small"
-              required
-              error={!!errors.lastName}
-              helperText={errors.lastName}
-            />
-            <TextField
-              label="Email"
-              value={form.email}
-              onChange={onChange('email')}
-              placeholder="Ex.: name@company.com"
-              fullWidth
-              size="small"
-              required
-              error={!!errors.email}
-              helperText={errors.email}
-            />
-            <Select
-              value={form.department}
-              onChange={(e) => setForm({ ...form, department: e.target.value })}
-              size="small"
-              displayEmpty
-              error={!!errors.department}
-              helperText={errors.department}
-              sx={{ width: '100%' }}
-            >
-              <MenuItem value="">-- Select Department --</MenuItem>
-              {departments.map((d) => (
-                <MenuItem key={d} value={d}>
-                  {d}
-                </MenuItem>
-              ))}
-            </Select>
-            <TextField
-              label="Job Title"
-              value={form.jobTitle}
-              onChange={onChange('jobTitle')}
-              placeholder="Ex.: Frontend Dev"
-              fullWidth
-              size="small"
-              required
-              error={!!errors.jobTitle}
-              helperText={errors.jobTitle}
-            />
-            <TextField
-              label="Hire Date"
-              value={form.hireDate}
-              onChange={onChange('hireDate')}
-              type='date'
-              placeholder="Ex.: 2024-03-12"
-              fullWidth
-              slotProps={{
-                inputLabel: { shrink: true }
-              }}
-              size="small"
-              required
-              error={!!errors.hireDate}
-              helperText={errors.hireDate}
-            />
-            {mode === 'add' && (
-              <TextField
-                label="Password"
-                value={form.password}
-                onChange={onChange('password')}
-                placeholder="123Abc"
-                fullWidth
-                size="small"
-                error={!!errors.password}
-                helperText={errors.password}
-              />
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} sx={{ textTransform: 'none' }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            variant="contained"
-            sx={{
-              bgcolor: '#000',
-              color: '#fff',
-              textTransform: 'none',
-              fontWeight: 700,
-              '&:hover': { bgcolor: '#222' },
-            }}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-=======
 
         <SectionPaper>
           <DataTable columns={columns} rows={visibleUsers} getRowId={(r) => r.BusinessEntityID} />
@@ -793,7 +455,6 @@ export default function EmployeesList() {
         confirmLabel="Delete"
         confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
       />
->>>>>>> UI
     </Box>
   );
 }

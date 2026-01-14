@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Container, Select, MenuItem, Typography } from '@mui/material';
+import { Box, Container, Select, MenuItem, Typography, Stack, Card, CardHeader, IconButton, Collapse, CardContent, Divider, Paper, Table, TableHead, TableRow, TableCell, TableBody, Tabs, Tab, TextField, Button 
+} from '@mui/material';
 import HeaderBar from '../components/layout/HeaderBar';
 import { useNavigate } from 'react-router-dom';
 import AdminService from '../../services/AdminService';
@@ -253,43 +254,6 @@ export default function AdminConsole() {
       setNewRole('');
     }
   };
-
-  const usersWithIdx = visibleUsers.map((r, idx) => ({ ...r, __pageIndex: idx }));
-
-  const logsColumns = [
-    { label: 'ID', width: '14%', render: (l) => l.LogID },
-    { label: 'Actor ID', width: '18%', render: (l) => l.ActorID },
-    { label: 'Target', width: '28%', render: (l) => l.Target },
-    { label: 'Action', width: '20%', render: (l) => l.Action },
-    { label: 'Created At', width: '20%', render: (l) => new Date(l.CreatedAt).toLocaleString('fr-FR') },
-  ];
-
-  const usersColumns = [
-    { label: 'User ID', width: '14%', render: (u) => u.UserID },
-    { label: 'Username', width: '24%', render: (u) => u.Username },
-    { label: 'Employee ID', width: '18%', render: (u) => u.EmployeeId },
-    { label: 'Is Active', width: '14%', render: (u) => (u.IsActive ? 'Active' : 'Inactive') },
-    {
-      label: 'Role', width: '30%',
-      render: (u) => {
-        // Se o utilizador não tiver Role definido, mostramos "Employee" por defeito no Select
-        const currentRole = u.Role || 'Employee';
-        return (
-          <Select
-            value={currentRole}
-            onChange={(e) => handleRoleChangeRequest(u, e.target.value)}
-            size="small"
-            sx={{ width: '100%' }}
-          >
-            {/* REMOVIDO o placeholder "-- Select Role --" */}
-            {['Employee', 'HR', 'Admin'].map((d) => (
-              <MenuItem key={d} value={d}>{d}</MenuItem>
-            ))}
-          </Select>
-        );
-      },
-    },
-  ];
 
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>

@@ -19,6 +19,7 @@ import UserSession from '../../utils/UserSession';
 import useNotification from '../../utils/UseNotification';
 import { StyledTabs, StyledTab } from '../components/ui/surfaces/StyledTabs';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
+import DataTable from '../components/table/DataTable';
 
 export default function EmployeeRecords() {
   const [tab, setTab] = useState(0);
@@ -101,8 +102,10 @@ export default function EmployeeRecords() {
 
         
       <SectionPaper>
-        <Table size="small" sx={{ minWidth: 720, tableLayout: 'fixed' }}>
-        </Table>
+        <DataTable 
+          columns={columns}
+          
+        />
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
           {tab === 0 ? (
             <Pagination

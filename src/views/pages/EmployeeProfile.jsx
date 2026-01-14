@@ -170,14 +170,9 @@ export default function EmployeeProfile() {
       if (status === 409) {
         const data = error?.response?.data;
         const conflictMsg = (data && (data.message || data.detail)) || 'Email already in use';
-<<<<<<< HEAD
         notif({ severity: 'error', message: conflictMsg });
       }
       else{
-=======
-        setSnackbar({ open: true, severity: 'error', message: conflictMsg });
-      } else {
->>>>>>> UI
         const msg = ErrorHandler(error);
         notif({ severity: 'error', message: msg });
       }
@@ -284,103 +279,34 @@ export default function EmployeeProfile() {
               gap: 1
             }}
           >
-<<<<<<< HEAD
             {/* FirstName */}
-            <FieldCard>
-              {isEditMode ? (
-                <TextField
-                  label="First Name"
-                  type="text"
-                  fullWidth
-                  size="small"
-                  autoComplete="off"
-                  value={formData.FirstName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, FirstName: e.target.value }))
-                  }
-                  error={updateProfileError.FirstName}
-                  helperText={updateProfileError.FirstName}
-                />
-              ) : (
-                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">                 
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {profileInfo?.FirstName || ''}
-                  </Typography>
-                </Stack>
-              )}
-            </FieldCard>
-
-            {/* MiddleName */}
-            <FieldCard>
-              {isEditMode ? (
-                <TextField
-                  label="Middle Name"
-                  type="text"
-                  fullWidth
-                  size="small"
-                  autoComplete="off"
-                  value={formData.MiddleName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, MiddleName: e.target.value }))
-                  }
-                  error={updateProfileError.MiddleName}
-                  helperText={updateProfileError.MiddleName}
-                />
-              ) : (
-                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {profileInfo?.MiddleName || ''}
-                  </Typography>
-                </Stack>
-              )}
-            </FieldCard>
-
-            {/* LastName */}
-            <FieldCard>
-              {isEditMode ? (
-                <TextField
-                  label="Last Name"
-                  type="text"
-                  fullWidth
-                  size="small"
-                  autoComplete="off"
-                  value={formData.LastName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, LastName: e.target.value }))
-                  }
-                  error={updateProfileError.LastName}
-                  helperText={updateProfileError.LastName}
-                />
-              ) : (
-                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center">
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {profileInfo?.LastName || ''}
-                  </Typography>
-                </Stack>
-              )}
-            </FieldCard>
-=======
             <ProfileFieldCard
               label="First Name"
+              isEdit={isEditMode}
+              icon={<PersonIcon />}
+              width={CARD_W}
               value={formData.FirstName}
               onChange={(v) => setFormData((prev) => ({ ...prev, FirstName: v }))}
-              isEdit={isEditMode}
+              helperText={updateProfileError.FirstName}
             />
-
+            {/* MiddleName */}
             <ProfileFieldCard
               label="Middle Name"
+              isEdit={isEditMode}
+              width={CARD_W}
               value={formData.MiddleName}
               onChange={(v) => setFormData((prev) => ({ ...prev, MiddleName: v }))}
-              isEdit={isEditMode}
+              helperText={updateProfileError.MiddleName}
             />
-
+            {/* LastName */}
             <ProfileFieldCard
               label="Last Name"
+              isEdit={isEditMode}
+              width={CARD_W}
               value={formData.LastName}
               onChange={(v) => setFormData((prev) => ({ ...prev, LastName: v }))}
-              isEdit={isEditMode}
+              helperText={updateProfileError.LastName}
             />
->>>>>>> UI
           </Box>
 
           <Box
@@ -407,39 +333,6 @@ export default function EmployeeProfile() {
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-<<<<<<< HEAD
-            <FieldCard width={EMAIL_W}>
-              {isEditMode ? (
-                <TextField
-                  label="Email"
-                  type="email"
-                  fullWidth
-                  size="small"
-                  autoComplete="off"
-                  value={formData.Email}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, Email: e.target.value }))
-                  }
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailIcon sx={{ color: 'text.secondary' }} />
-                      </InputAdornment>
-                    )
-                  }}
-                  error={updateProfileError.Email}
-                  helperText={updateProfileError.Email}
-                />
-              ) : (
-                <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center">
-                  <EmailIcon />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {profileInfo?.Email || ''}
-                  </Typography>
-                </Stack>
-              )}
-            </FieldCard>
-=======
             <ProfileFieldCard
               label="Email"
               value={formData.Email}
@@ -449,8 +342,8 @@ export default function EmployeeProfile() {
               width={EMAIL_W}
               type="email"
               startAdornment={<EmailIcon sx={{ color: 'text.secondary' }} />}
+              helperText={updateProfileError.Email}
             />
->>>>>>> UI
           </Box>
 
           <Stack direction="row" justifyContent="center" sx={{ pt: 0.5 }}>
@@ -475,64 +368,14 @@ export default function EmployeeProfile() {
           </Stack>
         </Stack>
       </Container>
-<<<<<<< HEAD
-      <Dialog open={isPwdDialogOpen} onClose={closePwdDialog} fullWidth maxWidth="xs">
-        <DialogTitle>Change Password</DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Current Password"
-              type="password"
-              fullWidth
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              autoComplete="current-password"
-              error={updatePwdError.OldPassword}
-              helperText={updatePwdError.OldPassword}
-            />
-            <TextField
-              label="New password"
-              type="password"
-              fullWidth
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              autoComplete="new-password"
-              error={updatePwdError.NewPassword}
-              helperText={updatePwdError.NewPassword}
-            />
-            <TextField
-              label="Confirm the password"
-              type="password"
-              fullWidth
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-              error={updatePwdError.ConfirmPassword}
-              helperText={updatePwdError.ConfirmPassword}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closePwdDialog} disabled={isSubmittingPwd}>Cancel</Button>
-          <Button
-            onClick={handleChangePassword}
-            variant="contained"
-            disabled={isSubmittingPwd}
-            startIcon={isSubmittingPwd ? <CircularProgress size={18} color="inherit" /> : <KeyIcon />}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-=======
 
       <FormPopup
         open={isPwdDialogOpen}
         title="Change Password"
         fields={[
-          { type: 'password', label: 'Current Password', value: oldPassword, onChange: setOldPassword },
-          { type: 'password', label: 'New password', value: newPassword, onChange: setNewPassword },
-          { type: 'password', label: 'Confirm the password', value: confirmPassword, onChange: setConfirmPassword },
+          { type: 'password', label: 'Current Password', value: oldPassword, onChange: setOldPassword, error: updatePwdError.OldPassword },
+          { type: 'password', label: 'New password', value: newPassword, onChange: setNewPassword, error: updatePwdError.NewPassword },
+          { type: 'password', label: 'Confirm the password', value: confirmPassword, onChange: setConfirmPassword, error: updatePwdError.ConfirmPassword },
         ]}
         onCancel={closePwdDialog}
         onSubmit={handleChangePassword}
@@ -540,22 +383,6 @@ export default function EmployeeProfile() {
         submitDisabled={isSubmittingPwd}
         submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
       />
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
->>>>>>> UI
     </Box>
   );
 }

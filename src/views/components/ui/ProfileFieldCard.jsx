@@ -39,6 +39,7 @@ export default function ProfileFieldCard({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           helperText={helperText}
+          error={!!helperText}
           InputProps={
             startAdornment
               ? { startAdornment: <InputAdornment position="start">{startAdornment}</InputAdornment> }

@@ -48,7 +48,7 @@ export default function FormPopup({
                   fullWidth
                   required={!!f.required}
                   error={!!f.error}
-                  helperText={f.helperText}
+                  helperText={f.error}
                 >
                   {(f.options || []).map((opt) => (
                     <MenuItem key={`${opt.value ?? opt.label}-${idx}`} value={opt.value}>
@@ -70,7 +70,7 @@ export default function FormPopup({
                 fullWidth
                 required={!!f.required}
                 error={!!f.error}
-                helperText={f.helperText}
+                helperText={f.error}
                 InputProps={f.startAdornment ? { startAdornment: f.startAdornment } : undefined}
               />
             );

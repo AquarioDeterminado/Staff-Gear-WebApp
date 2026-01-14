@@ -8,13 +8,11 @@ import {
   TextField,
   Select,
   MenuItem,
-<<<<<<< HEAD
   Collapse,
   InputLabel,
   Autocomplete,
   Menu,
-=======
->>>>>>> UI
+  Dialog,
 } from '@mui/material';
 
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -28,22 +26,17 @@ import { useNavigate } from 'react-router-dom';
 import UserSession from '../../utils/UserSession';
 import HRService from '../../services/HRService';
 import useNotification from '../../utils/UseNotification';
-<<<<<<< HEAD
-import Popups from '../components/Popups';
 import EmployeeService from '../../services/EmployeeService';
 import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
 import { EmployeeSearchField } from '../components/EmployeeSearchField';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
-=======
 import DataTable from '../components/table/DataTable';
 import Paginator from '../components/table/Paginator';
 import FilterPanel from '../components/filters/FilterPanel';
 import { StyledTabs, StyledTab } from '../components/ui/surfaces/StyledTabs';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
-
 import FormPopup from '../components/ui/popups/FormPopup';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
->>>>>>> UI
 
 const PAYMENT_TAB = 0;
 const JOB_CHANGE_TAB = 1;
@@ -68,11 +61,8 @@ export default function HRRecords() {
 
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
-<<<<<<< HEAD
-  // Filter Payments
-=======
 
->>>>>>> UI
+  // Filter Payments
   const [filterPaymentEmployee, setFilterPaymentEmployee] = useState('');
   const [filterRateMin, setFilterRateMin] = useState('');
   const [filterRateMax, setFilterRateMax] = useState('');
@@ -87,7 +77,6 @@ export default function HRRecords() {
   const [filterJobDateTo, setFilterJobDateTo] = useState('');
   const [filterJobChangesExpanded, setFilterJobChangesExpanded] = useState(false);
 
-<<<<<<< HEAD
   // Columns
   const paymentsColumns = [{ label: 'Rate', parameter: 'Rate' }, { label: 'Rate Change Date', parameter: 'RateChangeDate' }, { label: 'Pay Frequency', parameter: 'PayFrequency' }, { label: 'Employee', parameter: 'FullName' }];
   const jobChangesColumns = [{ label: 'Job Title', parameter: 'JobTitle' }, { label: 'Department', parameter: 'DepartmentName' }, { label: 'Start Date', parameter: 'StartDate' }, { label: 'End Date', parameter: 'EndDate' }, { label: 'Employee', parameter: 'FullName' }];
@@ -95,11 +84,6 @@ export default function HRRecords() {
 
   const [sorting, setSorting] = useState({ parameter: '', order: '' });
   // Pages
-=======
-  const paymentsColumnsLabels = ['Rate', 'Changed Rate', 'Pay Frequency', 'Employee'];
-  const jobChangesColumnsLabels = ['Job Title', 'Department', 'Start Date', 'End Date', 'Employee'];
-
->>>>>>> UI
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [jobChangesPage, setJobChangesPage] = useState(1);
   const ROWS_PER_PAGE = 9;
@@ -199,10 +183,6 @@ export default function HRRecords() {
     J_FullName: '',
   });
 
-<<<<<<< HEAD
-  function setFormDefaults() {
-=======
-  // Confirm delete
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmIndex, setConfirmIndex] = useState(null);
 
@@ -230,14 +210,7 @@ export default function HRRecords() {
     fetchData();
   }, [navigate]);
 
-  const handleTabChange = (_e, v) => {
-    setTab(v);
-  };
-
-  const openAdd = () => {
-    setMode('add');
-    setEditIndex(null);
->>>>>>> UI
+  function setFormDefaults() {
     setForm({
       BusinessEntityID: '',
       Rate: '€',
@@ -373,7 +346,7 @@ export default function HRRecords() {
       value = value.trimStart();
     }
     if (field === 'BusinessEntityID') {
-      const selectedOption = e.target.value;
+      const selectedOption = v;
       value = selectedOption.BusinessEntityID;
     }
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -385,7 +358,6 @@ export default function HRRecords() {
 
     console.log(form.BusinessEntityID);
     if (tab === PAYMENT_TAB) {
-<<<<<<< HEAD
       if (form.BusinessEntityID == '') {
         setFormErrors((prev) => ({ ...prev, BusinessEntityID: "Employee is required." }));
         isValid = false;
@@ -427,12 +399,6 @@ export default function HRRecords() {
     console.log(formErrors);
     return isValid
   }
-=======
-      return form.Rate?.trim() && (form.PayFrequency == 1 || form.PayFrequency == 2);
-    }
-    return form.JobTitle?.trim() && form.DepartmentName?.trim() && form.StartDate?.trim();
-  }, [form, tab]);
->>>>>>> UI
 
   const handleAddOrSave = async () => {
     let errorMessage = null;
@@ -632,7 +598,6 @@ export default function HRRecords() {
     return deps.sort();
   }, [jobChanges]);
 
-<<<<<<< HEAD
   function clickHeader(parameter) {
     let sortingOrder = sorting.parameter === parameter && sorting.order === SORTING_ASCENDING ? SORTING_DESCENDING : sorting.order === SORTING_DESCENDING ? '' : SORTING_ASCENDING;
     setSorting({ "parameter": parameter, "order": sortingOrder });
@@ -689,23 +654,7 @@ export default function HRRecords() {
       setJobChanges(sorted);
     }
   }
-=======
-  const paymentColumns = [
-    { label: 'Rate', width: '15%', render: (p) => `${Math.round((p.Rate + Number.EPSILON) * 100) / 100}€` },
-    { label: 'Changed Rate', width: '20%', render: (p) => new Date(p.RateChangeDate).toLocaleString('fr-FR', { dateStyle: 'short' }) },
-    { label: 'Pay Frequency', width: '20%', render: (p) => (p.PayFrequency == 1 ? 'Monthly' : 'Biweekly') },
-    { label: 'Employee', width: '35%', render: (p) => p.FullName },
-    { label: 'Actions', width: '10%', render: () => null },
-  ];
 
-  const jobColumns = [
-    { label: 'Job Title', width: '20%', render: (c) => c.JobTitle },
-    { label: 'Department', width: '20%', render: (c) => c.DepartmentName },
-    { label: 'Start Date', width: '20%', render: (c) => c.StartDate },
-    { label: 'End Date', width: '20%', render: (c) => (c.EndDate || 'Present') },
-    { label: 'Employee', width: '20%', render: (c) => c.FullName },
-    { label: 'Actions', width: '10%', render: () => null },
-  ];
 
   const payRows = visiblePayments.map((r, idx) => ({ ...r, __pageIndex: idx }));
   const jobRows = visibleJobChanges.map((r, idx) => ({ ...r, __pageIndex: idx }));
@@ -714,63 +663,62 @@ export default function HRRecords() {
     col.label !== 'Actions'
       ? col
       : {
-          ...col,
-          render: (row) => (
-            <Stack direction="row" spacing={1}>
-              <IconButton
-                aria-label="edit"
-                onClick={() => openEdit(row.__pageIndex)}
-                sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
-                size="small"
-              >
-                <EditOutlinedIcon />
-              </IconButton>
+        ...col,
+        render: (row) => (
+          <Stack direction="row" spacing={1}>
+            <IconButton
+              aria-label="edit"
+              onClick={() => openEdit(row.__pageIndex)}
+              sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
+              size="small"
+            >
+              <EditOutlinedIcon />
+            </IconButton>
 
-              <IconButton
-                onClick={() => {
-                  setConfirmIndex(row.__pageIndex);
-                  setConfirmOpen(true);
-                }}
-                sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
-                size="small"
-              >
-                <DeleteOutlineIcon />
-              </IconButton>
-            </Stack>
-          ),
-        }
+            <IconButton
+              onClick={() => {
+                setConfirmIndex(row.__pageIndex);
+                setConfirmOpen(true);
+              }}
+              sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
+              size="small"
+            >
+              <DeleteOutlineIcon />
+            </IconButton>
+          </Stack>
+        ),
+      }
   );
 
   const jobColumnsWithActions = jobColumns.map((col) =>
     col.label !== 'Actions'
       ? col
       : {
-          ...col,
-          render: (row) => (
-            <Stack direction="row" spacing={1}>
-              <IconButton
-                onClick={() => openEdit(row.__pageIndex)}
-                sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
-                size="small"
-              >
-                <EditOutlinedIcon />
-              </IconButton>
+        ...col,
+        render: (row) => (
+          <Stack direction="row" spacing={1}>
+            <IconButton
+              onClick={() => openEdit(row.__pageIndex)}
+              sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
+              size="small"
+            >
+              <EditOutlinedIcon />
+            </IconButton>
 
-              <IconButton
-                onClick={() => {
-                  setConfirmIndex(row.__pageIndex);
-                  setConfirmOpen(true);
-                }}
-                sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
-                size="small"
-              >
-                <DeleteOutlineIcon />
-              </IconButton>
-            </Stack>
-          ),
-        }
+            <IconButton
+              onClick={() => {
+                setConfirmIndex(row.__pageIndex);
+                setConfirmOpen(true);
+              }}
+              sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
+              size="small"
+            >
+              <DeleteOutlineIcon />
+            </IconButton>
+          </Stack>
+        ),
+      }
   );
->>>>>>> UI
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
@@ -955,178 +903,6 @@ export default function HRRecords() {
           </FilterPanel>
         )}
 
-<<<<<<< HEAD
-        <Paper
-          variant="outlined"
-          sx={{
-            bgcolor: '#fff3e0',
-            borderColor: '#ddd',
-            borderRadius: 1.5,
-            overflow: 'hidden',
-          }}
-        >
-          <Box sx={{ px: 2, pt: 1 }}>
-            <Divider sx={{ borderColor: '#ccc' }} />
-          </Box>
-
-          <Table size="small" sx={{ minWidth: 720, tableLayout: 'fixed' }}>
-            <TableHead>
-              <TableRow sx={{ '& th': { fontWeight: 700 } }}>
-                {columns.map((c, i) => (
-                  <TableCell
-                    onClick={() => clickHeader(c.parameter)}
-                    key={c.label}
-                    sx={{
-                      borderRight: i < columns.length - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
-                      color: '#333',
-                    }}
-                  >
-                    <>
-                      {c.label}
-                      {sorting.parameter === c.parameter ? (
-                        sorting.order === SORTING_ASCENDING ? (
-                          <ArrowUpwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                        ) : sorting.order === SORTING_DESCENDING ? (
-                          <ArrowDownwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                        ) : null
-                      ) : null}
-
-                    </>
-                  </TableCell>
-                ))}
-                <TableCell sx={{ color: '#333' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {tab === PAYMENT_TAB ? (
-                payments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 3 }}>
-                      No payment records found.
-                    </TableCell>
-                  </TableRow>
-                ) : visiblePayments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 3 }}>
-                      Page out of range.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  visiblePayments.map((p, idx) => (
-                    <TableRow key={`${p.FullName}-${p.RateChangeDate}-${idx}`}>
-                      <TableCell>{Math.round((p.Rate + Number.EPSILON) * 100) / 100}€</TableCell>
-                      <TableCell>{new Date(p.RateChangeDate).toLocaleString('fr-FR', { dateStyle: 'short' })}</TableCell>
-                      <TableCell>{p.PayFrequency == 1 ? 'Monthly' : 'Biweekly'}</TableCell>
-                      <TableCell>{p.FullName}</TableCell>
-                      <TableCell>
-                        <Stack direction="row" spacing={1}>
-                          <IconButton
-                            aria-label="edit"
-                            onClick={() => openEdit(idx)}
-                            sx={{
-                              bgcolor: '#fff3e0',
-                              color: '#000000ff',
-                              '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                            }}
-                            size="small"
-                          >
-                            <EditOutlinedIcon />
-                          </IconButton>
-                          <Popups
-                            title="Remove record"
-                            message="Do you really want to delete this record? This action is irreversible."
-                            onConfirm={async () => {
-                              await handleDelete(idx);
-                              notif({
-                                severity: 'success',
-                                message: 'Payment successfully deleted!',
-                              });
-                            }}
-                          >
-                            <IconButton
-                              sx={{
-                                bgcolor: '#fff3e0',
-                                color: '#000000ff',
-                                '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                              }}
-                              size="small"
-                            >
-                              <DeleteOutlineIcon />
-                            </IconButton>
-                          </Popups>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )
-              ) : jobChanges.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 3 }}>
-                    No job change records found.
-                  </TableCell>
-                </TableRow>
-              ) : visibleJobChanges.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 3 }}>
-                    Page out of range.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                visibleJobChanges.map((c, idx) => (
-                  <TableRow key={`${c.FullName}-${c.JobTitle}-${c.StartDate}-${idx}`}>
-                    <TableCell>{c.JobTitle}</TableCell>
-                    <TableCell>{c.DepartmentName}</TableCell>
-                    <TableCell>{c.StartDate}</TableCell>
-                    <TableCell>{c.EndDate || 'Present'}</TableCell>
-                    <TableCell>{c.FullName}</TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <IconButton
-                          onClick={() => openEdit(idx)}
-                          sx={{
-                            bgcolor: '#fff3e0',
-                            color: '#000000ff',
-                            '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                          }}
-                          size="small"
-                        >
-                          <EditOutlinedIcon />
-                        </IconButton>
-                        <Popups
-                          title="Remove record"
-                          message="Do you really want to delete this record? This action is irreversible."
-                          onConfirm={async () => {
-                            await handleDelete(idx);
-                            notif({
-                              severity: 'success',
-                              message: 'Job change successfully deleted!',
-                            });
-                          }}
-                        >
-                          <IconButton
-                            sx={{
-                              bgcolor: '#fff3e0',
-                              color: '#000000ff',
-                              '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                            }}
-                            size="small"
-                          >
-                            <DeleteOutlineIcon />
-                          </IconButton>
-                        </Popups>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-
-          <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-            {tab === PAYMENT_TAB ? (
-              <Pagination
-=======
         <SectionPaper noOverflow>
           {tab === PAYMENT_TAB ? (
             <>
@@ -1136,7 +912,6 @@ export default function HRRecords() {
                 getRowId={(r, idx) => `${r.FullName}-${r.RateChangeDate}-${idx}`}
               />
               <Paginator
->>>>>>> UI
                 count={paymentsCount}
                 page={paymentsPage}
                 onChange={(_, p) => setPaymentsPage(p)}
@@ -1158,7 +933,6 @@ export default function HRRecords() {
           )}
         </SectionPaper>
       </Container>
-
       <FormPopup
         open={dialogOpen}
         title={mode === 'add' ? 'Add Record' : 'Edit Record'}
@@ -1188,8 +962,7 @@ export default function HRRecords() {
         submitLabel="Save"
         submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
       />
-
-<<<<<<< HEAD
+      <Dialog open={dialogOpen} onClose={closeDialog} maxWidth="sm" fullWidth>
         <DialogContent dividers>
           <Stack spacing={1.5}>
             {tab === PAYMENT_TAB ? (
@@ -1385,7 +1158,6 @@ export default function HRRecords() {
           </Button>
         </DialogActions>
       </Dialog>
-=======
       <ConfirmPopup
         open={confirmOpen}
         title="Remove record"
@@ -1400,7 +1172,6 @@ export default function HRRecords() {
         confirmLabel="Delete"
         confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
       />
->>>>>>> UI
-    </Box>
+    </Box >
   );
 }
