@@ -74,16 +74,8 @@ export default function EmployeesList() {
     hireDate: '',
     password: '',
   });
-
   const [errors, setErrors] = useState({
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    email: '',
-    department: '',
-    jobTitle: '',
-    hireDate: '',
-    password: '',
+    firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '',
   });
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -299,6 +291,7 @@ export default function EmployeesList() {
     }
     if (Users.length === 0) fetchData();
   }, [Users.length, navigate, notifs]);
+
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>

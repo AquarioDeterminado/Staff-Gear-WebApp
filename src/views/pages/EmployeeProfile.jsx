@@ -20,16 +20,14 @@ import WorkIcon from '@mui/icons-material/Work';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import PersonIcon from '@mui/icons-material/Person';
 import KeyIcon from '@mui/icons-material/Key';
-
 import HeaderBar from '../components/layout/HeaderBar';
 import { useNavigate } from 'react-router-dom';
 import EmployeeService from '../../services/EmployeeService';
 import UserSession from '../../utils/UserSession';
 import ErrorHandler from '../../utils/ErrorHandler';
-import useNotification from '../../utils/UseNotification';
-
 import ProfileFieldCard from '../components/ui/ProfileFieldCard';
 import FormPopup from '../components/ui/popups/FormPopup';
+import useNotification from '../../utils/UseNotification';
 
 const CARD_W = 280;
 const EMAIL_W = 360;

@@ -123,6 +123,7 @@ export default function CandidatesView() {
         deps.sort();
         setDepartments(deps);
       } catch (err) {
+        console.error('Error fetching departments:', err);
       }
     }
     fetchCandidates();
