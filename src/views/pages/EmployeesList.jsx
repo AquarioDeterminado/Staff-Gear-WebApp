@@ -39,7 +39,7 @@ import AddIcon from '@mui/icons-material/AddCircleOutline';
 import ErrorHandler from '../../utils/ErrorHandler';
 import useNotification from '../../utils/UseNotification';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
-import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
+import { CapitalizeFirstLetter, FormatDate } from '../../utils/FormatingUtils';
 
 const SORTING_ASCENDING = 'asc';
 const SORTING_DESCENDING = 'desc';
@@ -56,7 +56,12 @@ export default function EmployeesList() {
 
   const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessEntityID)) + 1);
 
-  const columns = [{label: 'Business ID', parameter: 'BusinessEntityID'}, {label: 'Name', parameter: 'FirstName'}, {label: 'Email', parameter: 'Email'}, {label: 'Department', parameter: 'Department'}, {label: 'Job Title', parameter: 'JobTitle'}, {label: 'Hire Date', parameter: 'HireDate'}];
+  const columns = [{label: 'Business ID', field: 'BusinessEntityID'}, 
+                  {label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`}, 
+                  {label: 'Email', field: 'Email'}, 
+                  {label: 'Department', field: 'Department'}, 
+                  {label: 'Job Title', field: 'JobTitle'}, 
+                  {label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate)}];
 
   const [sorting, setSorting] = useState({ parameter: '', order: '' });
   

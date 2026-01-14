@@ -8,11 +8,10 @@ import {
   TextField,
   Select,
   MenuItem,
-  Collapse,
-  InputLabel,
-  Autocomplete,
-  Menu,
   Dialog,
+  DialogContent,
+  DialogActions,
+  InputAdornment,
 } from '@mui/material';
 
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -37,6 +36,7 @@ import { StyledTabs, StyledTab } from '../components/ui/surfaces/StyledTabs';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import FormPopup from '../components/ui/popups/FormPopup';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
+import { FormatCurrency, FormatPayFrequency, FormatDate } from '../../utils/FormatingUtils';
 
 const PAYMENT_TAB = 0;
 const JOB_CHANGE_TAB = 1;
@@ -78,9 +78,15 @@ export default function HRRecords() {
   const [filterJobChangesExpanded, setFilterJobChangesExpanded] = useState(false);
 
   // Columns
-  const paymentsColumns = [{ label: 'Rate', parameter: 'Rate' }, { label: 'Rate Change Date', parameter: 'RateChangeDate' }, { label: 'Pay Frequency', parameter: 'PayFrequency' }, { label: 'Employee', parameter: 'FullName' }];
-  const jobChangesColumns = [{ label: 'Job Title', parameter: 'JobTitle' }, { label: 'Department', parameter: 'DepartmentName' }, { label: 'Start Date', parameter: 'StartDate' }, { label: 'End Date', parameter: 'EndDate' }, { label: 'Employee', parameter: 'FullName' }];
-  const columns = tab === PAYMENT_TAB ? paymentsColumns : jobChangesColumns;
+  const paymentsColumns = [{ label: 'Rate', field: 'Rate', render: (r) => FormatCurrency(r.Rate) }, 
+                            { label: 'Rate Change Date', field: 'RateChangeDate', render: (r) => FormatDate(r.RateChangeDate) }, 
+                            { label: 'Pay Frequency', field: 'PayFrequency', render: (r) => FormatPayFrequency(r.PayFrequency) }, 
+                            { label: 'Employee', field: 'FullName' }];
+  const jobChangesColumns = [{ label: 'Job Title', field: 'JobTitle' }, 
+                              { label: 'Department', field: 'DepartmentName' },
+                              { label: 'Start Date', field: 'StartDate', render: (r) => FormatDate(r.StartDate)}, 
+                              { label: 'End Date', field: 'EndDate', render: (r) => FormatDate(r.EndDate)}, 
+                              { label: 'Employee', field: 'FullName' }];
 
   const [sorting, setSorting] = useState({ parameter: '', order: '' });
   // Pages
@@ -659,7 +665,7 @@ export default function HRRecords() {
   const payRows = visiblePayments.map((r, idx) => ({ ...r, __pageIndex: idx }));
   const jobRows = visibleJobChanges.map((r, idx) => ({ ...r, __pageIndex: idx }));
 
-  const paymentColumnsWithActions = paymentColumns.map((col) =>
+  const paymentColumnsWithActions = paymentsColumns.map((col) =>
     col.label !== 'Actions'
       ? col
       : {
@@ -690,7 +696,7 @@ export default function HRRecords() {
       }
   );
 
-  const jobColumnsWithActions = jobColumns.map((col) =>
+  const jobColumnsWithActions = jobChangesColumns.map((col) =>
     col.label !== 'Actions'
       ? col
       : {

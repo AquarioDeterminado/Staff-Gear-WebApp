@@ -21,6 +21,7 @@ import Paginator from '../components/table/Paginator';
 import { StyledTabs, StyledTab } from '../components/ui/surfaces/StyledTabs';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
+import { FormatDateTime } from '../../utils/FormatingUtils';
 
 const LOGS_TAB = 0;
 const USER_CHANGE_TAB = 1;
@@ -33,9 +34,17 @@ export default function AdminConsole() {
     const [logs, setLogs] = useState([]);
 
     // --- Colunas ---
-    const logsColumns = [{ label: 'ID', parameter: 'LogID' }, { label: 'Actor ID', parameter: 'ActorID' }, { label: 'Target', parameter: 'Target' }, { label: 'Action', parameter: 'Action' }, {label:'Description'}, { label: 'Created At', parameter: 'CreatedAt' }];
-    const usersColumns = [{ label: 'User ID', parameter: 'UserID' }, { label: 'Username', parameter: 'Username' }, { label: 'Employee ID', parameter: 'EmployeeId' }, { label: 'Is Active', parameter: 'IsActive' }, { label: 'Role', parameter: 'Role' }];
-    const columns = tab === LOGS_TAB ? logsColumns : usersColumns;
+    const logsColumns = [{ label: 'ID', field: 'LogID',  }, 
+                        { label: 'Actor ID', field: 'ActorID' }, 
+                        { label: 'Target', field: 'Target' }, 
+                        { label: 'Action', field: 'Action' }, 
+                        {label:'Description', field: 'Description'}, 
+                        { label: 'Created At', field: 'CreatedAt', render: (r) => FormatDateTime(r.CreatedAt)}];
+    const usersColumns = [{ label: 'User ID', field: 'UserID' }, 
+                          { label: 'Username', field: 'Username' }, 
+                          { label: 'Employee ID', field: 'EmployeeId' }, 
+                          { label: 'Is Active', field: 'IsActive', render: (r) => r.IsActive ? 'Yes' : 'No' }, 
+                          { label: 'Role', field: 'Role' }];
 
 
     const [filterExpanded, setFilterExpanded] = useState(true);

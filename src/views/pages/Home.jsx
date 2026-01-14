@@ -33,7 +33,7 @@ export default function Home() {
           }}
         >
           <Box sx={{ width: '100%', maxWidth: 680 }}>
-            <ApplyCandidateComponent />
+            <ApplyFormComponent />
           </Box>
         </Box>
         <Box

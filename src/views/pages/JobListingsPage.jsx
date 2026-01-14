@@ -12,7 +12,7 @@ import {
 import JobListingCard from '../components/JobListingCard';
 import JobListingService from '../../services/JobListingService';
 import useNotification from '../../utils/UseNotification';
-import HeaderBar from '../components/HeaderBar';
+import HeaderBar from '../components/layout/HeaderBar';
 
 const ITEMS_PER_PAGE = 10;
 

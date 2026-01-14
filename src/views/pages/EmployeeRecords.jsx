@@ -2,24 +2,19 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Container,
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Divider,
   Pagination,
 } from '@mui/material';
-
 import HeaderBar from '../components/layout/HeaderBar';
 import EmployeeService from '../../services/EmployeeService';
-import { useNavigate } from 'react-router-dom';
+import {useNavigate } from 'react-router-dom';
 import UserSession from '../../utils/UserSession';
 import useNotification from '../../utils/UseNotification';
 import { StyledTabs, StyledTab } from '../components/ui/surfaces/StyledTabs';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import DataTable from '../components/table/DataTable';
+
+const PAYMENTS_TAB = 0;
+const JOB_CHANGES_TAB = 1;
 
 export default function EmployeeRecords() {
   const [tab, setTab] = useState(0);
@@ -31,8 +26,10 @@ export default function EmployeeRecords() {
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
 
-  const paymentsColumns = ['Date - Changed Rate', 'Rate', 'Pay Frequency'];
-  const jobChangesColumns = ['Job Title', 'Department', 'Start Date', 'End Date'];
+  const paymentsColumns = [{label: 'Rate Changed Rate', field: 'RateChangeDate', render: (r) => new Date(r.RateChangeDate).toLocaleDateString()}, 
+                            {label: 'Rate', field: 'Rate', render: (r) => `${r.Rate}€`}, 
+                            {label: 'Pay Frequency', field: 'PayFrequency', render: (r) => r.PayFrequency === 1 ? 'Monthly' :  'Biweekly'}];
+  const jobChangesColumns = [{label: 'Job Title', field: 'JobTitle'}, {label: 'Department', field: 'DepartmentName'}, {label: 'Start Date', field: 'StartDate', render: (r) => new Date(r.StartDate).toLocaleDateString()}, {label: 'End Date', field: 'EndDate', render: (r) => r.EndDate ? new Date(r.EndDate).toLocaleDateString() : 'Present'}];
   const columns = tab === 0 ? paymentsColumns : jobChangesColumns;
 
   const [paymentsPage, setPaymentsPage] = useState(1);
@@ -86,7 +83,9 @@ export default function EmployeeRecords() {
     [jobChanges, jobChangesStart]
   );
 
-  const handleTabChange = (_e, v) => setTab(v);
+  const handleTabChange = (_e, v) => {
+    setTab(v);
+  };
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
@@ -104,7 +103,7 @@ export default function EmployeeRecords() {
       <SectionPaper>
         <DataTable 
           columns={columns}
-          
+          rows={tab === PAYMENTS_TAB ? visiblePayments : visibleJobChanges}
         />
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
           {tab === 0 ? (

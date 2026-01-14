@@ -57,7 +57,7 @@ export default function DataTable({
               >
                 {columns.map((col) => (
                   <TableCell key={(col.id ?? col.label) + String(id)} align={col.align ?? 'left'}>
-                    {typeof col.render === 'function' ? col.render(row) : row[col.field]}
+                    {typeof col.render === 'function' ? col.render(row) : row[col.field]} 
                   </TableCell>
                 ))}
               </TableRow>

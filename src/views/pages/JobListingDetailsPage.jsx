@@ -18,7 +18,7 @@ import { AccessTime, LocationOn, Work, Business, Description, Send, ArrowDownwar
 import JobListingService from '../../services/JobListingService';
 import ApplyFormComponent from '../components/ApplyFormComponent';
 import useNotification from '../../utils/UseNotification';
-import HeaderBar from '../components/HeaderBar';
+import HeaderBar from '../components/layout/HeaderBar';
 
 const formatJobType = (type) => {
   const types = {
