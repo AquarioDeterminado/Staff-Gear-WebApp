@@ -52,7 +52,6 @@ export default function HeaderBar() {
         if (isAuthenticated) {
           var notifs = await NoticationService.getAllNotifications(BusinessId);
           setNotifications(Array.isArray(notifs) ? notifs : []);
-          console.log(notifs);
         }
       } catch (error) {
         console.error('Error fetching notifications:', error);

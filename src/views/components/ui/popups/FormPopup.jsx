@@ -18,7 +18,6 @@ export default function FormPopup({
   cancelSx,
   maxWidth = 'sm',
   contentProps,
-  submitDisabled = false,
   loading = false,
 }) {
   return (
@@ -57,7 +56,29 @@ export default function FormPopup({
                   ))}
                 </TextField>
               );
-            }
+            }else if (f.type === 'date') {
+              return (
+                <TextField
+                  key={idx}
+                  type="date"
+                  label={f.label}
+                  value={f.value ?? ''}
+                  onChange={(e) => f.onChange?.(e.target.value)}
+                  size="small"
+                  fullWidth
+                  required={!!f.required}
+                  InputLabelProps={{ shrink: true }}
+                  error={!!f.error}
+                  helperText={f.error}
+                />
+              );
+            } else if (f.type === 'custom' && f.render ) {
+              return (
+                <div key={idx}>
+                  {f.render(f.error)}
+                </div>
+              );
+            } 
 
             return (
               <TextField
@@ -88,7 +109,7 @@ export default function FormPopup({
         <Button
           onClick={onSubmit}
           variant="contained"
-          disabled={submitDisabled || loading}
+          disabled={loading}
           sx={{
             bgcolor: '#000',
             color: '#fff',

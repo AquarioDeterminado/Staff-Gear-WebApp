@@ -56,14 +56,12 @@ export default function EmployeesList() {
 
   const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessEntityID)) + 1);
 
-  const columns = [{label: 'Business ID', field: 'BusinessEntityID'}, 
-                  {label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`}, 
-                  {label: 'Email', field: 'Email'}, 
-                  {label: 'Department', field: 'Department'}, 
-                  {label: 'Job Title', field: 'JobTitle'}, 
-                  {label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate)}];
-
-  const [sorting, setSorting] = useState({ parameter: '', order: '' });
+  const columns = [{label: 'Business ID', field: 'BusinessEntityID', sortable: true}, 
+                  {label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`, sortable: true}, 
+                  {label: 'Email', field: 'Email', sortable: true}, 
+                  {label: 'Department', field: 'Department', sortable: true}, 
+                  {label: 'Job Title', field: 'JobTitle', sortable: true}, 
+                  {label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true}];
   
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -101,8 +99,9 @@ export default function EmployeesList() {
           ? ''
           : 'Format should be yyyy-mm-dd.'
         : 'Mandatory.',
-      password: curr.password == '' || curr.password?.trim() ? '' : 'Mandatory.',
+      password: curr.password !== '' && curr.password?.trim() ? '' : 'Mandatory.',
     };
+    console.log('Validation', { curr, newErrors });
     setErrors(newErrors);
     return Object.values(newErrors).every((e) => e === '');
   };
@@ -161,54 +160,6 @@ export default function EmployeesList() {
     });
   }, [Users, filterBusinessId, filterName, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterDepartment, filterJobTitle]);
 
-  const canSave = useMemo(() => {
-    const allFilled = [form.firstName, form.lastName, form.email, form.department, form.hireDate]
-      .every((v) => v && v.trim().length > 0);
-    const emailOk = isValidEmailBasic(form.email ?? '');
-    const dateOk = isValidDateYMD(form.hireDate ?? '');
-    return allFilled && emailOk && dateOk && (mode === 'add' ? !!form.password?.trim() : true);
-  }, [form, mode]);
-
-  function clickHeader(parameter) {
-    let sortingOrder = sorting.parameter === parameter && sorting.order === SORTING_ASCENDING ? SORTING_DESCENDING : sorting.order === SORTING_DESCENDING ? '' : SORTING_ASCENDING;
-    setSorting({ "parameter": parameter, "order": sortingOrder });
-    var sorted = [];
-    sorted = Users;
-    if (sortingOrder === "") {
-      sorted = [...Users].sort((a, b) => {
-        if (a["HireDate"] < b["HireDate"]) return -1;
-        if (a["HireDate"] > b["HireDate"]) return 1;
-        return 0;
-      });
-    } else if (sortingOrder === SORTING_DESCENDING) {
-      sorted = [...Users].sort((a, b) => {
-        if (a[parameter] > b[parameter]) return -1;
-        if (a[parameter] < b[parameter]) return 1;
-        return 0;
-      });
-    } else if (sortingOrder === SORTING_ASCENDING) {
-      sorted = [...Users].sort((a, b) => {
-        if (a[parameter] < b[parameter]) return -1;
-        if (a[parameter] > b[parameter]) return 1;
-        return 0;
-      });
-    }
-
-    console.log(sorting);
-    setUsers(sorted);
-  }
-  
-  const ROWS_PER_PAGE = 10;
-  const [page, setPage] = useState(1);
-
-  const pageCount = Math.max(1, Math.ceil(filteredEmployees.length / ROWS_PER_PAGE));
-  const startIndex = (page - 1) * ROWS_PER_PAGE;
-  const visibleUsers = useMemo(
-    () => filteredEmployees.slice(startIndex, startIndex + ROWS_PER_PAGE),
-    [filteredEmployees, startIndex]
-  );
-
-  useEffect(() => { setPage(1); }, [Users]);
 
   const handleOpenAdd = () => {
     setMode('add');
@@ -216,27 +167,13 @@ export default function EmployeesList() {
     setErrors({ firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '' });
     setDialogOpen(true);
   };
-  const handleOpenEdit = (row) => {
-    setMode('edit');
-    setForm({
-      businessId: row.BusinessEntityID,
-      firstName: row.FirstName ?? '',
-      middleName: row.MiddleName ?? '',
-      lastName: row.LastName ?? '',
-      email: row.Email ?? '',
-      department: row.Department ?? '',
-      jobTitle: row.JobTitle ?? '',
-      hireDate: row.HireDate ?? '',
-      password: '',
-    });
-    setErrors({ firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '' });
-    setDialogOpen(true);
-    console.log(form);
-  };
+
   const handleClose = () => setDialogOpen(false);
 
   const handleSave = async () => {
+    console.log('Saving form', form);
     const ok = validateForm(form);
+    console.log(ok);
     if (!ok) return;
     try {
       if (mode === 'add') {
@@ -335,7 +272,6 @@ export default function EmployeesList() {
                     value={filterBusinessId}
                     onChange={(e) => {
                       setFilterBusinessId(e.target.value);
-                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -345,7 +281,6 @@ export default function EmployeesList() {
                     value={filterName}
                     onChange={(e) => {
                       setFilterName(e.target.value);
-                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -357,7 +292,6 @@ export default function EmployeesList() {
                     value={filterEmail}
                     onChange={(e) => {
                       setFilterEmail(e.target.value);
-                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -368,7 +302,6 @@ export default function EmployeesList() {
                     value={filterEntryDateFrom}
                     onChange={(e) => {
                       setFilterEntryDateFrom(e.target.value);
-                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -380,7 +313,6 @@ export default function EmployeesList() {
                     value={filterEntryDateTo}
                     onChange={(e) => {
                       setFilterEntryDateTo(e.target.value);
-                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -389,20 +321,18 @@ export default function EmployeesList() {
                 </Stack>
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent={"space-evenly"} >
                   <DepartmentSelectField
-                    onChange={(e) => {
-                      setFilterDepartment(e.target.value);
-                      setPage(1);
+                    onChange={(v) => {
+                      setFilterDepartment(v);
                     }}
-                    inputvalue={filterDepartment}
                     width="100%"
                     error={null}
+                    autoWidth={true}
                   />
                   <TextField
                     label="Job Title"
                     value={filterJobTitle}
                     onChange={(e) => {
                       setFilterJobTitle(e.target.value);
-                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -417,8 +347,7 @@ export default function EmployeesList() {
         </Card>
 
         <SectionPaper>
-          <DataTable columns={columns} rows={visibleUsers} getRowId={(r) => r.BusinessEntityID} />
-          <Paginator count={pageCount} page={page} onChange={(_, p) => setPage(p)} />
+          <DataTable columns={columns} rows={filteredEmployees} setRows={setUsers} getRowId={(r) => r.BusinessEntityID} />
         </SectionPaper>
       </Container>
 
@@ -430,9 +359,9 @@ export default function EmployeesList() {
           { type: 'text',     label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
           { type: 'text',     label: 'Last Name',  value: form.lastName,   onChange: setField('lastName'),   required: true, error: !!errors.lastName,   helperText: errors.lastName },
           { type: 'email',    label: 'Email',      value: form.email,      onChange: setField('email'),      required: true, error: !!errors.email,      helperText: errors.email },
-          { type: 'text',     label: 'Department', value: form.department, onChange: setField('department'), required: true, error: !!errors.department, helperText: errors.department },
+          { type: 'custom', render: () => <DepartmentSelectField label="Department" value={form.DepartmentName} onChange={setField('department')} error={errors.DepartmentName} fullWidth={true} /> },
           { type: 'text',     label: 'Job Title',  value: form.jobTitle,   onChange: setField('jobTitle'),   required: true, error: !!errors.jobTitle,   helperText: errors.jobTitle },
-          { type: 'text',     label: 'Hire Date',  value: form.hireDate,   onChange: setField('hireDate'),   required: true, error: !!errors.hireDate,   helperText: errors.hireDate },
+          { type: 'date',     label: 'Hire Date',  value: form.hireDate,   onChange: setField('hireDate'),   required: true, error: !!errors.hireDate,   helperText: errors.hireDate },
           ...(mode === 'add'
             ? [{ type: 'password', label: 'Password', value: form.password, onChange: setField('password'), required: true, error: !!errors.password, helperText: errors.password }]
             : [])
@@ -440,7 +369,6 @@ export default function EmployeesList() {
         onCancel={handleClose}
         onSubmit={handleSave}
         submitLabel="Save"
-        submitDisabled={!canSave}
         submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
       />
 
