@@ -19,7 +19,6 @@ export function setAuthToken(token) {
 const storedToken = localStorage.getItem('access_token');
 if (storedToken) {
   setAuthToken(storedToken);
-  console.log('Token restored from the local storage when initializing');
 }
 
 api.interceptors.response.use(
