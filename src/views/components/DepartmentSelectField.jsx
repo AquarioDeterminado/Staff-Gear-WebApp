@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Select, MenuItem} from '@mui/material';
 import EmployeeService from '../../services/EmployeeService';
 
-export const DepartmentSelectField = ({value, onChange, error, fullWidth = false, autoWidth = false}) => {
+export const DepartmentSelectField = ({value, onChange, error, fullWidth = false, autoWidth = false, sx = {}}) => {
   const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
@@ -25,6 +25,7 @@ export const DepartmentSelectField = ({value, onChange, error, fullWidth = false
       helperText={error}
       fullWidth={fullWidth}
       autoWidth={autoWidth}
+      sx={sx}
     >
       <MenuItem value="">All Departments</MenuItem>
       {departments.map((d) => (

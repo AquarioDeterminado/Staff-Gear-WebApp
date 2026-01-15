@@ -324,9 +324,8 @@ export default function EmployeesList() {
                     onChange={(v) => {
                       setFilterDepartment(v);
                     }}
-                    width="100%"
                     error={null}
-                    autoWidth={true}
+                    sx={{ flex: 1 }}
                   />
                   <TextField
                     label="Job Title"

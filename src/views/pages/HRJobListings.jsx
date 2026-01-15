@@ -131,13 +131,12 @@ export default function HRJobListings() {
               value={filterJobTitle}
               onChange={(e) => setFilterJobTitle(e.target.value)}
               size="small"
-              sx={{ flex: 1 }}
+              sx={{ flex: 2 }}
             />
             <DepartmentSelectField
               value={filterDepartment}
               onChange={(v) => setFilterDepartment(v)}
-              fullWidth
-              autoWidth
+              sx={{ flex: 1 }}
             />
             <Select
               value={filterStatus}

@@ -787,7 +787,7 @@ export default function HRRecords() {
                   setJobChangesPage(1);
                 }}
                 size="small"
-                sx={{ flex: 1 }}
+                sx={{ flex: 2 }}
               />
               <Select
                 value={filterDepartment}
