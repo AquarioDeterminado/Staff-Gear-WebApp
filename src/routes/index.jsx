@@ -19,8 +19,8 @@ const router = createBrowserRouter(
     <>
       <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
       <Route path="/login" element={<PublicRoute><LogInPage /></PublicRoute>} />
-      <Route path="/job-listings" element={<PublicRoute><JobListingsPage /></PublicRoute>} />
-      <Route path="/job-listings/:id" element={<PublicRoute><JobListingDetailsPage /></PublicRoute>} />
+      <Route path="/job-listings" element={<JobListingsPage />} />
+      <Route path="/job-listings/:id" element={<JobListingDetailsPage />} />
       <Route path="/candidates" element={<PrivateRoute><CandidatesList /></PrivateRoute>} />
       <Route path="/profile" element={<PrivateRoute><EmployeeProfile /></PrivateRoute>} />
       <Route path="/employees" element={<PrivateRoute><EmployeesList /></PrivateRoute>} />
