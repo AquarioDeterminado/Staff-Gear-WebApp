@@ -67,9 +67,6 @@ export default function EmployeeRecords() {
     fetchData();
   }, [BusinessID, navigate, notifs]);
 
-  const paymentsCount = Math.max(1, Math.ceil(payments.length / ROWS_PER_PAGE));
-  const jobChangesCount = Math.max(1, Math.ceil(jobChanges.length / ROWS_PER_PAGE));
-
   const paymentsStart = (paymentsPage - 1) * ROWS_PER_PAGE;
   const jobChangesStart = (jobChangesPage - 1) * ROWS_PER_PAGE;
 
@@ -105,23 +102,6 @@ export default function EmployeeRecords() {
           columns={columns}
           rows={tab === PAYMENTS_TAB ? visiblePayments : visibleJobChanges}
         />
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-          {tab === 0 ? (
-            <Pagination
-              count={Math.max(1, paymentsCount)}
-              page={paymentsPage}
-              onChange={(_, p) => setPaymentsPage(p)}
-              sx={{ '& .MuiPaginationItem-root.Mui-selected': { bgcolor: '#ff9800', color: '#fff' } }}
-            />
-          ) : (
-            <Pagination
-              count={Math.max(1, jobChangesCount)}
-              page={jobChangesPage}
-              onChange={(_, p) => setJobChangesPage(p)}
-              sx={{ '& .MuiPaginationItem-root.Mui-selected': { bgcolor: '#ff9800', color: '#fff' } }}
-            />
-          )}
-        </Box>
       </SectionPaper>
 
       </Container>

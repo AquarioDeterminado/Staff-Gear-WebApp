@@ -58,14 +58,6 @@ export default function Login() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', px: 2 }}>
-      <Box
-        component="img"
-        src={logo}
-        alt="Staff Gear"
-        loading="lazy"
-        sx={{ height: { xs: 64, md: 120 }, mb: { xs: 2, md: 4 }, objectFit: 'contain' }}
-      />
 
       <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%', maxWidth: 420 }}>
         <Typography variant="h4" sx={ui.title}>
@@ -107,7 +99,6 @@ export default function Login() {
           {loading ? 'Entering' : 'Enter'}
         </Button>
       </Box>
-    </Box>
   );
 
   function checkInput() {

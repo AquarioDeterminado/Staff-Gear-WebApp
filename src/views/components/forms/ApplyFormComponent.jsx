@@ -8,8 +8,8 @@ import {
     Alert,
 } from '@mui/material';
 import { Send } from '@mui/icons-material';
-import CandidateService from '../../services/CandidateService';
-import useNotification from '../../utils/UseNotification';
+import CandidateService from '../../../services/CandidateService';
+import useNotification from '../../../utils/UseNotification';
 
 const ui = {
     title: {

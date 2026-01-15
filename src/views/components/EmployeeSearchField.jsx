@@ -29,7 +29,7 @@ export const EmployeeSearchField = ({ values, onChange, error }) => {
       value={inputEmployee}
       onChange={(event, newValue) => {
         setInputEmployee(newValue);
-        onChange(event, newValue);
+        onChange(newValue ? newValue.BusinessEntityID : null);
       }}
       options={employees ? employees.map((emp) => ({
         label: `${emp.FirstName} ${emp.LastName} (ID: ${emp.BusinessEntityID})`,

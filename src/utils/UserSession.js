@@ -14,7 +14,7 @@ const UserSession = {
     verifyAuthorize : function(navigator, status) {
         console.log('Verifying authorization for status:', status);
         // Treat 401, 403 and 405 as authorization failures and redirect to login/root
-        if (status === 401 || status === 403 || status === 405 || status === 500 || status === undefined) {
+        if (status === 401 || status === 403) {
             try {
                 localStorage.removeItem('access_token');
             } catch (e) {
