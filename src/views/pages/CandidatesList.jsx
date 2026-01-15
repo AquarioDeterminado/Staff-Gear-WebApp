@@ -24,7 +24,6 @@ export default function CandidatesView() {
   const showNotification = useNotification();
 
   const [rows, setRows] = useState([]);
-  const [page, setPage] = useState(1);
   const ROWS_PER_PAGE = 10;
 
   const [filterId, setFilterId] = useState('');
@@ -61,11 +60,6 @@ export default function CandidatesView() {
     }
     return result;
   }, [rows, filterId, searchQuery]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
-  const start = (page - 1) * ROWS_PER_PAGE;
-  const pageRows = filtered.slice(start, start + ROWS_PER_PAGE);
-  const pageRowsWithIdx = pageRows.map((r, idx) => ({ ...r, __pageIndex: idx }));
 
   const openAcceptDialog = (candidate) => {
     setCandidateToAccept(candidate);
@@ -241,20 +235,19 @@ export default function CandidatesView() {
           <SectionPaper sx={{ flex: 1 }}>
             <DataTable
               columns={columns}
-              rows={pageRowsWithIdx}
+              rows={filtered}
               getRowId={(r) => r.jobCandidateId}
               onRowClick={(r) => openDrawer(r)}
               tableSx={{ minWidth: 1000, tableLayout: 'auto' }}
               headSx={{ '& th': { backgroundColor: '#ffe0b2' } }}
             />
-            <Paginator count={pageCount} page={page} onChange={(_, p) => setPage(p)} />
           </SectionPaper>
 
           <FilterBox
             title="Filters"
             sticky
             width={260}
-            onClear={() => { setFilterId(''); setSearchQuery(''); setPage(1); }}
+            onClear={() => { setFilterId(''); setSearchQuery(''); }}
           >
             <TextField
               label="Name or Email"

@@ -11,9 +11,7 @@ const NotificationService = {
 
         if (!response || response.status !== 200 && response.status !== 204) {
             throw new Error('Error fetching notifications! Error code: ' + response?.status);
-        } else {
-            console.log('Notifications retrieved successfully!');
-        }
+        } 
 
         var notifications = [];
         for (let notif of response.data) {
