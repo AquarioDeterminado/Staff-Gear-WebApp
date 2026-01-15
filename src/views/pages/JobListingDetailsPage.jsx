@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { AccessTime, LocationOn, Work, Business, Description, Send, ArrowDownward } from '@mui/icons-material';
 import JobListingService from '../../services/JobListingService';
-import ApplyFormComponent from '../components/ApplyFormComponent';
+import ApplyFormComponent from '../components/forms/ApplyFormComponent';
 import useNotification from '../../utils/UseNotification';
 import HeaderBar from '../components/layout/HeaderBar';
 
@@ -51,13 +51,13 @@ const formatDate = (dateString) => {
 };
 
 const isVagaOpen = (status) => {
-  return Number(status) === 0; // 0 = Open
+  return Number(status) === 0;
 };
 
 const getStatusMessage = (status) => {
   const statusNum = Number(status);
   const messages = {
-    0: null, // Open - sem mensagem
+    0: null,
     1: 'This job listing is currently under review',
     2: 'This job listing has been closed',
   };
@@ -152,7 +152,6 @@ export default function JobListingDetailsPage() {
       <HeaderBar />
       <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack spacing={4} sx={{ alignItems: 'center' }}>
-        {/* Back Button */}
         <Box sx={{ alignSelf: 'flex-start', width: '100%' }}>
           <Button
             variant="text"
@@ -169,10 +168,8 @@ export default function JobListingDetailsPage() {
           </Button>
         </Box>
 
-        {/* Centered Content Wrapper */}
         <Box sx={{ width: '100%', maxWidth: '1000px' }}>
           <Stack spacing={4}>
-            {/* Header Section with Background */}
             <Box
               sx={{
                 position: 'relative',
@@ -183,7 +180,6 @@ export default function JobListingDetailsPage() {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
               }}
             >
-          {/* Posted Date - Top Right Corner */}
           <Box
             sx={{
               position: 'absolute',
@@ -207,7 +203,6 @@ export default function JobListingDetailsPage() {
             </Typography>
           </Box>
 
-          {/* Title */}
           <Typography
             variant="h3"
             sx={{
@@ -221,8 +216,6 @@ export default function JobListingDetailsPage() {
           >
             {jobListing.jobTitle}
           </Typography>
-
-          {/* Subtitle: Location and Type */}
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
             spacing={2}
@@ -247,7 +240,6 @@ export default function JobListingDetailsPage() {
           <Divider sx={{ my: 2 }} />
         </Box>
 
-        {/* Status Alert (if not open) */}
         {!vagaAberta && (
           <Alert
             severity="warning"
@@ -262,9 +254,7 @@ export default function JobListingDetailsPage() {
           </Alert>
         )}
 
-        {/* Main Content - Two Column Layout - Adjusted Proportions */}
         <Grid container spacing={4} sx={{ justifyContent: 'center' }}>
-          {/* Left Column - Job Description */}
           <Grid item xs={12} md={6}>
             <Paper
               sx={{
@@ -298,7 +288,6 @@ export default function JobListingDetailsPage() {
             </Paper>
           </Grid>
 
-          {/* Right Column - Apply Form - Larger */}
           <Grid item xs={12} md={7}>
             <Paper
               ref={formRef}
@@ -344,7 +333,6 @@ export default function JobListingDetailsPage() {
         </Box>
       </Stack>
 
-      {/* Floating Action Button - Scroll to Form */}
       {vagaAberta && (
     
     <Tooltip title="Submit Application" arrow placement="left">
