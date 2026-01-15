@@ -13,23 +13,12 @@ import {
   Avatar,
   Menu,
   MenuItem,
-  ListItemText,
-  Drawer,
-  Stack,
-  Divider,
-  List,
-  ListItemButton,
-  ListItemIcon
+  ListItemText
 } from '@mui/material';
 
-import MenuIcon from '@mui/icons-material/Menu';
-import HomeIcon from '@mui/icons-material/Home';
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
-import HistoryIcon from '@mui/icons-material/History';
-import GroupIcon from '@mui/icons-material/Group';
-import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import NoticationService from '../../../services/NotificationService';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../../../services/AuthService';
@@ -42,7 +31,6 @@ export default function HeaderBar() {
   const isAuthenticated = !!localStorage.getItem('access_token');
 
   const [notifications, setNotifications] = useState([]);
-
   const [anchorNotif, setAnchorNotif] = useState(null);
   const notifOpen = Boolean(anchorNotif);
 
@@ -50,7 +38,7 @@ export default function HeaderBar() {
     async function fetchNotifications() {
       try {
         if (isAuthenticated) {
-          var notifs = await NoticationService.getAllNotifications(BusinessId);
+          const notifs = await NoticationService.getAllNotifications(BusinessId);
           setNotifications(Array.isArray(notifs) ? notifs : []);
         }
       } catch (error) {
@@ -70,8 +58,14 @@ export default function HeaderBar() {
   }
 
   function sendToPage(message) {
-    console.log(message);
-    if (message.includes('New Payment History Added') || message.includes('New Department Movement Added') || message.includes('Payment History Deleted') || message.includes('Department Movement Deleted') || message.includes('Payment History Updated') || message.includes('Department Movement Updated')) {
+    if (
+      message.includes('New Payment History Added') ||
+      message.includes('New Department Movement Added') ||
+      message.includes('Payment History Deleted') ||
+      message.includes('Department Movement Deleted') ||
+      message.includes('Payment History Updated') ||
+      message.includes('Department Movement Updated')
+    ) {
       navigate('/records');
     } else if (message.includes('has updated their information')) {
       navigate('/employees');
@@ -90,7 +84,6 @@ export default function HeaderBar() {
             minHeight: 64,
           }}
         >
-          {/* Hamburguer - Only show when authenticated */}
           {isAuthenticated && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <SideMenu />
@@ -119,16 +112,15 @@ export default function HeaderBar() {
             />
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, marginLeft: 'auto' }}>
+          <Box sx={{ display: 'flex', color: '#FFF4E6', alignItems: 'center', gap: 1.5, marginLeft: 'auto' }}>
             {isAuthenticated ? (
               <>
-                {/* Authenticated header: Notifications, Logout, Profile */}
                 <IconButton onClick={(e) => setAnchorNotif(e.currentTarget)} aria-label="notificações">
                   <Badge badgeContent={notifications.length} color="error">
                     <NotificationsIcon sx={{ fontSize: 26 }} />
                   </Badge>
                 </IconButton>
-                
+
                 <Button
                   variant="contained"
                   startIcon={<LogoutIcon />}
@@ -140,7 +132,10 @@ export default function HeaderBar() {
                     px: 2,
                     '&:hover': { bgcolor: '#222' }
                   }}
-                  onClick={() => { AuthService.logout(); navigate('/'); }}
+                  onClick={() => {
+                    AuthService.logout();
+                    navigate('/');
+                  }}
                 >
                   Log out
                 </Button>
@@ -153,7 +148,6 @@ export default function HeaderBar() {
               </>
             ) : (
               <>
-                {/* Public header: Home and Login buttons */}
                 <Button
                   variant="text"
                   sx={{
@@ -163,7 +157,10 @@ export default function HeaderBar() {
                     px: 2,
                     '&:hover': { bgcolor: '#f5f5f5' }
                   }}
-                  onClick={() => navigate('/')}
+                  onClick={() => {
+                    sessionStorage.removeItem('last_non_login_path');
+                    navigate('/');
+                  }}
                 >
                   Home
                 </Button>
@@ -178,8 +175,7 @@ export default function HeaderBar() {
                     px: 2,
                     '&:hover': { bgcolor: '#222' }
                   }}
-                  disabled
-                  title="Login will be implemented soon"
+                  onClick={() => navigate('/login')}
                 >
                   Login
                 </Button>
@@ -189,7 +185,6 @@ export default function HeaderBar() {
         </Toolbar>
       </AppBar>
 
-      {/* Menu de notificações - Only show when authenticated */}
       {isAuthenticated && (
         <Menu
           anchorEl={anchorNotif}
@@ -202,7 +197,14 @@ export default function HeaderBar() {
           {notifications.length > 0 ? (
             notifications.map((n) => (
               <MenuItem key={n.NotificationID} divider>
-                <ListItemText primary={n.Message} secondary={new Date(n.CreatedAt).toLocaleString('fr-FR')} sx={{ mr: 2 }} onClick={() => {sendToPage(n.Message)}} />
+                <ListItemText
+                  primary={n.Message}
+                  secondary={new Date(n.CreatedAt).toLocaleString('fr-FR')}
+                  sx={{ mr: 2 }}
+                  onClick={() => {
+                    sendToPage(n.Message);
+                  }}
+                />
                 <Button
                   size="small"
                   color="error"
@@ -221,4 +223,5 @@ export default function HeaderBar() {
         </Menu>
       )}
     </>
-  )};
+  );
+}
