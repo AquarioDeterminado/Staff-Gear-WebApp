@@ -123,6 +123,21 @@ export default function HeaderBar() {
 
                 <Button
                   variant="contained"
+                  sx={{
+                    bgcolor: '#ff9800',
+                    color: '#fff',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 2,
+                    '&:hover': { bgcolor: '#e68a00' }
+                  }}
+                  onClick={() => navigate('/job-listings')}
+                >
+                  Apply Now!
+                </Button>
+
+                <Button
+                  variant="contained"
                   startIcon={<LogoutIcon />}
                   sx={{
                     bgcolor: '#000',
@@ -163,6 +178,21 @@ export default function HeaderBar() {
                   }}
                 >
                   Home
+                </Button>
+
+                <Button
+                  variant="contained"
+                  sx={{
+                    bgcolor: '#ff9800',
+                    color: '#fff',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 2,
+                    '&:hover': { bgcolor: '#e68a00' }
+                  }}
+                  onClick={() => navigate('/job-listings')}
+                >
+                  Apply Now!
                 </Button>
 
                 <Button
