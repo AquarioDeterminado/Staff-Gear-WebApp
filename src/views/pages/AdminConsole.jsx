@@ -21,6 +21,7 @@ import Paginator from '../components/table/Paginator';
 import { StyledTabs, StyledTab } from '../components/ui/surfaces/StyledTabs';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
+import FormPopup from '../components/ui/popups/FormPopup';
 import { FormatDateTime } from '../../utils/FormatingUtils';
 
 const LOGS_TAB = 0;
@@ -44,7 +45,16 @@ export default function AdminConsole() {
                           { label: 'Username', field: 'Username' }, 
                           { label: 'Employee ID', field: 'EmployeeId' }, 
                           { label: 'Is Active', field: 'IsActive', render: (r) => r.IsActive ? 'Yes' : 'No' }, 
-                          { label: 'Role', field: 'Role' }];
+                          { label: 'Role', field: 'Role' },
+                          { label: 'Action', field: 'action', render: (r) => (
+                            <IconButton 
+                              size="small" 
+                              onClick={() => handleRoleChangeRequest(r)}
+                              title="Edit Role"
+                            >
+                              <EditOutlinedIcon />
+                            </IconButton>
+                          )}];
 
 
     const [filterExpanded, setFilterExpanded] = useState(true);
@@ -210,10 +220,12 @@ export default function AdminConsole() {
         [filteredUsers, usersStart]
     );
 
-    // Popup de confirmação de mudança de Role
-  const [confirmOpen, setConfirmOpen] = useState(false);
+    // Popup de mudança de Role com FormPopup
+  const [formOpen, setFormOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [newRole, setNewRole] = useState('');
+  const [roleChangeReason, setRoleChangeReason] = useState('');
+  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     async function fetchData() {
@@ -237,29 +249,53 @@ export default function AdminConsole() {
 
   const handleTabChange = (_e, v) => setTab(v);
 
-  const handleRoleChangeRequest = (user, role) => {
+  const handleRoleChangeRequest = (user) => {
     setSelectedUser(user);
-    setNewRole(role);
-    setConfirmOpen(true);
+    setNewRole(user.Role || '');
+    setRoleChangeReason('');
+    setFormErrors({});
+    setFormOpen(true);
   };
 
-  const handleConfirmRoleChange = async () => {
-    if (!selectedUser || !newRole) return;
+  const handleSubmitRoleChange = async () => {
+    const errors = {};
+    
+    if (!newRole.trim()) {
+      errors.role = 'Role is required';
+    }
+    if (!roleChangeReason.trim()) {
+      errors.reason = 'Reason for role change is required';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
     setLoading(true);
     try {
-      const updatedUser = { ...selectedUser, Role: newRole };
-      await AdminService.updateUserRole(updatedUser);
+      await AdminService.updateUserRole(selectedUser.UserID, newRole, roleChangeReason);
       notif({ severity: 'success', message: 'User role updated successfully.' });
       setUsers(await AdminService.getUsers());
-    } catch (error) {
-      UserSession.verifyAuthorize(navigate, error?.status);
-      notif({ severity: 'error', message: 'Failed to update user role.' });
-    } finally {
-      setLoading(false);
-      setConfirmOpen(false);
+      setFormOpen(false);
       setSelectedUser(null);
       setNewRole('');
+      setRoleChangeReason('');
+      setFormErrors({});
+    } catch (error) {
+      UserSession.verifyAuthorize(navigate, error?.status);
+      notif({ severity: 'error', message: error?.response?.data?.error || 'Failed to update user role.' });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCancelRoleChange = () => {
+    setFormOpen(false);
+    setSelectedUser(null);
+    setNewRole('');
+    setRoleChangeReason('');
+    setFormErrors({});
   };
 
   const usersWithIdx = visibleUsers.map((r, idx) => ({ ...r, __pageIndex: idx }));
@@ -326,26 +362,44 @@ export default function AdminConsole() {
         </SectionPaper>
       </Container>
 
-      {/* Confirm Role Change */}
-      <ConfirmPopup
-        open={confirmOpen}
-        title="Confirm Role Change"
-        content={
-          selectedUser ? (
-            'Are you sure you want to change the role of ' +
-            selectedUser.Username +
-            ' to ' + newRole + '?'
-          ) : ''
-        }
-        onCancel={() => {
-          setConfirmOpen(false);
-          setSelectedUser(null);
-          setNewRole('');
-        }}
-        onConfirm={handleConfirmRoleChange}
-        confirmLabel="Confirm"
+      {/* Role Change Form */}
+      <FormPopup
+        open={formOpen}
+        title={`Change Role for ${selectedUser?.Username || ''}`}
+        fields={[
+          {
+            label: 'New Role',
+            type: 'select',
+            value: newRole,
+            onChange: (val) => {
+              setNewRole(val);
+              setFormErrors({ ...formErrors, role: '' });
+            },
+            options: [
+              { label: 'Admin', value: 'Admin' },
+              { label: 'HR', value: 'HR' },
+              { label: 'Employee', value: 'Employee' }
+            ],
+            required: true,
+            error: formErrors.role
+          },
+          {
+            label: 'Reason for Change',
+            type: 'text',
+            value: roleChangeReason,
+            onChange: (val) => {
+              setRoleChangeReason(val);
+              setFormErrors({ ...formErrors, reason: '' });
+            },
+            required: true,
+            error: formErrors.reason
+          }
+        ]}
+        onCancel={handleCancelRoleChange}
+        onSubmit={handleSubmitRoleChange}
+        submitLabel="Update Role"
         loading={loading}
-        confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
+        submitDisabled={!newRole || !roleChangeReason}
       />
     </Box>
   );
