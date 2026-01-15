@@ -216,8 +216,6 @@ export default function AdminConsole() {
     setFormErrors({});
   };
 
-  const usersWithIdx = visibleUsers.map((r, idx) => ({ ...r, __pageIndex: idx }));
-
   useEffect(() => {
     async function fetchData() {
       try {
