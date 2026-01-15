@@ -9,6 +9,7 @@ import HRRecords from '../views/pages/HRRecords';
 import AdminConsole from '../views/pages/AdminConsole';
 import JobListingsPage from '../views/pages/JobListingsPage';
 import JobListingDetailsPage from '../views/pages/JobListingDetailsPage';
+import HRJobListings from '../views/pages/HRJobListings';
 import PrivateRoute from '../views/components/routing/PrivateRoute';
 
 // ==============================|| ROUTING RENDER ||============================== //
@@ -23,6 +24,7 @@ const router = createBrowserRouter(createRoutesFromElements (
             <Route path="/employees" element={<PrivateRoute><EmployeesList /></PrivateRoute>} />
             <Route path="/records" element={<PrivateRoute><EmployeeRecords /></PrivateRoute>} />
             <Route path="/hr/records" element={<PrivateRoute><HRRecords /></PrivateRoute>} />
+            <Route path="/hr/job-listings" element={<PrivateRoute><HRJobListings /></PrivateRoute>} />
             <Route path="/admin" element={<PrivateRoute><AdminConsole /></PrivateRoute>} />
             
 
