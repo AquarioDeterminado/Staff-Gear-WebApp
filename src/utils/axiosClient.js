@@ -30,7 +30,9 @@ api.interceptors.response.use(
         // Remove token and redirect user to login
         try {
           setAuthToken(null);
-        } catch {}
+        } catch {
+          console.error('Error removing auth token during 401 handling');
+        }
         // Use location replace to avoid keeping protected page in history
         // Redirect to root where the login/apply UI lives
         if (typeof window !== 'undefined') window.location.replace('/');
