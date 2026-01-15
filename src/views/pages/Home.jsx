@@ -50,7 +50,7 @@ export default function Home() {
           }}
           onClick={() => navigate('/job-listings')}
         >
-          Veja aqui as oportunidades de trabalho
+          Check here the job opportunities!
         </Button>
         <Stack
           direction="row"
