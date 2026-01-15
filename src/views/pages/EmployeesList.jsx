@@ -40,14 +40,13 @@ import ErrorHandler from '../../utils/ErrorHandler';
 import useNotification from '../../utils/UseNotification';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
 import { CapitalizeFirstLetter, FormatDate } from '../../utils/FormatingUtils';
-
-const SORTING_ASCENDING = 'asc';
-const SORTING_DESCENDING = 'desc';
 import DataTable from '../components/table/DataTable';
 import Paginator from '../components/table/Paginator';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import FormPopup from '../components/ui/popups/FormPopup';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
+import { EditRowButton } from '../components/ui/buttons/EditRowButton';
+import { DeleteRowButton } from '../components/ui/buttons/DeleteRowButton';
 
 export default function EmployeesList() {
   const navigate = useNavigate();
@@ -56,12 +55,21 @@ export default function EmployeesList() {
 
   const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessEntityID)) + 1);
 
+  const actionColum = {
+      label: 'Actions', field: 'actions', sortable: false, render: (r, idx) =>
+      (<Stack direction="row" spacing={1}>
+        <EditRowButton openEdit={handleOpenEdit} idx={idx} />
+        <DeleteRowButton openConfirm={setConfirmOpen} setConfirmIndex={setConfirmId} idx={idx} />
+      </Stack>)
+  };
+
   const columns = [{label: 'Business ID', field: 'BusinessEntityID', sortable: true}, 
                   {label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`, sortable: true}, 
                   {label: 'Email', field: 'Email', sortable: true}, 
                   {label: 'Department', field: 'Department', sortable: true}, 
                   {label: 'Job Title', field: 'JobTitle', sortable: true}, 
-                  {label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true}];
+                  {label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true},
+                  actionColum];
   
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -99,7 +107,7 @@ export default function EmployeesList() {
           ? ''
           : 'Format should be yyyy-mm-dd.'
         : 'Mandatory.',
-      password: curr.password !== '' && curr.password?.trim() ? '' : 'Mandatory.',
+      password: mode === 'edit' ? '' : (curr.password !== '' && curr.password?.trim() ? '' : 'Mandatory.'),
     };
     console.log('Validation', { curr, newErrors });
     setErrors(newErrors);
@@ -114,7 +122,7 @@ export default function EmployeesList() {
   const [filterEntryDateTo, setFilterEntryDateTo] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
   const [filterJobTitle, setFilterJobTitle] = useState('');
-  const handleClearFilterss = () => {
+  const handleClearFilters = () => {
     setFilterBusinessId('');
     setFilterName('');
     setFilterEmail('');
@@ -168,6 +176,24 @@ export default function EmployeesList() {
     setDialogOpen(true);
   };
 
+  const handleOpenEdit = (idx) => {
+    setMode('edit');
+    const emp = filteredEmployees[idx];
+    console.log('Editing employee', emp);
+    setForm({
+      businessId: emp.BusinessEntityID,
+      firstName: emp.FirstName,
+      middleName: emp.MiddleName,
+      lastName: emp.LastName,
+      email: emp.Email,
+      department: emp.Department,
+      jobTitle: emp.JobTitle,
+      hireDate: emp.HireDate,
+    });
+    setErrors({ firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '' });
+    setDialogOpen(true);
+  };
+
   const handleClose = () => setDialogOpen(false);
 
   const handleSave = async () => {
@@ -184,7 +210,7 @@ export default function EmployeesList() {
         setUsers(await EmployeeService.getAllEmployees());
         notifs({ severity: 'success', message: 'Employee created successfully!' });
       } else {
-        await EmployeeService.updateEmployee(form.businessId, {
+        await EmployeeService.updateEmployee(form.businessId, {BusinessEntityID: form.businessId,
           FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
           Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate,
         });
@@ -337,7 +363,7 @@ export default function EmployeesList() {
                     size="small"
                     sx={{ flex: 1 }}
                   />
-                  <Button variant="outlined" onClick={handleClearFilterss} sx={{ textTransform: 'none', fontWeight: 600 }}>
+                  <Button variant="outlined" onClick={handleClearFilters} sx={{ textTransform: 'none', fontWeight: 600 }}>
                     Clear Filters
                   </Button>
                 </Stack>

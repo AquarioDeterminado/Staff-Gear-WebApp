@@ -37,6 +37,8 @@ import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import FormPopup from '../components/ui/popups/FormPopup';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 import { FormatCurrency, FormatPayFrequency, FormatDate } from '../../utils/FormatingUtils';
+import { EditRowButton } from '../components/ui/buttons/EditRowButton';
+import { DeleteRowButton } from '../components/ui/buttons/DeleteRowButton';
 
 const PAYMENT_TAB = 0;
 const JOB_CHANGE_TAB = 1;
@@ -76,15 +78,26 @@ export default function HRRecords() {
   const [filterJobChangesExpanded, setFilterJobChangesExpanded] = useState(false);
 
   // Columns
-  const paymentsColumns = [{ label: 'Rate', field: 'Rate', render: (r) => FormatCurrency(r.Rate), sortable: true }, 
-                            { label: 'Rate Change Date', field: 'RateChangeDate', render: (r) => FormatDate(r.RateChangeDate), sortable: true }, 
-                            { label: 'Pay Frequency', field: 'PayFrequency', render: (r) => FormatPayFrequency(r.PayFrequency), sortable: true }, 
-                            { label: 'Employee', field: 'FullName', sortable: true }];
-  const jobChangesColumns = [{ label: 'Job Title', field: 'JobTitle', sortable: true }, 
-                              { label: 'Department', field: 'DepartmentName', sortable: true },
-                              { label: 'Start Date', field: 'StartDate', render: (r) => FormatDate(r.StartDate), sortable: true }, 
-                              { label: 'End Date', field: 'EndDate', render: (r) => FormatDate(r.EndDate), sortable: true }, 
-                              { label: 'Employee', field: 'FullName', sortable: true }];
+  const actionColum = {
+    label: 'Actions', field: 'actions', sortable: false, render: (r, idx) =>
+    (<Stack direction="row" spacing={1}>
+      <EditRowButton openEdit={openEdit} idx={idx} />
+      <DeleteRowButton openConfirm={setConfirmOpen} setConfirmIndex={setConfirmIndex} idx={idx} />
+    </Stack>)
+  };
+
+  const paymentsColumns = [{ label: 'Rate', field: 'Rate', render: (r) => FormatCurrency(r.Rate), sortable: true },
+  { label: 'Rate Change Date', field: 'RateChangeDate', render: (r) => FormatDate(r.RateChangeDate), sortable: true },
+  { label: 'Pay Frequency', field: 'PayFrequency', render: (r) => FormatPayFrequency(r.PayFrequency), sortable: true },
+  { label: 'Employee', field: 'FullName', sortable: true },
+    actionColum];
+  const jobChangesColumns = [{ label: 'Job Title', field: 'JobTitle', sortable: true },
+  { label: 'Department', field: 'DepartmentName', sortable: true },
+  { label: 'Start Date', field: 'StartDate', render: (r) => FormatDate(r.StartDate), sortable: true },
+  { label: 'End Date', field: 'EndDate', render: (r) => FormatDate(r.EndDate), sortable: true },
+  { label: 'Employee', field: 'FullName', sortable: true },
+    actionColum
+  ];
 
   // Pages
   const [paymentsPage, setPaymentsPage] = useState(1);
@@ -303,6 +316,8 @@ export default function HRRecords() {
 
     if (tab === PAYMENT_TAB) {
       const item = payments[realIndex];
+      console.log(item);
+
       setForm({
         BusinessEntityID: item?.BusinessEntityID || '',
         Rate: (item?.Rate || '').toString().trim() ? item?.Rate : `€${item?.Rate ?? ''}`,
@@ -597,11 +612,11 @@ export default function HRRecords() {
       ? col
       : {
         ...col,
-        render: (row) => (
+        render: (row, idx) => (
           <Stack direction="row" spacing={1}>
             <IconButton
               aria-label="edit"
-              onClick={() => openEdit(row.__pageIndex)}
+              onClick={() => openEdit(idx)}
               sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
               size="small"
             >
@@ -610,7 +625,7 @@ export default function HRRecords() {
 
             <IconButton
               onClick={() => {
-                setConfirmIndex(row.__pageIndex);
+                setConfirmIndex(idx);
                 setConfirmOpen(true);
               }}
               sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
@@ -628,10 +643,10 @@ export default function HRRecords() {
       ? col
       : {
         ...col,
-        render: (row) => (
+        render: (row, idx) => (
           <Stack direction="row" spacing={1}>
             <IconButton
-              onClick={() => openEdit(row.__pageIndex)}
+              onClick={() => openEdit(idx)}
               sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
               size="small"
             >
@@ -640,7 +655,7 @@ export default function HRRecords() {
 
             <IconButton
               onClick={() => {
-                setConfirmIndex(row.__pageIndex);
+                setConfirmIndex(idx);
                 setConfirmOpen(true);
               }}
               sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
@@ -838,20 +853,20 @@ export default function HRRecords() {
 
         <SectionPaper noOverflow>
           {tab === PAYMENT_TAB ? (
-              <DataTable
-                columns={paymentColumnsWithActions}
-                rows={filteredPayments}
-                setRows={setPayments}
-                getRowId={(r, idx) => `${r.FullName}-${r.RateChangeDate}-${idx}`}
-              />
+            <DataTable
+              columns={paymentColumnsWithActions}
+              rows={filteredPayments}
+              setRows={setPayments}
+              getRowId={(r, idx) => `${r.FullName}-${r.RateChangeDate}-${idx}`}
+            />
           ) : (
-              <DataTable
-                columns={jobColumnsWithActions}
-                rows={filteredJobChanges}
-                setRows={setJobChanges}
-                getRowId={(r, idx) => `${r.FullName}-${r.JobTitle}-${r.StartDate}-${idx}`}
-              />
-              
+            <DataTable
+              columns={jobColumnsWithActions}
+              rows={filteredJobChanges}
+              setRows={setJobChanges}
+              getRowId={(r, idx) => `${r.FullName}-${r.JobTitle}-${r.StartDate}-${idx}`}
+            />
+
           )}
         </SectionPaper>
       </Container>
@@ -862,22 +877,22 @@ export default function HRRecords() {
           tab === PAYMENT_TAB
             ? (mode === 'add'
               ? [
-                  { type: 'custom', render: () => <EmployeeSearchField  error={formErrors.BusinessEntityID} onChange={onChange('BusinessEntityID')} />},
-                  { type: 'date', label: 'Rate Change Date', value: form.RateChangeDate, onChange: onChange('RateChangeDate'), error: formErrors.RateChangeDate },
-                  { type: 'number', label: 'Rate', value: form.Rate, onChange: onChange('Rate'), error: formErrors.Rate },
-                  { type: 'select', label: 'Pay Frequency', options: [{label: 'Monthly', value: '1'}, {label: 'Biweekly', value: '2'}], value: form.PayFrequency, onChange: onChange('PayFrequency'), error: formErrors.PayFrequency },
-                ]
+                { type: 'custom', render: () => <EmployeeSearchField error={formErrors.BusinessEntityID} onChange={onChange('BusinessEntityID')} /> },
+                { type: 'date', label: 'Rate Change Date', value: form.RateChangeDate, onChange: onChange('RateChangeDate'), error: formErrors.RateChangeDate },
+                { type: 'number', label: 'Rate', value: form.Rate, onChange: onChange('Rate'), error: formErrors.Rate },
+                { type: 'select', label: 'Pay Frequency', options: [{ label: 'Monthly', value: '1' }, { label: 'Biweekly', value: '2' }], value: form.PayFrequency, onChange: onChange('PayFrequency'), error: formErrors.PayFrequency },
+              ]
               : [
-                  { type: 'number', label: 'Rate', value: form.Rate, onChange: onChange('Rate'), error: formErrors.Rate },
-                  { type: 'select', label: 'Pay Frequency', value: form.PayFrequency, onChange: onChange('PayFrequency'), error: formErrors.PayFrequency },
-                ])
+                { type: 'number', label: 'Rate', value: form.Rate, onChange: onChange('Rate'), error: formErrors.Rate },
+                { type: 'select', label: 'Pay Frequency', options: [{ label: 'Monthly', value: '1' }, { label: 'Biweekly', value: '2' }], value: form.PayFrequency, onChange: onChange('PayFrequency'), error: formErrors.PayFrequency },
+              ])
             : (mode === 'add'
               ? [
-                { type: 'text', label: 'Job Title', value: form.JobTitle, onChange: onChange('JobTitle'), required :true, error: formErrors.JobTitle },
+                { type: 'text', label: 'Job Title', value: form.JobTitle, onChange: onChange('JobTitle'), required: true, error: formErrors.JobTitle },
                 { type: 'custom', render: () => <DepartmentSelectField label="Department" value={form.DepartmentName} onChange={onChange('DepartmentName')} required={true} error={formErrors.DepartmentName} fullWidth={true} /> },
-                { type: 'date', label: 'Start Date', value: form.StartDate, onChange: onChange('StartDate'), required :true, error: formErrors.StartDate },
+                { type: 'date', label: 'Start Date', value: form.StartDate, onChange: onChange('StartDate'), required: true, error: formErrors.StartDate },
                 { type: 'date', label: 'End Date', value: form.EndDate, onChange: onChange('EndDate'), error: formErrors.EndDate },
-                { type: 'custom', render: () => <EmployeeSearchField  error={formErrors.BusinessEntityID} onChange={onChange('BusinessEntityID')} />},
+                { type: 'custom', render: () => <EmployeeSearchField error={formErrors.BusinessEntityID} onChange={onChange('BusinessEntityID')} /> },
               ] : [
                 { type: 'text', label: 'Job Title', value: form.JobTitle, onChange: onChange('JobTitle'), error: formErrors.JobTitle },
                 { type: 'custom', render: () => <DepartmentSelectField label="Department" value={form.DepartmentName} onChange={onChange('DepartmentName')} error={formErrors.DepartmentName} fullWidth={true} /> },
