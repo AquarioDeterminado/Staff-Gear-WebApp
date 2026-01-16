@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Container, Typography, TextField, Select, MenuItem, Stack, Button } from '@mui/material';
+import { Box, Container, Typography, TextField, Select, MenuItem, Stack, Button, IconButton } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import { useNavigate } from 'react-router-dom';
 import JobListingService from '../../services/JobListingService';
 import { FormatDate } from '../../utils/FormatingUtils';
@@ -10,6 +11,7 @@ import HeaderBar from '../components/layout/HeaderBar';
 import FilterPanel from '../components/filters/FilterPanel';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
 import CreateJobListingDialog from '../components/ui/dialogs/CreateJobListingDialog';
+import EditJobListingDialog from '../components/ui/dialogs/EditJobListingDialog';
 
 const statusMap = {
   0: 'Open',
@@ -39,6 +41,9 @@ export default function HRJobListings() {
   const [filterModifiedTo, setFilterModifiedTo] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [selectedJobListing, setSelectedJobListing] = useState(null);
 
   const columns = [
     { label: 'Job Title', field: 'jobTitle', sortable: true },
@@ -48,7 +53,24 @@ export default function HRJobListings() {
     { label: 'Status', field: 'status', render: (row) => getStatusLabel(row.status), sortable: true },
     { label: 'Posted Date', field: 'postedDate', render: (row) => FormatDate(row.postedDate), sortable: true },
     { label: 'Modified Date', field: 'modifiedDate', render: (row) => FormatDate(row.modifiedDate), sortable: true },
-    { label: 'Actions', field: 'actions', sortable: false }
+    { 
+      label: 'Actions', 
+      field: 'actions', 
+      sortable: false,
+      render: (row) => (
+        <IconButton 
+          size="small" 
+          onClick={(e) => {
+            e.stopPropagation();
+            handleEditClick(row);
+          }}
+          sx={{ color: '#ff9100' }}
+          title="Edit Job Listing"
+        >
+          <EditIcon />
+        </IconButton>
+      )
+    }
   ];
 
   useEffect(() => {
@@ -125,6 +147,27 @@ export default function HRJobListings() {
     }
   };
 
+  const handleEditClick = (jobListing) => {
+    setSelectedJobListing(jobListing);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditJobListing = async (jobListingData) => {
+    try {
+      setEditLoading(true);
+      const updatedListing = await JobListingService.update(jobListingData);
+      setListings(listings.map(item => 
+        item.jobListingID === updatedListing.jobListingID ? updatedListing : item
+      ));
+      notifs({ severity: 'success', message: 'Job listing updated successfully!' });
+    } catch (error) {
+      notifs({ severity: 'error', message: 'Failed to update job listing' });
+      console.error('Error updating job listing:', error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   const handleRowClick = (row) => {
     navigate(`/job-listings/${row.jobListingID}`);
   };
@@ -141,11 +184,12 @@ export default function HRJobListings() {
             variant="contained"
             onClick={() => setCreateDialogOpen(true)}
             sx={{
-              bgcolor: '#000',
-              color: '#fff',
+              bgcolor: '#ff9100',
+              color: '#000000',
               textTransform: 'none',
               fontWeight: 700,
-              '&:hover': { bgcolor: '#222' },
+              fontSize: '1.1rem', 
+              '&:hover': { bgcolor: '#d67900' },
             }}
           >
             + Create Job Listing
@@ -240,6 +284,17 @@ export default function HRJobListings() {
           onClose={() => setCreateDialogOpen(false)}
           onSubmit={handleCreateJobListing}
           loading={createLoading}
+        />
+
+        <EditJobListingDialog
+          open={editDialogOpen}
+          jobListing={selectedJobListing}
+          onClose={() => {
+            setEditDialogOpen(false);
+            setSelectedJobListing(null);
+          }}
+          onSubmit={handleEditJobListing}
+          loading={editLoading}
         />
       </Container>
     </Box>

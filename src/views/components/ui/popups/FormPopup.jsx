@@ -36,12 +36,13 @@ export default function FormPopup({
         <Stack spacing={1.5}>
           {fields.map((f, idx) => {
             if (f.type === 'select') {
+              const displayValue = f.value ?? '';
               return (
                 <TextField
                   key={idx}
                   select
                   label={f.label}
-                  value={f.value ?? ''}
+                  value={displayValue}
                   onChange={(e) => f.onChange?.(e.target.value)}
                   size="small"
                   fullWidth
