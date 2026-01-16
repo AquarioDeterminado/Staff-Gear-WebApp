@@ -5,11 +5,13 @@ import LogDTO from "../models/dtos/LogDTO.js";
 const API_ADMIN_BASE = import.meta.env.VITE_API_ADMIN ?? '/api/v1/admin';
 
 const AdminService = {
-    getUsers: async (pageNumber, pageSize) => {
+    getUsers: async (pageNumber, pageSize, filters, sort) => {
         const response = await api.get(`${API_ADMIN_BASE}/users`, {
             params: {
                 pageNumber,
-                pageSize
+                pageSize,
+                Filters: filters,
+                Sort: sort
             }
         });
         return response.data;
@@ -19,11 +21,13 @@ const AdminService = {
         const response = await api.put(`${API_ADMIN_BASE}/users`, new UserDTO(user));
         return response.data;
     },
-    getLogs: async (pageNumber, pageSize) => {
+    getLogs: async (pageNumber, pageSize, filters, sort) => {
         const response = await api.get(`${API_ADMIN_BASE}/logs`, {
             params: {
                 pageNumber,
-                pageSize
+                pageSize,
+                Filters: filters,
+                Sort: sort
             }
         });
         return response.data;
