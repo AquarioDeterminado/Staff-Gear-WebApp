@@ -154,8 +154,11 @@ export default function HRJobListings() {
   const handleCreateJobListing = async (jobListingData) => {
     try {
       setCreateLoading(true);
-      const newListing = await JobListingService.create(jobListingData);
-      setListings([...listings, newListing]);
+      await JobListingService.create(jobListingData);
+      // Reload the listings to ensure all fields are populated correctly
+      const data = await JobListingService.getAll();
+      setListings(data);
+      setCreateDialogOpen(false);
       notifs({ severity: 'success', message: 'Job listing created successfully!' });
     } catch (error) {
       notifs({ severity: 'error', message: 'Failed to create job listing' });

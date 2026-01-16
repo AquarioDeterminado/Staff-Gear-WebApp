@@ -99,7 +99,6 @@ export default function CreateJobListingDialog({
       };
 
       await onSubmit(jobListingData);
-      onClose();
     } catch (error) {
       console.error('Error submitting form:', error);
     }
