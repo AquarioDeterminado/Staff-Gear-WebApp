@@ -1,65 +1,84 @@
-
-import { Box, Typography } from '@mui/material';
-import Login from '../components/LogInPage';
-import ApplyCandidatePage from '../components/ApplyCandidatePage';
+import { Box, Typography, Button, Stack } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import HeaderBar from '../components/layout/HeaderBar';
+import logo from '../../assets/logo.png';
 
 export default function Home() {
-  
+  const navigate = useNavigate();
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        width: '100%',
-        bgcolor: '#FFF3E0',
-        overflowX: 'hidden',
-      }}
-    >
-
+    <>
+      <HeaderBar />
       <Box
-        component="main"
         sx={{
-          height: '100vh',
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 2px 1fr' },
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          bgcolor: '#fff3e0',
+          textAlign: 'center',
+          px: 2,
+          pt: 12,
         }}
       >
-        {/* Esquerda: Candidatura */}
+        <Typography variant="h3" sx={{ fontWeight: 700, color: '#000', mb: 2 }}>
+          Welcome to
+        </Typography>
         <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            px: { xs: 1, md: 6 },
-          }}
-        >
-          <Box sx={{ width: '100%', maxWidth: 680 }}>
-            <ApplyCandidatePage />
-          </Box>
-        </Box>
-        <Box
-          sx={{
-            display: { xs: 'none', md: 'block' },
-            width: '2px',
-            backgroundColor: '#000',
-          }}
+          component="img"
+          src={logo}
+          alt="Staff Gear"
+          sx={{ height: 150, mb: 6 }}
         />
 
-        {/* Direita: Login */}
-        <Box
+        <Typography variant="h5" sx={{ mb: 8, color: '#000' }}>
+          The app where you can apply for our available jobs!
+        </Typography>
+        <Button
+          variant="contained"
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            px: { xs: 2, md: 6 },
-            py: { xs: 4, md: 0 },
+            bgcolor: '#000',
+            color: '#fff',
+            textTransform: 'none',
+            fontWeight: 700,
+            px: 6,
+            py: 2,
+            fontSize: 18,
+            mb: 10,
+            '&:hover': { bgcolor: '#222' },
           }}
+          onClick={() => navigate('/job-listings')}
         >
-          <Box sx={{ width: '100%', maxWidth: 520 }}>
-            <Login />
-          </Box>
-        </Box>
+          Veja aqui as oportunidades de trabalho
+        </Button>
+        <Stack
+          direction="row"
+          spacing={4}
+          alignItems="center"
+          sx={{ justifyContent: 'center' }}
+        >
+          <Typography variant="h5" sx={{ fontWeight: 700, color: '#000' }}>
+            Already an employee?
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{
+              bgcolor: '#000',
+              color: '#fff',
+              textTransform: 'none',
+              fontWeight: 700,
+              px: 5,
+              py: 1.5,
+              fontSize: 16,
+              '&:hover': { bgcolor: '#222' },
+            }}
+            onClick={() => navigate('/login')}
+          >
+            Login
+          </Button>
+        </Stack>
       </Box>
-    </Box>
+    </>
   );
 }

@@ -1,0 +1,69 @@
+[33mc6c36ee[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m HEAD@{0}: reset: moving to HEAD
+[33mc6c36ee[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m HEAD@{1}: checkout: moving from Pagination to dev
+[33mb032cb2[m[33m ([m[1;31morigin/Pagination[m[33m, [m[1;32mPagination[m[33m)[m HEAD@{2}: checkout: moving from dev to Pagination
+[33mc6c36ee[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m HEAD@{3}: commit: Merge Conflicts resolved;
+[33madd88e1[m HEAD@{4}: commit (merge): Co-authored-by: lourencocs10-tech <lourencocs10-tech@users.noreply.github.com>
+[33m8c4f996[m HEAD@{5}: commit: trying to fix merge conflicts;
+[33m6dfa975[m HEAD@{6}: checkout: moving from Pagination to dev
+[33mb032cb2[m[33m ([m[1;31morigin/Pagination[m[33m, [m[1;32mPagination[m[33m)[m HEAD@{7}: checkout: moving from dev to Pagination
+[33m6dfa975[m HEAD@{8}: commit: stuff
+[33m6dd65be[m[33m ([m[1;31morigin/dev2[m[33m)[m HEAD@{9}: checkout: moving from dev to dev
+[33m6dd65be[m[33m ([m[1;31morigin/dev2[m[33m)[m HEAD@{10}: reset: moving to HEAD
+[33m6dd65be[m[33m ([m[1;31morigin/dev2[m[33m)[m HEAD@{11}: reset: moving to HEAD
+[33m6dd65be[m[33m ([m[1;31morigin/dev2[m[33m)[m HEAD@{12}: pull: Fast-forward
+[33ma753133[m HEAD@{13}: checkout: moving from UI to dev
+[33m2f2b3d5[m[33m ([m[1;31morigin/UI2[m[33m, [m[1;31morigin/UI[m[33m, [m[1;32mUI[m[33m)[m HEAD@{14}: pull: Fast-forward
+[33m6d51d24[m HEAD@{15}: checkout: moving from dev to UI
+[33ma753133[m HEAD@{16}: checkout: moving from Pagination to dev
+[33mb032cb2[m[33m ([m[1;31morigin/Pagination[m[33m, [m[1;32mPagination[m[33m)[m HEAD@{17}: commit: Pagination ready for Dod;
+[33ma753133[m HEAD@{18}: checkout: moving from dev to Pagination
+[33ma753133[m HEAD@{19}: commit: last changes to sorting at admin page;
+[33m7ed74ca[m HEAD@{20}: commit (merge): merged with SortingFiltering;
+[33maed5b1a[m HEAD@{21}: pull: Fast-forward
+[33m65c7fae[m HEAD@{22}: checkout: moving from SortingFiltering to dev
+[33mfc7b3a7[m[33m ([m[1;32mSortingFiltering[m[33m)[m HEAD@{23}: commit: Admin page ui normalized;
+[33m8d2f874[m[33m ([m[1;31morigin/SortingFiltering[m[33m)[m HEAD@{24}: commit: Sorting and Filtering ready for DoD;
+[33m65c7fae[m HEAD@{25}: checkout: moving from dev to SortingFiltering
+[33m65c7fae[m HEAD@{26}: commit: EmployeeSearchField Simplified;
+[33m2904a7c[m HEAD@{27}: commit: EmployeeSearchField Simplified;
+[33m2472557[m HEAD@{28}: commit: Input Verif Ready for DoD;
+[33m8fdf0eb[m HEAD@{29}: commit: User Edit input verification missing;
+[33m763950b[m[33m ([m[1;32mmain[m[33m)[m HEAD@{30}: checkout: moving from main to dev
+[33m763950b[m[33m ([m[1;32mmain[m[33m)[m HEAD@{31}: commit: Final Version
+[33mb6b47a7[m HEAD@{32}: pull: Fast-forward
+[33ma99f2d2[m HEAD@{33}: reset: moving to HEAD
+[33ma99f2d2[m HEAD@{34}: pull: Fast-forward
+[33m4eb82b7[m HEAD@{35}: commit: localstorage fixed
+[33m6a1ec80[m HEAD@{36}: commit: ...
+[33m2368e9f[m HEAD@{37}: commit: Finished
+[33m61b3e28[m HEAD@{38}: commit: admin Controller Added;
+[33mcfd49f8[m HEAD@{39}: commit: ..
+[33m380415e[m HEAD@{40}: commit (merge): Ready for admin Page
+[33md9d74c9[m HEAD@{41}: commit: as
+[33m27d6b50[m HEAD@{42}: commit (merge): merge
+[33mab2cc34[m HEAD@{43}: commit: formating done
+[33md39c3a6[m HEAD@{44}: commit: aa
+[33mcad4ed1[m HEAD@{45}: pull: Merge made by the 'ort' strategy.
+[33m28c4a40[m HEAD@{46}: commit: Notifs now navigate to page; Error Messages are more specific;
+[33m6553445[m HEAD@{47}: commit: ce
+[33m93e5aad[m HEAD@{48}: commit: finished
+[33m88666f7[m HEAD@{49}: pull: Merge made by the 'ort' strategy.
+[33mab96730[m HEAD@{50}: commit: aaaa
+[33mfa3196b[m HEAD@{51}: commit: merged
+[33mcaf6d74[m HEAD@{52}: pull: Merge made by the 'ort' strategy.
+[33me205861[m HEAD@{53}: commit: mais cenas;
+[33me42b27a[m HEAD@{54}: pull: Merge made by the 'ort' strategy.
+[33mf44c4ac[m HEAD@{55}: commit: Cenas;
+[33mf70ead1[m HEAD@{56}: commit: ...
+[33m10c507b[m HEAD@{57}: pull: Merge made by the 'ort' strategy.
+[33m3482b77[m HEAD@{58}: commit: prepare pull
+[33m7c66bb5[m HEAD@{59}: commit: Melhor comit message que a do Simão;
+[33mcfa035c[m HEAD@{60}: pull: Fast-forward
+[33md0a5251[m HEAD@{61}: commit (merge): Merge
+[33m8625b1f[m HEAD@{62}: commit: Cenas;
+[33m74a6de6[m HEAD@{63}: commit: asd;
+[33mc192310[m HEAD@{64}: checkout: moving from master to main
+[33mba90663[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m HEAD@{65}: checkout: moving from main to master
+[33mc192310[m HEAD@{66}: commit (merge): merge
+[33mba90663[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m HEAD@{67}: checkout: moving from master to main
+[33mba90663[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m HEAD@{68}: commit (initial): init

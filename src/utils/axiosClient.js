@@ -19,22 +19,23 @@ export function setAuthToken(token) {
 const storedToken = localStorage.getItem('access_token');
 if (storedToken) {
   setAuthToken(storedToken);
-  console.log('Token restored from the local storage when initializing');
 }
 
 api.interceptors.response.use(
   response => response,
   error => {
     const status = error.response?.status;
-    if (status === 401 && window.location.pathname !== '/') {
+    if (status === 401 && window.location.pathname !== '/' && window.location.pathname !== '/login') {
         console.warn('Invalid session or expired');
-        // Remove token and redirect user to login
+        // Guardar o caminho atual antes de remover o token
+        sessionStorage.setItem('last_non_login_path', window.location.pathname);
         try {
           setAuthToken(null);
-        } catch {}
-        // Use location replace to avoid keeping protected page in history
-        // Redirect to root where the login/apply UI lives
-        if (typeof window !== 'undefined') window.location.replace('/');
+        } catch {
+          console.error('Error removing auth token during 401 handling');
+        }
+        
+        if (typeof window !== 'undefined') window.location.replace('/login');
     }
     
     // If the answer gives an error it's a blob, tried to convert to text/JSON
