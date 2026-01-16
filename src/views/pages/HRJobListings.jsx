@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Box, Container, Typography, TextField, Select, MenuItem, Stack, Button, IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
 import JobListingService from '../../services/JobListingService';
 import { FormatDate } from '../../utils/FormatingUtils';
@@ -12,6 +13,7 @@ import FilterPanel from '../components/filters/FilterPanel';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
 import CreateJobListingDialog from '../components/ui/dialogs/CreateJobListingDialog';
 import EditJobListingDialog from '../components/ui/dialogs/EditJobListingDialog';
+import DeleteJobListingDialog from '../components/ui/dialogs/DeleteJobListingDialog';
 
 const statusMap = {
   0: 'Open',
@@ -44,6 +46,9 @@ export default function HRJobListings() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [selectedJobListing, setSelectedJobListing] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [selectedJobListingForDelete, setSelectedJobListingForDelete] = useState(null);
 
   const columns = [
     { label: 'Job Title', field: 'jobTitle', sortable: true },
@@ -58,17 +63,30 @@ export default function HRJobListings() {
       field: 'actions', 
       sortable: false,
       render: (row) => (
-        <IconButton 
-          size="small" 
-          onClick={(e) => {
-            e.stopPropagation();
-            handleEditClick(row);
-          }}
-          sx={{ color: '#ff9100' }}
-          title="Edit Job Listing"
-        >
-          <EditIcon />
-        </IconButton>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <IconButton 
+            size="small" 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditClick(row);
+            }}
+            sx={{ color: '#ff9100' }}
+            title="Edit Job Listing"
+          >
+            <EditIcon />
+          </IconButton>
+          <IconButton 
+            size="small" 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteClick(row);
+            }}
+            sx={{ color: '#d32f2f' }}
+            title="Delete Job Listing"
+          >
+            <DeleteIcon />
+          </IconButton>
+        </div>
       )
     }
   ];
@@ -152,6 +170,11 @@ export default function HRJobListings() {
     setEditDialogOpen(true);
   };
 
+  const handleDeleteClick = (jobListing) => {
+    setSelectedJobListingForDelete(jobListing);
+    setDeleteDialogOpen(true);
+  };
+
   const handleEditJobListing = async (jobListingData) => {
     try {
       setEditLoading(true);
@@ -165,6 +188,26 @@ export default function HRJobListings() {
       console.error('Error updating job listing:', error);
     } finally {
       setEditLoading(false);
+    }
+  };
+
+  const handleConfirmDelete = async (jobListing) => {
+    try {
+      setDeleteLoading(true);
+      await JobListingService.delete(jobListing.jobListingID);
+      setListings(listings.filter(item => item.jobListingID !== jobListing.jobListingID));
+      notifs({ severity: 'success', message: 'Job listing deleted successfully!' });
+    } catch (error) {
+      console.error('Error deleting job listing:', error);
+      if (error.response?.status === 409) {
+        notifs({ severity: 'error', message: 'Its not possible to delete this Job Listing. There are applications associated.' });
+      } else {
+        notifs({ severity: 'error', message: 'Error deleting this job listing' });
+      }
+    } finally {
+      setDeleteLoading(false);
+      setDeleteDialogOpen(false);
+      setSelectedJobListingForDelete(null);
     }
   };
 
@@ -295,6 +338,17 @@ export default function HRJobListings() {
           }}
           onSubmit={handleEditJobListing}
           loading={editLoading}
+        />
+
+        <DeleteJobListingDialog
+          open={deleteDialogOpen}
+          jobListing={selectedJobListingForDelete}
+          onClose={() => {
+            setDeleteDialogOpen(false);
+            setSelectedJobListingForDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          loading={deleteLoading}
         />
       </Container>
     </Box>

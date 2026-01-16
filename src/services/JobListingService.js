@@ -166,6 +166,22 @@ const JobListingService = {
       console.error('Error updating job listing:', error);
       throw error;
     }
+  },
+
+  delete: async (id) => {
+    try {
+      const response = await api.delete(`${JOBLISTING_PATH}/${id}`);
+
+      if (!response || response.status !== 204) {
+        throw new Error('Error deleting job listing! Error code: ' + response?.status);
+      }
+
+      console.log('Job listing deleted successfully!');
+      return response;
+    } catch (error) {
+      console.error('Error deleting job listing:', error);
+      throw error;
+    }
   }
 };
 
