@@ -10,6 +10,7 @@
 import React, { useEffect, useState } from 'react';
 import FormPopup from '../popups/FormPopup';
 import { TextField } from '@mui/material';
+import { DepartmentSelectField } from '../../DepartmentSelectField';
 
 const JOB_TYPE_OPTIONS = [
   { value: 0, label: 'Remote' },
@@ -30,6 +31,7 @@ export default function CreateJobListingDialog({
     jobType: '',
     description: '',
     numberOfPositions: '',
+    department: '',
   });
 
   const [errors, setErrors] = useState({
@@ -38,6 +40,7 @@ export default function CreateJobListingDialog({
     jobType: '',
     description: '',
     numberOfPositions: '',
+    department: '',
   });
 
   useEffect(() => {
@@ -48,6 +51,7 @@ export default function CreateJobListingDialog({
         jobType: '',
         description: '',
         numberOfPositions: '',
+        department: '',
       });
       setErrors({
         jobTitle: '',
@@ -55,6 +59,7 @@ export default function CreateJobListingDialog({
         jobType: '',
         description: '',
         numberOfPositions: '',
+        department: '',
       });
     }
   }, [open]);
@@ -89,7 +94,7 @@ export default function CreateJobListingDialog({
         jobType: parseInt(form.jobType),
         description: form.description.trim(),
         numberOfPositions: parseInt(form.numberOfPositions),
-        departmentID: null, // Optional field - leave as null for now
+        departmentName: form.department || null, // Send department name if selected
         status: 0, // Default to Open
       };
 
@@ -141,6 +146,19 @@ export default function CreateJobListingDialog({
       helperText: errors.numberOfPositions || 'Must be greater than 0',
       required: true,
       inputProps: { type: 'number', min: 1 },
+    },
+    {
+      type: 'custom',
+      render: (error) => (
+        <DepartmentSelectField
+          value={form.department}
+          onChange={setField('department')}
+          error={error}
+          fullWidth={true}
+        />
+      ),
+      label: 'Department',
+      error: errors.department,
     },
     {
       type: 'custom',

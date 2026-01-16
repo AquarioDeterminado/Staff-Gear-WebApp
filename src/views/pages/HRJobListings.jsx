@@ -57,7 +57,7 @@ export default function HRJobListings() {
         const data = await JobListingService.getAll();
         setListings(data);
       } catch (error) {
-        notifs.error('Failed to load job listings');
+        notifs({ severity: 'error', message: 'Failed to load job listings' });
         console.error(error);
       }
     };
