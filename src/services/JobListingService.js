@@ -4,6 +4,42 @@ import JobListingDTO from '../models/dtos/JobListingDTO.js';
 const JOBLISTING_PATH = import.meta.env.VITE_API_JOBLISTING || '/api/v1/joblisting';
 
 const JobListingService = {
+  getAll: async () => {
+    try {
+      const response = await api.get(`${JOBLISTING_PATH}`);
+
+      if (!response || (response.status !== 200 && response.status !== 201)) {
+        throw new Error('Error retrieving job listings! Error code: ' + response?.status);
+      }
+
+      console.log('Job listings retrieved successfully!');
+
+      const jobListings = response.data.map(
+        (jobData) =>
+          new JobListingDTO({
+            jobListingID: jobData.jobListingID,
+            jobTitle: jobData.jobTitle,
+            location: jobData.location,
+            jobType: jobData.jobType,
+            description: jobData.description,
+            numberOfPositions: jobData.numberOfPositions,
+            departmentID: jobData.departmentID,
+            status: jobData.status,
+            postedDate: jobData.postedDate,
+            modifiedDate: jobData.modifiedDate,
+            department: jobData.department,
+            departmentName: jobData.departmentName,
+            applicationCount: jobData.applicationCount
+          })
+      );
+
+      return jobListings;
+    } catch (error) {
+      console.error('Error fetching job listings:', error);
+      throw error;
+    }
+  },
+
   getOpen: async () => {
     try {
       const response = await api.get(`${JOBLISTING_PATH}/open`);

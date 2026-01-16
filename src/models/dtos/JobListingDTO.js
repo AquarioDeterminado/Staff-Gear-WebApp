@@ -10,7 +10,9 @@ class JobListingDTO {
         status,
         postedDate,
         modifiedDate,
-        department
+        department,
+        departmentName,
+        applicationCount
     }) {
         this.jobListingID = jobListingID || null;
         this.jobTitle = jobTitle || null;
@@ -23,6 +25,8 @@ class JobListingDTO {
         this.postedDate = postedDate || null;
         this.modifiedDate = modifiedDate || null;
         this.department = department || null;
+        this.departmentName = departmentName || null;
+        this.applicationCount = applicationCount || 0;
     }
 }
 

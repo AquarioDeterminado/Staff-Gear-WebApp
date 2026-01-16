@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import MenuIcon from '@mui/icons-material/Menu';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import WorkIcon from '@mui/icons-material/Work';
 
 function SideMenu() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -72,6 +73,11 @@ function SideMenu() {
         <ListItemButton onClick={() => navigate('/candidates')}>
           <ListItemIcon><GroupAddIcon sx={{ fontSize: 24 }} /></ListItemIcon>
           <ListItemText primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>Candidates</Typography>} />
+        </ListItemButton>
+
+        <ListItemButton onClick={() => navigate('/hr/job-listings')}>
+          <ListItemIcon><WorkIcon sx={{ fontSize: 24 }} /></ListItemIcon>
+          <ListItemText primary={<Typography sx={{ fontSize: 16, fontWeight: 500 }}>Job Listings</Typography>} />
         </ListItemButton>
 
         

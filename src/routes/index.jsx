@@ -9,6 +9,7 @@ import JobListingsPage from '../views/pages/JobListingsPage';
 import JobListingDetailsPage from '../views/pages/JobListingDetailsPage';
 import HRRecords from '../views/pages/HRRecords';
 import AdminConsole from '../views/pages/AdminConsole';
+import HRJobListings from '../views/pages/HRJobListings';
 import PrivateRoute from '../views/components/routing/PrivateRoute';
 import PublicRoute from '../views/components/routing/PublicRoute';
 
@@ -21,6 +22,7 @@ const router = createBrowserRouter(
       <Route path="/login" element={<PublicRoute><LogInPage /></PublicRoute>} />
       <Route path="/job-listings" element={<JobListingsPage />} />
       <Route path="/job-listings/:id" element={<JobListingDetailsPage />} />
+      <Route path="/hr/job-listings" element={<PrivateRoute><HRJobListings /></PrivateRoute>} />
       <Route path="/candidates" element={<PrivateRoute><CandidatesList /></PrivateRoute>} />
       <Route path="/profile" element={<PrivateRoute><EmployeeProfile /></PrivateRoute>} />
       <Route path="/employees" element={<PrivateRoute><EmployeesList /></PrivateRoute>} />
