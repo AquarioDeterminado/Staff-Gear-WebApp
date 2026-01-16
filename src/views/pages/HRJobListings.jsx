@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Container, Typography, TextField, Select, MenuItem, Stack } from '@mui/material';
+import { Box, Container, Typography, TextField, Select, MenuItem, Stack, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import JobListingService from '../../services/JobListingService';
 import { FormatDate } from '../../utils/FormatingUtils';
@@ -9,6 +9,7 @@ import useNotification from '../../utils/UseNotification';
 import HeaderBar from '../components/layout/HeaderBar';
 import FilterPanel from '../components/filters/FilterPanel';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
+import CreateJobListingDialog from '../components/ui/dialogs/CreateJobListingDialog';
 
 const statusMap = {
   0: 'Open',
@@ -36,6 +37,8 @@ export default function HRJobListings() {
   const [filterPostedTo, setFilterPostedTo] = useState('');
   const [filterModifiedFrom, setFilterModifiedFrom] = useState('');
   const [filterModifiedTo, setFilterModifiedTo] = useState('');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
 
   const columns = [
     { label: 'Job Title', field: 'jobTitle', sortable: true },
@@ -108,6 +111,20 @@ export default function HRJobListings() {
     setFilterModifiedTo('');
   };
 
+  const handleCreateJobListing = async (jobListingData) => {
+    try {
+      setCreateLoading(true);
+      const newListing = await JobListingService.create(jobListingData);
+      setListings([...listings, newListing]);
+      notifs({ severity: 'success', message: 'Job listing created successfully!' });
+    } catch (error) {
+      notifs({ severity: 'error', message: 'Failed to create job listing' });
+      console.error('Error creating job listing:', error);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   const handleRowClick = (row) => {
     navigate(`/job-listings/${row.jobListingID}`);
   };
@@ -116,9 +133,24 @@ export default function HRJobListings() {
     <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
       <HeaderBar />
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Job Listings Management
-        </Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+          <Typography variant="h4">
+            Job Listings Management
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => setCreateDialogOpen(true)}
+            sx={{
+              bgcolor: '#000',
+              color: '#fff',
+              textTransform: 'none',
+              fontWeight: 700,
+              '&:hover': { bgcolor: '#222' },
+            }}
+          >
+            + Create Job Listing
+          </Button>
+        </Stack>
         <FilterPanel
           title="Filters"
           expanded={filterExpanded}
@@ -202,6 +234,13 @@ export default function HRJobListings() {
             emptyMessage="No job listings found."
           />
         </SectionPaper>
+
+        <CreateJobListingDialog
+          open={createDialogOpen}
+          onClose={() => setCreateDialogOpen(false)}
+          onSubmit={handleCreateJobListing}
+          loading={createLoading}
+        />
       </Container>
     </Box>
   );

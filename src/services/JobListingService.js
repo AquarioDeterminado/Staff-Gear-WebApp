@@ -102,6 +102,70 @@ const JobListingService = {
       console.error('Error fetching job listing:', error);
       throw error;
     }
+  },
+
+  create: async (jobListingData) => {
+    try {
+      const response = await api.post(`${JOBLISTING_PATH}`, jobListingData);
+
+      if (!response || (response.status !== 200 && response.status !== 201)) {
+        throw new Error('Error creating job listing! Error code: ' + response?.status);
+      }
+
+      console.log('Job listing created successfully!');
+
+      const jobData = response.data;
+      return new JobListingDTO({
+        jobListingID: jobData.jobListingID,
+        jobTitle: jobData.jobTitle,
+        location: jobData.location,
+        jobType: jobData.jobType,
+        description: jobData.description,
+        numberOfPositions: jobData.numberOfPositions,
+        departmentID: jobData.departmentID,
+        status: jobData.status,
+        postedDate: jobData.postedDate,
+        modifiedDate: jobData.modifiedDate,
+        department: jobData.department,
+        departmentName: jobData.departmentName,
+        applicationCount: jobData.applicationCount
+      });
+    } catch (error) {
+      console.error('Error creating job listing:', error);
+      throw error;
+    }
+  },
+
+  update: async (jobListingData) => {
+    try {
+      const response = await api.put(`${JOBLISTING_PATH}/${jobListingData.jobListingID}`, jobListingData);
+
+      if (!response || (response.status !== 200 && response.status !== 201)) {
+        throw new Error('Error updating job listing! Error code: ' + response?.status);
+      }
+
+      console.log('Job listing updated successfully!');
+
+      const jobData = response.data;
+      return new JobListingDTO({
+        jobListingID: jobData.jobListingID,
+        jobTitle: jobData.jobTitle,
+        location: jobData.location,
+        jobType: jobData.jobType,
+        description: jobData.description,
+        numberOfPositions: jobData.numberOfPositions,
+        departmentID: jobData.departmentID,
+        status: jobData.status,
+        postedDate: jobData.postedDate,
+        modifiedDate: jobData.modifiedDate,
+        department: jobData.department,
+        departmentName: jobData.departmentName,
+        applicationCount: jobData.applicationCount
+      });
+    } catch (error) {
+      console.error('Error updating job listing:', error);
+      throw error;
+    }
   }
 };
 
