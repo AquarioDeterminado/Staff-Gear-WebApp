@@ -5,6 +5,7 @@ import {
 import DownloadIcon from '@mui/icons-material/Download';
 import HeaderBar from '../components/layout/HeaderBar';
 import CandidateService from '../../services/CandidateService';
+import JobListingService from '../../services/JobListingService';
 import HRService from '../../services/HRService';
 import { useNavigate } from 'react-router-dom';
 import UserService from '../../utils/UserSession';
@@ -26,8 +27,9 @@ export default function CandidatesView() {
   const [rows, setRows] = useState([]);
   const ROWS_PER_PAGE = 10;
 
-  const [filterId, setFilterId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterJobListing, setFilterJobListing] = useState('');
+  const [jobListingMap, setJobListingMap] = useState({});
 
   // Dialog Accept
   const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
@@ -44,11 +46,12 @@ export default function CandidatesView() {
 
   const filtered = useMemo(() => {
     let result = rows;
-    if (filterId) {
-      const n = parseInt(filterId, 10);
-      if (!Number.isNaN(n)) {
-        result = result.filter((r) => r.jobCandidateId === n);
-      }
+    if (filterJobListing.trim()) {
+      const query = filterJobListing.toLowerCase();
+      result = result.filter((r) => {
+        const jobTitle = (r.jobListingTitle || '').toLowerCase();
+        return jobTitle.includes(query);
+      });
     }
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -59,7 +62,7 @@ export default function CandidatesView() {
       });
     }
     return result;
-  }, [rows, filterId, searchQuery]);
+  }, [rows, filterJobListing, searchQuery]);
 
   const openAcceptDialog = (candidate) => {
     setCandidateToAccept(candidate);
@@ -98,6 +101,7 @@ export default function CandidatesView() {
     async function fetchCandidates() {
       try {
         const list = (await CandidateService.list()).data;
+        console.log('Candidates data*:', list);
         setRows(Array.isArray(list) ? list : []);
       } catch (error) {
         let msg;
@@ -120,9 +124,39 @@ export default function CandidatesView() {
         console.error('Error fetching departments:', err);
       }
     }
-    fetchCandidates();
+    async function fetchJobListings() {
+      try {
+        const listings = await JobListingService.getAll();
+        console.log('Job listings*:', listings);
+        const map = {};
+        const deptMap = {};
+        listings.forEach((listing) => {
+          map[listing.jobListingID] = listing.jobTitle;
+          deptMap[listing.jobListingID] = listing.departmentName;
+        });
+        console.log('Job listing map*:', map);
+        setJobListingMap(map);
+        
+        // Enrich candidates with job listing titles and departments
+        const candidatesList = (await CandidateService.list()).data;
+        const enrichedList = Array.isArray(candidatesList) ? candidatesList.map(candidate => ({
+          ...candidate,
+          jobListingTitle: map[candidate.jobListingID] || null,
+          jobListingDepartment: deptMap[candidate.jobListingID] || null
+        })) : [];
+        setRows(enrichedList);
+      } catch (err) {
+        console.error('Error fetching job listings*:', err);
+      }
+    }
     fetchDepartments();
+    fetchJobListings();
   }, [navigate, showNotification]);
+
+  const handleJobListingClick = (jobListing, e) => {
+    e.stopPropagation();
+    navigate('/hr/job-listings', { state: { filterJobTitle: jobListing } });
+  };
 
   const downloadResume = async (r, e) => {
     e.stopPropagation();
@@ -160,10 +194,27 @@ export default function CandidatesView() {
         </IconButton>
       ),
     },
-    { label: 'Name', width: '22%', render: (r) => r.firstName + ' ' + (r.middleName ? r.middleName + ' ' : '') + r.lastName },
-    { label: 'Email', width: '28%', render: (r) => r.email },
+    { label: 'Name', width: '18%', render: (r) => r.firstName + ' ' + (r.middleName ? r.middleName + ' ' : '') + r.lastName },
+    { label: 'Email', width: '20%', render: (r) => r.email },
     {
-      label: 'Actions', width: '32%', align: 'center',
+      label: 'Job Listing', width: '14%',
+      render: (r) => (
+        <Typography
+          variant="body2"
+          onClick={(e) => handleJobListingClick(jobListingMap[r.jobListingID] || 'Unknown', e)}
+          sx={{
+            cursor: 'pointer',
+            color: '#1976d2',
+            textDecoration: 'underline',
+            '&:hover': { color: '#1565c0', fontWeight: 600 }
+          }}
+        >
+          {jobListingMap[r.jobListingID] || 'N/A'}
+        </Typography>
+      ),
+    },
+    {
+      label: 'Actions', width: '30%', align: 'center',
       render: (r) => (
         <Stack direction="row" spacing={1} justifyContent="center">
           <Button
@@ -247,7 +298,7 @@ export default function CandidatesView() {
             title="Filters"
             sticky
             width={260}
-            onClear={() => { setFilterId(''); setSearchQuery(''); }}
+            onClear={() => { setFilterJobListing(''); setSearchQuery(''); }}
           >
             <TextField
               label="Name or Email"
@@ -258,13 +309,12 @@ export default function CandidatesView() {
               size="small"
             />
             <TextField
-              label="Filter by ID"
-              placeholder="Ex.: 3"
-              value={filterId}
-              onChange={(e) => setFilterId(e.target.value)}
+              label="Job Listing"
+              placeholder="Search..."
+              value={filterJobListing}
+              onChange={(e) => setFilterJobListing(e.target.value)}
               fullWidth
               size="small"
-              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
             />
           </FilterBox>
         </Stack>
@@ -273,6 +323,8 @@ export default function CandidatesView() {
       <AcceptCandidateDialog
         open={acceptDialogOpen}
         candidate={candidateToAccept}
+        jobListingTitle={candidateToAccept?.jobListingTitle || ''}
+        jobListingDepartment={candidateToAccept?.jobListingDepartment || ''}
         departments={departments}
         onClose={() => { setAcceptDialogOpen(false); setCandidateToAccept(null); }}
         onAccept={handleAccept}

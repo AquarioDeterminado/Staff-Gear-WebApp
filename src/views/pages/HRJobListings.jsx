@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Box, Container, Typography, TextField, Select, MenuItem, Stack, Button, IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import JobListingService from '../../services/JobListingService';
 import { FormatDate } from '../../utils/FormatingUtils';
 import DataTable from '../components/table/DataTable';
@@ -31,6 +31,7 @@ const getStatusLabel = (status) => {
 
 export default function HRJobListings() {
   const navigate = useNavigate();
+  const location = useLocation();
   const notifs = useNotification();
   const [listings, setListings] = useState([]);
   const [filterExpanded, setFilterExpanded] = useState(false);
@@ -102,6 +103,11 @@ export default function HRJobListings() {
       }
     };
     fetchListings();
+
+    // Apply filter from route state if present
+    if (location.state?.filterJobTitle) {
+      setFilterJobTitle(location.state.filterJobTitle);
+    }
   }, []);
 
   const filteredListings = useMemo(() => {

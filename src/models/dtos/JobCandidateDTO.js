@@ -9,6 +9,7 @@ class JobCandidateDTO
         this.Phone = data?.Phone || null;
         this.Resume = data?.Resume || null;
         this.Message = data?.Message || null;
+        this.JobListingId = data?.JobListingId || null;
     }
 }
 

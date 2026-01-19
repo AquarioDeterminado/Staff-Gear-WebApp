@@ -8,6 +8,8 @@ import FormPopup from '../popups/FormPopup';
 export default function AcceptCandidateDialog({
   open,
   candidate,
+  jobListingTitle = '',
+  jobListingDepartment = '',
   departments = [],
   defaultPassword = 'Welcome@123',
   onClose,
@@ -28,14 +30,18 @@ export default function AcceptCandidateDialog({
 
   useEffect(() => {
     if (open) {
+      const selectedDept = jobListingDepartment && departments.includes(jobListingDepartment)
+        ? jobListingDepartment
+        : (departments && departments.length > 0 ? departments[0] : '');
+      
       setForm({
-        jobTitle: '',
-        department: departments && departments.length > 0 ? departments[0] : '',
+        jobTitle: jobListingTitle || '',
+        department: selectedDept,
         defaultPassword,
       });
       setErrors({ jobTitle: '', department: '', defaultPassword: '' });
     }
-  }, [open, departments, defaultPassword]);
+  }, [open, departments, defaultPassword, jobListingTitle, jobListingDepartment]);
 
   const setField = (field) => (value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
