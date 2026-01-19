@@ -23,6 +23,7 @@ import {
   Card,
   CardHeader,
   CardContent,
+  colors,
 } from '@mui/material';
 import Collapse from '@mui/material/Collapse';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -65,10 +66,13 @@ export default function EmployeesList() {
 
   const actionColum = {
       label: 'Actions', field: 'actions', sortable: false, render: (r, idx) =>
-      (<Stack direction="row" spacing={1}>
-        <EditRowButton openEdit={handleOpenEdit} idx={idx} />
-        <DeleteRowButton openConfirm={setConfirmOpen} setConfirmIndex={setConfirmId} idx={idx} />
-      </Stack>)
+      {r.IsActive? 
+        (<Stack direction="row" spacing={1}>
+          <EditRowButton openEdit={handleOpenEdit} idx={idx} />
+          <DeleteRowButton openConfirm={setConfirmOpen} setConfirmIndex={setConfirmId} idx={idx} />
+        </Stack>)
+        : null
+      }
   };
 
   const columns = [{label: 'Business ID', field: 'BusinessEntityID', sortable: true}, 
@@ -130,6 +134,7 @@ export default function EmployeesList() {
   const [filterEntryDateFrom, setFilterEntryDateFrom] = useState('');
   const [filterEntryDateTo, setFilterEntryDateTo] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
+  const [filterIsActive, setFilterIsActive] = useState('True');
   const [filterJobTitle, setFilterJobTitle] = useState('');
   const handleClearFilters = () => {
     setFilterBusinessId('');
@@ -138,6 +143,7 @@ export default function EmployeesList() {
     setFilterEntryDateFrom('');
     setFilterEntryDateTo('');
     setFilterDepartment('');
+    setFilterIsActive('True');
     setFilterJobTitle('');
   };
 
@@ -189,7 +195,7 @@ export default function EmployeesList() {
         setUsers((prev) => prev.map((u) =>
           (u.BusinessEntityID === form.businessId ? {
             BusinessEntityID: form.businessId, FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
-            Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate,
+            Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate, IsActive: form.isActive
           } : u)
         ));
         notifs({ severity: 'success', message: 'Employee updated successfully!' });
@@ -227,6 +233,7 @@ export default function EmployeesList() {
             { Fields: ['HireDateTo'], Values: [filterEntryDateTo] },
             { Fields: ['Department'], Values: [filterDepartment] },
             { Fields: ['JobTitle'], Values: [filterJobTitle] },
+            { Fields: ['IsActive'], Values: [filterIsActive] },
           ],
           { SortBy: sort.SortBy, Direction: sort.Direction }
         );
@@ -244,7 +251,8 @@ export default function EmployeesList() {
               Department: empData.department,
               Email: empData.email,
               HireDate: empData.hireDate,
-              Role: empData.role
+              Role: empData.role,
+              IsActive: empData.isActive
             }
           )
         );
@@ -261,7 +269,7 @@ export default function EmployeesList() {
       }
     }
     fetchData();
-  }, [Users.length, filterBusinessId, filterDepartment, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterJobTitle, filterName, navigate, notifs, page, sort, sort.Direction, sort.SortBy]);
+  }, [Users.length, filterBusinessId, filterDepartment, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterIsActive, filterJobTitle, filterName, navigate, notifs, page, sort, sort.Direction, sort.SortBy]);
 
 
   return (
@@ -365,6 +373,17 @@ export default function EmployeesList() {
                     size="small"
                     sx={{ flex: 1 }}
                   />
+                  <Select 
+                    value={filterIsActive}
+                    onChange={(e) => setFilterIsActive(e.target.value)}
+                    displayEmpty
+                    size="small"
+                    sx={{ flex: 1 }}
+                  >
+                    <MenuItem value=''>All</MenuItem>
+                    <MenuItem value='True'>Active</MenuItem>
+                    <MenuItem value='False'>Inactive</MenuItem>
+                  </Select>
                   <Button variant="outlined" onClick={handleClearFilters} sx={{ textTransform: 'none', fontWeight: 600 }}>
                     Clear Filters
                   </Button>
@@ -383,6 +402,7 @@ export default function EmployeesList() {
             pageCount={pageCount}
             onPageChange={setPage}
             onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort);}}
+            standoutRow={(r) => { if(!r.IsActive) return colors.red.A200; }}
           />
         </SectionPaper>
       </Container>

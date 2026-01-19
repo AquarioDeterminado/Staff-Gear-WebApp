@@ -83,6 +83,7 @@ export default function DataTable({
                   key={id}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                   sx={{
+                    backgroundColor: row.standoutRow ? row.standoutRow : 'inherit',
                     cursor: onRowClick ? 'pointer' : 'default',
                     '&:hover': onRowClick ? { bgcolor: '#f5f5f5' } : undefined,
                     ...rowSx,
