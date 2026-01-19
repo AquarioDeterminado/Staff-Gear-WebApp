@@ -88,6 +88,17 @@ export default function CandidatesView() {
   useEffect(() => {
     async function fetchCandidates() {
       try {
+        // Fetch job listings to enrich candidates
+        const listings = await JobListingService.getAll();
+        const jobListingMap = {};
+        const deptMap = {};
+        listings.forEach((listing) => {
+          jobListingMap[listing.jobListingID] = listing.jobTitle;
+          deptMap[listing.jobListingID] = listing.departmentName;
+        });
+        setJobListingMap(jobListingMap);
+
+        // Fetch paginated candidates
         const data = (await CandidateService.list(page, ROWS_PER_PAGE,
           [
             { Fields: ['JobListingIDStrict'], Values: filterJobListingID ? filterJobListingID : [] },
@@ -98,7 +109,14 @@ export default function CandidatesView() {
 
         setPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
         const list = data.items;
-        setRows(Array.isArray(list) ? list : []);
+        
+        // Enrich candidates with job listing titles and departments
+        const enrichedList = Array.isArray(list) ? list.map(candidate => ({
+          ...candidate,
+          jobListingTitle: jobListingMap[candidate.jobListingID] || null,
+          jobListingDepartment: deptMap[candidate.jobListingID] || null
+        })) : [];
+        setRows(enrichedList);
       } catch (error) {
         let msg;
         const data = error?.response?.data;
@@ -126,35 +144,6 @@ export default function CandidatesView() {
       }
     }
     fetchDepartments();
-  }, []);
-
-  useEffect(() => {
-    async function fetchJobListings() {
-      try {
-        const listings = await JobListingService.getAll();
-        console.log('Job listings*:', listings);
-        const map = {};
-        const deptMap = {};
-        listings.forEach((listing) => {
-          map[listing.jobListingID] = listing.jobTitle;
-          deptMap[listing.jobListingID] = listing.departmentName;
-        });
-        console.log('Job listing map*:', map);
-        setJobListingMap(map);
-        
-        // Enrich candidates with job listing titles and departments
-        const candidatesList = (await CandidateService.list()).data;
-        const enrichedList = Array.isArray(candidatesList) ? candidatesList.map(candidate => ({
-          ...candidate,
-          jobListingTitle: map[candidate.jobListingID] || null,
-          jobListingDepartment: deptMap[candidate.jobListingID] || null
-        })) : [];
-        setRows(enrichedList);
-      } catch (err) {
-        console.error('Error fetching job listings*:', err);
-      }
-    }
-    fetchJobListings();
   }, []);
 
   const handleJobListingClick = (jobListing, e) => {
