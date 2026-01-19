@@ -4,35 +4,14 @@ import { TableCell } from '@mui/material';
 const SORTING_ASCENDING = 'asc';
 const SORTING_DESCENDING = 'desc';
 
-const SortingColumn = ({column, totalColumns, setValues, values, idx, onClick, active}) => {
+const SortingColumn = ({column, totalColumns, idx, onClick, active, onSortChange}) => {
     const [sorting, setSorting] = useState({ field: '', order: '' });
 
-    function clickHeader(parameter) {
-        let sortingOrder = sorting.parameter === parameter && sorting.order === SORTING_ASCENDING ? SORTING_DESCENDING : sorting.order === SORTING_DESCENDING ? '' : SORTING_ASCENDING;
-        setSorting({ "parameter": parameter, "order": sortingOrder });
-
-        var sorted = [];
-        sorted = values;
-        if (sortingOrder === "") {
-            sorted = [...values].sort((a, b) => {
-            if (a["CreatedAt"] < b["CreatedAt"]) return -1;
-            if (a["CreatedAt"] > b["CreatedAt"]) return 1;
-            return 0;
-            });
-        } else if (sortingOrder === SORTING_DESCENDING) {
-            sorted = [...values].sort((a, b) => {
-            if (a[parameter] > b[parameter]) return -1;
-            if (a[parameter] < b[parameter]) return 1;
-            return 0;
-            });
-        } else if (sortingOrder === SORTING_ASCENDING) {
-            sorted = [...values].sort((a, b) => {
-            if (a[parameter] < b[parameter]) return -1;
-            if (a[parameter] > b[parameter]) return 1;
-            return 0;
-            });
-        }
-        setValues(sorted);
+    function clickHeader(field) {
+        let sortingOrder = sorting.field === field && sorting.order === SORTING_ASCENDING ? SORTING_DESCENDING : sorting.order === SORTING_DESCENDING ? '' : SORTING_ASCENDING;
+        setSorting({ field: field, order: sortingOrder });
+        console.log("sorting:", sorting);
+        onSortChange({ SortBy: field, Direction: sortingOrder });
     }
 
     const onClickHandler = () => {
@@ -42,8 +21,11 @@ const SortingColumn = ({column, totalColumns, setValues, values, idx, onClick, a
 
     //reset sorting when another column is clicked
     useEffect(() => {
-        if (!active) {
+        function resetSorting() {
             setSorting({ field: '', order: '' });
+        }
+        if (!active) {
+            resetSorting();
         }
     }, [active]);
 
@@ -56,7 +38,7 @@ const SortingColumn = ({column, totalColumns, setValues, values, idx, onClick, a
               color: '#333',
               borderRight: idx < totalColumns - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
             }}
-            onClick={() => onClickHandler()}  
+            onClick={() => onClickHandler(column.field)}  
             style={{ cursor: 'pointer', fontWeight: 'bold' }}
         >
             {column.label}

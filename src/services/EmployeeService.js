@@ -2,6 +2,7 @@ import api from '../utils/axiosClient';
 import EmployeeViewModel from '../models/viewModels/EmployeeViewModel.js';
 import PaymentViewModel from '../models/viewModels/PaymentViewModel.js';
 import MovementViewModel from '../models/viewModels/MovementViewModel.js';
+import { buildFiltersQuery } from "../utils/axiosClient.js";
 
 const EMPLOYEE_PATH = import.meta.env.VITE_API_EMPLOYEE;
 
@@ -30,8 +31,11 @@ const EmployeeService = {
     }
   },
 
-  getAllEmployees: async (pageNumber, pageSize) => {
-    const response = await api.get(EMPLOYEE_PATH, {
+  getAllEmployees: async (pageNumber, pageSize, filters, sort) => {
+    const filtersQuery = buildFiltersQuery(filters);
+    const sortingQuery = sort ? `Sort.SortBy=${sort.SortBy}&Sort.Direction=${sort.Direction}` : '';
+
+    const response = await api.get(`${EMPLOYEE_PATH}?${sortingQuery}&${filtersQuery}`, {
       params: {
         pageNumber,
         pageSize

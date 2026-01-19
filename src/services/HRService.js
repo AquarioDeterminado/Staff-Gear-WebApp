@@ -1,13 +1,18 @@
 import api from '../utils/axiosClient';
 import PaymentViewModel from '../models/viewModels/PaymentViewModel';
 import MovementViewModel from '../models/viewModels/MovementViewModel.JS';
+import { buildFiltersQuery } from "../utils/axiosClient.js";
 
 const PAYMENTS_PATH = import.meta.env.VITE_API_URL + import.meta.env.VITE_API_PAYMENTS;
 const MOVEMENTS_PATH = import.meta.env.VITE_API_URL + import.meta.env.VITE_API_MOVEMENTS;
 
 const HRService = {
-    getAllPayments: async (pageNumber, pageSize) => {
-        const response = await api.get(PAYMENTS_PATH, {
+    getAllPayments: async (pageNumber, pageSize, filters, sort) => {
+        const filtersQuery = buildFiltersQuery(filters);
+        const sortingQuery = sort ? `Sort.SortBy=${sort.SortBy}&Sort.Direction=${sort.Direction}` : '';
+
+
+        const response = await api.get(`${PAYMENTS_PATH}?${sortingQuery}&${filtersQuery}`, {
             params: {
                 pageNumber,
                 pageSize
@@ -22,8 +27,11 @@ const HRService = {
         return response.data;
     },
 
-    getAllMovements: async (pageNumber, pageSize) => {
-        const response = await api.get(MOVEMENTS_PATH, {
+    getAllMovements: async (pageNumber, pageSize, filters, sort) => {
+        const filtersQuery = buildFiltersQuery(filters);
+        const sortingQuery = sort ? `Sort.SortBy=${sort.SortBy}&Sort.Direction=${sort.Direction}` : '';
+
+        const response = await api.get(`${MOVEMENTS_PATH}?${sortingQuery}&${filtersQuery}`, {
             params: {
                 pageNumber,
                 pageSize

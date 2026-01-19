@@ -30,3 +30,4 @@ export function FormatPayFrequency(frequency) {
             return 'Unknown';
     }
 }
+

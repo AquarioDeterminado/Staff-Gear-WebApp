@@ -55,5 +55,21 @@ api.interceptors.response.use(
   }
 );
 
+export function buildFiltersQuery(filters) {
+    return filters.filter(f => {
+      return (f.Values !== null && f.Values !== undefined && f.Values.length > 0 && f.Values.some(v => v !== '')) &&
+             (f.Fields !== null && f.Fields !== undefined && f.Fields.length > 0);
+    }).map((f, idx) => {
+            if (f.Values === null || f.Values === undefined) return '';
+            var filterBase = `Filters[${idx}]`
+            
+            var filterValues = f.Values.filter(value => value !== '').map((value, index) => `${filterBase}.Values[${index}]=${encodeURIComponent(value)}`).join('&');
+
+            var filterFields = f.Fields.map((field, index) => `${filterBase}.Fields[${index}]=${encodeURIComponent(field)}`).join('&');
+
+            return `${filterValues}&${filterFields}`;
+        }).filter(f => f !== '').join('&');
+}
+
 export default api;
 

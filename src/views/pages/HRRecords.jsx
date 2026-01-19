@@ -29,10 +29,8 @@ import EmployeeService from '../../services/EmployeeService';
 import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
 import { EmployeeSearchField } from '../components/EmployeeSearchField';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
-<<<<<<< HEAD
 import PaymentViewModel from '../../models/viewModels/PaymentViewModel.js';
 import MovementViewModel from '../../models/viewModels/MovementViewModel.js';
-=======
 import DataTable from '../components/table/DataTable';
 import Paginator from '../components/table/Paginator';
 import FilterPanel from '../components/filters/FilterPanel';
@@ -43,7 +41,6 @@ import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 import { FormatCurrency, FormatPayFrequency, FormatDate } from '../../utils/FormatingUtils';
 import { EditRowButton } from '../components/ui/buttons/EditRowButton';
 import { DeleteRowButton } from '../components/ui/buttons/DeleteRowButton';
->>>>>>> dev
 
 const PAYMENT_TAB = 0;
 const JOB_CHANGE_TAB = 1;
@@ -63,6 +60,7 @@ export default function HRRecords() {
   }, [navigate]);
 
   const [tab, setTab] = useState(0);
+  const [canSwitchPage, setCanSwitchPage] = useState(true);
 
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
@@ -81,6 +79,8 @@ export default function HRRecords() {
   const [filterJobDateFrom, setFilterJobDateFrom] = useState('');
   const [filterJobDateTo, setFilterJobDateTo] = useState('');
   const [filterJobChangesExpanded, setFilterJobChangesExpanded] = useState(false);
+
+  const [sort, setSort] = useState({ SortBy: 'CreatedAt', Direction: 'asc' });
 
   // Columns
   const actionColum = {
@@ -105,85 +105,14 @@ export default function HRRecords() {
   ];
 
   // Pages
-  const [paymentsPage, setPaymentsPage] = useState(1);
-  const [paymentsPageCount, setPaymentsPageCount] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const [jobChangesPage, setJobChangesPage] = useState(1);
+  const [paymentsPageCount, setPaymentsPageCount] = useState(1);
   const [jobChangesPageCount, setJobChangesPageCount] = useState(1);
   const ROWS_PER_PAGE = 10;
 
-  const filteredPayments = useMemo(() => {
-    return payments.filter((p) => {
-      if (filterPaymentEmployee.trim()) {
-        const query = filterPaymentEmployee.toLowerCase();
-        if (!((p.FullName || '').toLowerCase().includes(query))) return false;
-      }
-      if (filterRateMin) {
-        const minVal = parseFloat(filterRateMin);
-        if (p.Rate < minVal) return false;
-      }
-      if (filterRateMax) {
-        const maxVal = parseFloat(filterRateMax);
-        if (p.Rate > maxVal) return false;
-      }
-      if (filterPayFrequency) {
-        if (p.PayFrequency !== parseInt(filterPayFrequency, 10)) return false;
-      }
-      if (filterPaymentDateFrom) {
-        const payDate = new Date(p.RateChangeDate);
-        const fromDate = new Date(filterPaymentDateFrom);
-        if (payDate < fromDate) return false;
-      }
-      if (filterPaymentDateTo) {
-        const payDate = new Date(p.RateChangeDate);
-        const toDate = new Date(filterPaymentDateTo);
-        if (payDate > toDate) return false;
-      }
-      return true;
-    });
-  }, [
-    payments,
-    filterPaymentEmployee,
-    filterRateMin,
-    filterRateMax,
-    filterPayFrequency,
-    filterPaymentDateFrom,
-    filterPaymentDateTo,
-  ]);
-
-  const filteredJobChanges = useMemo(() => {
-    return jobChanges.filter((j) => {
-      if (filterJobEmployee.trim()) {
-        const query = filterJobEmployee.toLowerCase();
-        if (!((j.FullName || '').toLowerCase().includes(query))) return false;
-      }
-      if (filterDepartment) {
-        if (j.DepartmentName !== filterDepartment) return false;
-      }
-      if (filterJobDateFrom) {
-        const jobDate = new Date(j.StartDate);
-        const fromDate = new Date(filterJobDateFrom);
-        if (jobDate < fromDate) return false;
-      }
-      if (filterJobDateTo) {
-        const jobDate = new Date(j.StartDate);
-        const toDate = new Date(filterJobDateTo);
-        if (jobDate > toDate) return false;
-      }
-      return true;
-    });
-  }, [jobChanges, filterJobEmployee, filterDepartment, filterJobDateFrom, filterJobDateTo]);
-
-<<<<<<< HEAD
-
-=======
-  const paymentsStart = (paymentsPage - 1) * ROWS_PER_PAGE;
-  const jobChangesStart = (jobChangesPage - 1) * ROWS_PER_PAGE;
->>>>>>> dev
-
-  const visiblePayments = filteredPayments;
-
-  const visibleJobChanges = filteredJobChanges;
+  const visiblePayments = payments;
+  const visibleJobChanges = jobChanges;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [mode, setMode] = useState('add');
@@ -206,28 +135,62 @@ export default function HRRecords() {
   const [confirmIndex, setConfirmIndex] = useState(null);
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchPayments() {
       try {
-        const paymentsData = await HRService.getAllPayments();
-        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
+        setCanSwitchPage(false);
+
+        const data = await HRService.getAllPayments(currentPage, ROWS_PER_PAGE,
+          [
+            { Fields: ['FullName'], Values: [filterPaymentEmployee]},
+            { Fields: ['RateFrom'], Values: [filterRateMin]},
+            { Fields: ['RateTo'], Values: [filterRateMax]},
+            { Fields: ['RateFrom', 'RateTo'], Values: [filterRateMin, filterRateMax]},
+            { Fields: ['PayFrequency'], Values: [filterPayFrequency]},
+            { Fields: ['RateChangeDateFrom', 'RateChangeDateTo'], Values: [filterPaymentDateFrom, filterPaymentDateTo]}
+          ], 
+          { SortBy: sort.SortBy, Direction: sort.Direction });
+
+        setPaymentsPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+        const paymentsData = data.items.map(payment => (new PaymentViewModel({ BusinessEntityID: payment.businessEntityID, FullName: payment.fullName, Rate: payment.rate, RateChangeDate: payment.rateChangeDate, PayFrequency: payment.payFrequency })));
+
+        setPayments(paymentsData);
+        setCanSwitchPage(true);
       } catch (error) {
         console.error('Error fetching payments:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
       }
+    }
+    fetchPayments();
+  }, [currentPage, filterPayFrequency, filterPaymentDateFrom, filterPaymentDateTo, filterPaymentEmployee, filterRateMax, filterRateMin, navigate, sort.Direction, sort.SortBy]);
 
+  useEffect(() => {
+    async function fetchMovements() {
       try {
-        const jobChangesData = await HRService.getAllMovements();
-        setJobChanges(Array.isArray(jobChangesData) ? jobChangesData : []);
+        setCanSwitchPage(false);
+        console.log('sort', sort);
+        const data = await HRService.getAllMovements(currentPage, ROWS_PER_PAGE,
+          [
+            { Field: 'FullName', Value: filterJobEmployee},
+            { Field: 'DepartmentName', Value: filterDepartment},
+            { Field: 'StartDateFrom', Value: filterJobDateFrom},
+            { Field: 'StartDateTo', Value: filterJobDateTo}
+          ], 
+          { SortBy: sort.SortBy, Direction: sort.Direction });
+
+        setJobChangesPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+        const movementsData = data.items.map(movement => (new MovementViewModel({ BusinessEntityID: movement.businessEntityID, FullName: movement.fullName, DepartmentName: movement.departmentName, JobTitle: movement.jobTitle, StartDate: movement.startDate, EndDate: movement.endDate })));
+
+        setJobChanges(movementsData);
+        setCanSwitchPage(true);
       } catch (error) {
         console.error('Error fetching job changes:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
       }
-
-      setPaymentsPage(1);
-      setJobChangesPage(1);
     }
-    fetchData();
-  }, [navigate]);
+    fetchMovements();
+  }, [currentPage, filterDepartment, filterJobDateFrom, filterJobDateTo, filterJobEmployee, navigate, sort, sort.Direction, sort.SortBy]);
 
   function setFormDefaults() {
     setForm({
@@ -274,42 +237,17 @@ export default function HRRecords() {
   }
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const data = await HRService.getAllPayments(paymentsPage, ROWS_PER_PAGE);
-
-        setPaymentsPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
-
-        const paymentsData = data.items;
-
-        var payments = [];
-        for (let payment of paymentsData) {
-            var newPayment = new PaymentViewModel({BusinessEntityID: payment.businessEntityID, FullName: payment.fullName, Rate: payment.rate, RateChangeDate: payment.rateChangeDate, PayFrequency: payment.payFrequency}); // Supondo que payment já esteja no formato desejado
-            payments.push(newPayment);
-        }
-
-        setPayments(payments);
-      } catch (error) {
-        console.error('Error fetching payments:', error);
-        UserSession.verifyAuthorize(navigate, error?.status);
-      }
-    }
-    fetchData();
-
-  }, [navigate, paymentsPage]);
-
-  useEffect(() => {
     async function fetchJobChangesData() {
       try {
-        const data = await HRService.getAllMovements(jobChangesPage, ROWS_PER_PAGE);
+        const data = await HRService.getAllMovements(currentPage, ROWS_PER_PAGE);
 
         setJobChangesPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
 
         var items = data.items;
         var movements = [];
         for (let movement of items) {
-            var newMovement = new MovementViewModel({BusinessEntityID: movement.businessEntityID, FullName: movement.fullName, DepartmentName: movement.departmentName, JobTitle: movement.jobTitle, StartDate: movement.startDate, EndDate: movement.endDate}); // Supondo que movement já esteja no formato desejado
-            movements.push(newMovement);
+          var newMovement = new MovementViewModel({ BusinessEntityID: movement.businessEntityID, FullName: movement.fullName, DepartmentName: movement.departmentName, JobTitle: movement.jobTitle, StartDate: movement.startDate, EndDate: movement.endDate }); // Supondo que movement já esteja no formato desejado
+          movements.push(newMovement);
         }
         movements.forEach(element => {
           element.JobTitle = CapitalizeFirstLetter(element.JobTitle);
@@ -321,7 +259,7 @@ export default function HRRecords() {
       }
     }
     fetchJobChangesData();
-  }, [navigate, jobChangesPage]);
+  }, [navigate, currentPage]);
 
   const handleTabChange = (_e, v) => {
     setTab(v);
@@ -342,13 +280,7 @@ export default function HRRecords() {
     setEditIndex(indexInPage);
 
     if (tab === PAYMENT_TAB) {
-<<<<<<< HEAD
       const item = payments[indexInPage];
-=======
-      const item = payments[realIndex];
-      console.log(item);
-
->>>>>>> dev
       setForm({
         BusinessEntityID: item?.BusinessEntityID || '',
         Rate: (item?.Rate || '').toString().trim() ? item?.Rate : `€${item?.Rate ?? ''}`,
@@ -462,8 +394,7 @@ export default function HRRecords() {
             RateChangeDate: newItem.RateChangeDate + 'T00:00:00',
             PayFrequency: newItem.PayFrequency,
           });
-          setPayments(await HRService.getAllPayments());
-          setPaymentsPage(1);
+          setPayments(await HRService.getAllPayments(currentPage, ROWS_PER_PAGE));
           notif({ severity: 'success', message: 'Payment created with success!' });
         } catch (error) {
           console.error('Error creating payment:', error);
@@ -518,7 +449,6 @@ export default function HRRecords() {
             EndDate: newItem.EndDate,
           });
           setJobChanges(await HRService.getAllMovements());
-          setJobChangesPage(1);
           notif({ severity: 'success', message: 'Job change created with success!' });
         } catch (error) {
           console.error('Error creating job change:', error);
@@ -622,7 +552,6 @@ export default function HRRecords() {
     setFilterPayFrequency('');
     setFilterPaymentDateFrom('');
     setFilterPaymentDateTo('');
-    setPaymentsPage(1);
   };
 
   const handleClearFiltersJobChanges = () => {
@@ -630,7 +559,6 @@ export default function HRRecords() {
     setFilterDepartment('');
     setFilterJobDateFrom('');
     setFilterJobDateTo('');
-    setJobChangesPage(1);
   };
 
   const uniqueDepartments = useMemo(() => {
@@ -732,584 +660,11 @@ export default function HRRecords() {
         </Stack>
 
         {tab === PAYMENT_TAB && (
-<<<<<<< HEAD
-          <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
-            <CardHeader
-              title="Filters"
-              action={
-                <IconButton onClick={() => setFilterPaymentsExpanded(!filterPaymentsExpanded)} sx={{ p: 0 }}>
-                  {filterPaymentsExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </IconButton>
-              }
-              sx={{ pb: 0 }}
-            />
-            <Collapse in={filterPaymentsExpanded}>
-              <CardContent>
-                <Stack direction="column" spacing={2}>
-                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField
-                      label="Employee Name"
-                      value={filterPaymentEmployee}
-                      onChange={(e) => {
-                        setFilterPaymentEmployee(e.target.value);
-                        setPaymentsPage(1);
-                      }}
-                      size="small"
-                      sx={{ flex: 1 }}
-                    />
-                    <TextField
-                      label="Rate Min"
-                      type="number"
-                      value={filterRateMin}
-                      onChange={(e) => {
-                        setFilterRateMin(e.target.value);
-                        setPaymentsPage(1);
-                      }}
-                      size="small"
-                      sx={{ flex: 1 }}
-                      inputProps={{ step: '0.01' }}
-                    />
-                    <TextField
-                      label="Rate Max"
-                      type="number"
-                      value={filterRateMax}
-                      onChange={(e) => {
-                        setFilterRateMax(e.target.value);
-                        setPaymentsPage(1);
-                      }}
-                      size="small"
-                      sx={{ flex: 1 }}
-                      inputProps={{ step: '0.01' }}
-                    />
-                    <Select
-                      value={filterPayFrequency}
-                      onChange={(e) => {
-                        setFilterPayFrequency(e.target.value);
-                        setPaymentsPage(1);
-                      }}
-                      size="small"
-                      displayEmpty
-                      sx={{ flex: 1 }}
-                    >
-                      <MenuItem value="">All Frequencies</MenuItem>
-                      <MenuItem value="1">Monthly</MenuItem>
-                      <MenuItem value="2">Bi-weekly</MenuItem>
-                    </Select>
-                  </Stack>
-                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField
-                      label="Date From"
-                      type="date"
-                      value={filterPaymentDateFrom}
-                      onChange={(e) => {
-                        setFilterPaymentDateFrom(e.target.value);
-                        setPaymentsPage(1);
-                      }}
-                      size="small"
-                      sx={{ flex: 1 }}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                    <TextField
-                      label="Date To"
-                      type="date"
-                      value={filterPaymentDateTo}
-                      onChange={(e) => {
-                        setFilterPaymentDateTo(e.target.value);
-                        setPaymentsPage(1);
-                      }}
-                      size="small"
-                      sx={{ flex: 1 }}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                    <Button variant="outlined" onClick={handleClearFiltersPayments} sx={{ textTransform: 'none', fontWeight: 600 }}>
-                      Clear Filters
-                    </Button>
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </Collapse>
-          </Card>
-        )}
-        {tab === JOB_CHANGE_TAB && (
-          <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
-            <CardHeader
-              title="Filters"
-              action={
-                <IconButton onClick={() => setFilterJobChangesExpanded(!filterJobChangesExpanded)} sx={{ p: 0 }}>
-                  {filterJobChangesExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </IconButton>
-              }
-              sx={{ pb: 0 }}
-            />
-            <Collapse in={filterJobChangesExpanded}>
-              <CardContent>
-                <Stack direction="column" spacing={2}>
-                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField
-                      label="Employee Name"
-                      value={filterJobEmployee}
-                      onChange={(e) => {
-                        setFilterJobEmployee(e.target.value);
-                        setJobChangesPage(1);
-                      }}
-                      size="small"
-                      sx={{ flex: 1 }}
-                    />
-                    <Select
-                      value={filterDepartment}
-                      onChange={(e) => {
-                        setFilterDepartment(e.target.value);
-                        setJobChangesPage(1);
-                      }}
-                      size="small"
-                      displayEmpty
-                      sx={{ flex: 1 }}
-                    >
-                      <MenuItem value="">All Departments</MenuItem>
-                      {uniqueDepartments.map((dept) => (
-                        <MenuItem key={dept} value={dept}>
-                          {dept}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </Stack>
-                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField
-                      label="Date From"
-                      type="date"
-                      value={filterJobDateFrom}
-                      onChange={(e) => {
-                        setFilterJobDateFrom(e.target.value);
-                        setJobChangesPage(1);
-                      }}
-                      size="small"
-                      sx={{ flex: 1 }}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                    <TextField
-                      label="Date To"
-                      type="date"
-                      value={filterJobDateTo}
-                      onChange={(e) => {
-                        setFilterJobDateTo(e.target.value);
-                        setJobChangesPage(1);
-                      }}
-                      size="small"
-                      sx={{ flex: 1 }}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                    <Button variant="outlined" onClick={handleClearFiltersJobChanges} sx={{ textTransform: 'none', fontWeight: 600 }}>
-                      Clear Filters
-                    </Button>
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </Collapse>
-          </Card>
-        )}
-
-        <Paper
-          variant="outlined"
-          sx={{
-            bgcolor: '#fff3e0',
-            borderColor: '#ddd',
-            borderRadius: 1.5,
-            overflow: 'hidden',
-          }}
-        >
-          <Box sx={{ px: 2, pt: 1 }}>
-            <Divider sx={{ borderColor: '#ccc' }} />
-          </Box>
-
-          <Table size="small" sx={{ minWidth: 720, tableLayout: 'fixed' }}>
-            <TableHead>
-              <TableRow sx={{ '& th': { fontWeight: 700 } }}>
-                {columns.map((c, i) => (
-                  <TableCell
-                    onClick={() => clickHeader(c.parameter)}
-                    key={c.label}
-                    sx={{
-                      borderRight: i < columns.length - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
-                      color: '#333',
-                    }}
-                  >
-                    <>
-                      {c.label}
-                      {sorting.parameter === c.parameter ? (
-                        sorting.order === SORTING_ASCENDING ? (
-                          <ArrowUpwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                        ) : sorting.order === SORTING_DESCENDING ? (
-                          <ArrowDownwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                        ) : null
-                      ) : null}
-
-                    </>
-                  </TableCell>
-                ))}
-                <TableCell sx={{ color: '#333' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {tab === PAYMENT_TAB ? (
-                payments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 3 }}>
-                      No payment records found.
-                    </TableCell>
-                  </TableRow>
-                ) : visiblePayments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 3 }}>
-                      Page out of range.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  visiblePayments.map((p, idx) => (
-                    <TableRow key={`${p.FullName}-${p.RateChangeDate}-${idx}`}>
-                      <TableCell>{Math.round((p.Rate + Number.EPSILON) * 100) / 100}€</TableCell>
-                      <TableCell>{new Date(p.RateChangeDate).toLocaleString('fr-FR', { dateStyle: 'short' })}</TableCell>
-                      <TableCell>{p.PayFrequency == 1 ? 'Monthly' : 'Biweekly'}</TableCell>
-                      <TableCell>{p.FullName}</TableCell>
-                      <TableCell>
-                        <Stack direction="row" spacing={1}>
-                          <IconButton
-                            aria-label="edit"
-                            onClick={() => openEdit(idx)}
-                            sx={{
-                              bgcolor: '#fff3e0',
-                              color: '#000000ff',
-                              '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                            }}
-                            size="small"
-                          >
-                            <EditOutlinedIcon />
-                          </IconButton>
-                          <Popups
-                            title="Remove record"
-                            message="Do you really want to delete this record? This action is irreversible."
-                            onConfirm={async () => {
-                              await handleDelete(idx);
-                              notif({
-                                severity: 'success',
-                                message: 'Payment successfully deleted!',
-                              });
-                            }}
-                          >
-                            <IconButton
-                              sx={{
-                                bgcolor: '#fff3e0',
-                                color: '#000000ff',
-                                '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                              }}
-                              size="small"
-                            >
-                              <DeleteOutlineIcon />
-                            </IconButton>
-                          </Popups>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )
-              ) : jobChanges.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 3 }}>
-                    No job change records found.
-                  </TableCell>
-                </TableRow>
-              ) : visibleJobChanges.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 3 }}>
-                    Page out of range.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                visibleJobChanges.map((c, idx) => (
-                  <TableRow key={`${c.FullName}-${c.JobTitle}-${c.StartDate}-${idx}`}>
-                    <TableCell>{c.JobTitle}</TableCell>
-                    <TableCell>{c.DepartmentName}</TableCell>
-                    <TableCell>{c.StartDate}</TableCell>
-                    <TableCell>{c.EndDate || 'Present'}</TableCell>
-                    <TableCell>{c.FullName}</TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <IconButton
-                          onClick={() => openEdit(idx)}
-                          sx={{
-                            bgcolor: '#fff3e0',
-                            color: '#000000ff',
-                            '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                          }}
-                          size="small"
-                        >
-                          <EditOutlinedIcon />
-                        </IconButton>
-                        <Popups
-                          title="Remove record"
-                          message="Do you really want to delete this record? This action is irreversible."
-                          onConfirm={async () => {
-                            await handleDelete(idx);
-                            notif({
-                              severity: 'success',
-                              message: 'Job change successfully deleted!',
-                            });
-                          }}
-                        >
-                          <IconButton
-                            sx={{
-                              bgcolor: '#fff3e0',
-                              color: '#000000ff',
-                              '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                            }}
-                            size="small"
-                          >
-                            <DeleteOutlineIcon />
-                          </IconButton>
-                        </Popups>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-
-          <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-            {tab === PAYMENT_TAB ? (
-              <Pagination
-                count={paymentsPageCount}
-                page={paymentsPage}
-                onChange={(_, p) => setPaymentsPage(p)}
-                sx={{
-                  '& .MuiPaginationItem-root.Mui-selected': {
-                    bgcolor: '#ff9800',
-                    color: '#fff',
-                  },
-                }}
-              />
-            ) : (
-              <Pagination
-                count={jobChangesPageCount}
-                page={jobChangesPage}
-                onChange={(_, p) => setJobChangesPage(p)}
-                sx={{
-                  '& .MuiPaginationItem-root.Mui-selected': {
-                    bgcolor: '#ff9800',
-                    color: '#fff',
-                  },
-                }}
-              />
-            )}
-          </Box>
-
-          <Box sx={{ height: 24 }} />
-        </Paper>
-      </Container>
-
-      {/* Add/Edit */}
-      <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>
-          {mode === 'add' ? 'Add Record' : 'Edit Record'}
-        </DialogTitle>
-
-        <DialogContent dividers>
-          <Stack spacing={1.5}>
-            {tab === PAYMENT_TAB ? (
-              mode === 'add' ? (
-                <>
-                  <EmployeeSearchField
-                  onChange={(event, newValue) => {
-                    setForm((prev => ({ ...prev, BusinessEntityID: newValue ? newValue.BusinessEntityID : '' }))  );
-                  }}
-                  error={formErrors.BusinessEntityID}
-                  helperText={formErrors.BusinessEntityID}
-                />
-                  <TextField
-                    label="Rate Change Date"
-                    value={form.RateChangeDate}
-                    type='date'
-                    onChange={onChange('RateChangeDate')}
-                    placeholder="dd-mm-yyyy"
-                    fullWidth
-                    size="small"
-                    slotProps={{
-                      inputLabel: { shrink: true }
-                    }}
-                    required
-                    error={!!formErrors.RateChangeDate}
-                    helperText={formErrors.RateChangeDate}
-                  />
-                  <TextField
-                    label="Rate"
-                    type='number'
-                    value={form.Rate}
-                    onChange={onChange('Rate')}
-                    fullWidth
-                    size="small"
-                    required
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">€</InputAdornment>,
-                    }}
-                    error={!!formErrors.Rate}
-                    helperText={formErrors.Rate}
-                  />
-                  <Select
-                    value={form.PayFrequency}
-                    onChange={onChange('PayFrequency')}
-                    size="small"
-                    displayEmpty
-                    sx={{ flex: 1 }}
-                    error={!!formErrors.PayFrequency}
-                  >
-                    <MenuItem value="">Pay Rate</MenuItem>
-                    {["Monthly", "Biweekly"].map((freq) => (
-                      <MenuItem key={freq} value={freq === "Monthly" ? 1 : 2}>
-                        {freq}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </>
-              ) : (
-                <>
-                  <TextField
-                    label="Rate"
-                    type='number'
-                    min={6.5}
-                    max={200}
-                    step={0.01}
-                    placeholder={form.Rate}
-                    value={form.Rate}
-                    onChange={onChange('Rate')}
-                    fullWidth
-                    size="small"
-                    required
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">€</InputAdornment>,
-                    }}
-                    error={!!formErrors.Rate}
-                    helperText={formErrors.Rate}
-                  />
-                  <Select
-                    value={form.PayFrequency}
-                    onChange={onChange('PayFrequency')}
-                    size="small"
-                    displayEmpty
-                    sx={{ flex: 1 }}
-                    error={!!formErrors.PayFrequency}
-                    helperText={formErrors.PayFrequency}
-                  >
-                    <MenuItem value="">Pay Rate</MenuItem>
-                    {["Monthly", "Biweekly"].map((freq) => (
-                      <MenuItem key={freq} value={freq === "Monthly" ? 1 : (freq === "Biweekly" ? 2 : -1)}>
-                        {freq}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </>
-              )
-            ) : (
-              mode === 'add' ? (
-                <>
-                  <TextField
-                    label="Job Title"
-                    value={form.JobTitle}
-                    onChange={onChange('JobTitle')}
-                    fullWidth
-                    size="small"
-                    required
-                    error={!!formErrors.JobTitle}
-                    helperText={formErrors.JobTitle}
-                  />
-                  <DepartmentSelectField
-                    onChange={onChange('DepartmentName')}
-                    error={!!formErrors.DepartmentName}
-                  />
-                  <TextField
-                    label="Start Date (yyyy-mm-dd)"
-                    type='date'
-                    value={form.StartDate}
-                    onChange={onChange('StartDate')}
-                    slotProps={{
-                      inputLabel: { shrink: true }
-                    }}
-                    fullWidth
-                    size="small"
-                    required
-                    error={!!formErrors.StartDate}
-                    helperText={formErrors.StartDate}
-                  />
-                  <TextField
-                    label="End Date (yyyy-mm-dd)"
-                    type='date'
-                    value={form.EndDate}
-                    onChange={onChange('EndDate')}
-                    slotProps={{
-                      inputLabel: { shrink: true }
-                    }}
-                    fullWidth
-                    size="small"
-                  />
-                  <EmployeeSearchField
-                    onChange={(event, newValue) => {
-                      //setInputEmployee(newValue);
-                      setForm((prev => ({ ...prev, BusinessEntityID: newValue ? newValue.BusinessEntityID : '' })));
-                    }}
-                    error={formErrors.BusinessEntityID}
-                    helperText={formErrors.BusinessEntityID}
-                  />
-                </>
-              ) : (
-                <>
-                  <TextField
-                    label="Job Title"
-                    value={form.JobTitle}
-                    onChange={onChange('JobTitle')}
-                    fullWidth
-                    size="small"
-                    required
-                    error={!!formErrors.JobTitle}
-                    helperText={formErrors.JobTitle}
-                  />
-                  <TextField
-                    label="End Date (yyyy-mm-dd)"
-                    type='date'
-                    value={form.EndDate}
-                    onChange={onChange('EndDate')}
-                    slotProps={{
-                      inputLabel: { shrink: true }
-                    }}
-                    fullWidth
-                    size="small"
-                  />
-                </>
-              )
-            )}
-          </Stack>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={closeDialog} sx={{ textTransform: 'none' }}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleAddOrSave}
-            variant="contained"
-            disabled={!canSave}
-            sx={{
-              bgcolor: '#000',
-              color: '#fff',
-              textTransform: 'none',
-              fontWeight: 700,
-              '&:hover': { bgcolor: '#222' },
-            }}
-=======
           <FilterPanel
             title="Filters"
             expanded={filterPaymentsExpanded}
             onToggle={() => setFilterPaymentsExpanded(!filterPaymentsExpanded)}
             onClear={handleClearFiltersPayments}
->>>>>>> dev
           >
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
               <TextField
@@ -1317,7 +672,6 @@ export default function HRRecords() {
                 value={filterPaymentEmployee}
                 onChange={(e) => {
                   setFilterPaymentEmployee(e.target.value);
-                  setPaymentsPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -1328,7 +682,6 @@ export default function HRRecords() {
                 value={filterRateMin}
                 onChange={(e) => {
                   setFilterRateMin(e.target.value);
-                  setPaymentsPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -1340,7 +693,6 @@ export default function HRRecords() {
                 value={filterRateMax}
                 onChange={(e) => {
                   setFilterRateMax(e.target.value);
-                  setPaymentsPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -1350,7 +702,7 @@ export default function HRRecords() {
                 value={filterPayFrequency}
                 onChange={(e) => {
                   setFilterPayFrequency(e.target.value);
-                  setPaymentsPage(1);
+
                 }}
                 size="small"
                 displayEmpty
@@ -1368,7 +720,6 @@ export default function HRRecords() {
                 value={filterPaymentDateFrom}
                 onChange={(e) => {
                   setFilterPaymentDateFrom(e.target.value);
-                  setPaymentsPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -1380,7 +731,6 @@ export default function HRRecords() {
                 value={filterPaymentDateTo}
                 onChange={(e) => {
                   setFilterPaymentDateTo(e.target.value);
-                  setPaymentsPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -1403,7 +753,6 @@ export default function HRRecords() {
                 value={filterJobEmployee}
                 onChange={(e) => {
                   setFilterJobEmployee(e.target.value);
-                  setJobChangesPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -1412,7 +761,6 @@ export default function HRRecords() {
                 value={filterDepartment}
                 onChange={(e) => {
                   setFilterDepartment(e.target.value);
-                  setJobChangesPage(1);
                 }}
                 size="small"
                 displayEmpty
@@ -1433,7 +781,6 @@ export default function HRRecords() {
                 value={filterJobDateFrom}
                 onChange={(e) => {
                   setFilterJobDateFrom(e.target.value);
-                  setJobChangesPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -1445,7 +792,6 @@ export default function HRRecords() {
                 value={filterJobDateTo}
                 onChange={(e) => {
                   setFilterJobDateTo(e.target.value);
-                  setJobChangesPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -1459,16 +805,22 @@ export default function HRRecords() {
           {tab === PAYMENT_TAB ? (
             <DataTable
               columns={paymentColumnsWithActions}
-              rows={filteredPayments}
-              setRows={setPayments}
+              rows={payments}
               getRowId={(r, idx) => `${r.FullName}-${r.RateChangeDate}-${idx}`}
+              onPageChange={setCurrentPage}
+              pageCount={paymentsPageCount}
+              canSwitchPage={canSwitchPage}
+              onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction });}}
             />
           ) : (
             <DataTable
               columns={jobColumnsWithActions}
-              rows={filteredJobChanges}
-              setRows={setJobChanges}
+              rows={jobChanges}
               getRowId={(r, idx) => `${r.FullName}-${r.JobTitle}-${r.StartDate}-${idx}`}
+              onPageChange={setCurrentPage}
+              pageCount={jobChangesPageCount}
+              canSwitchPage={canSwitchPage}
+              onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction });}}
             />
 
           )}

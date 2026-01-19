@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Container, Typography, IconButton, Button, Stack, Divider, TextField
 } from '@mui/material';
@@ -25,9 +25,13 @@ export default function CandidatesView() {
 
   const [rows, setRows] = useState([]);
   const ROWS_PER_PAGE = 10;
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
 
   const [filterId, setFilterId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [sort, setSort] = useState({ SortBy: 'BusinessEntityID', Direction: 'asc' });
 
   // Dialog Accept
   const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
@@ -41,25 +45,6 @@ export default function CandidatesView() {
   // Drawer Details
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-
-  const filtered = useMemo(() => {
-    let result = rows;
-    if (filterId) {
-      const n = parseInt(filterId, 10);
-      if (!Number.isNaN(n)) {
-        result = result.filter((r) => r.jobCandidateId === n);
-      }
-    }
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter((r) => {
-        const fullName = (r.firstName + ' ' + (r.middleName ? r.middleName + ' ' : '') + r.lastName).toLowerCase();
-        const email = (r.email || '').toLowerCase();
-        return fullName.includes(query) || email.includes(query);
-      });
-    }
-    return result;
-  }, [rows, filterId, searchQuery]);
 
   const openAcceptDialog = (candidate) => {
     setCandidateToAccept(candidate);
@@ -97,7 +82,16 @@ export default function CandidatesView() {
   useEffect(() => {
     async function fetchCandidates() {
       try {
-        const list = (await CandidateService.list()).data;
+        const data = (await CandidateService.list(page, ROWS_PER_PAGE,
+          [
+            { Fields: ['JobCandidateID'], Values: filterId ? [filterId] : [] },
+            { Fields: ['FirstName', 'MiddleName', 'LastName', 'Email'], Values: searchQuery ? [searchQuery] : [] },
+          ],
+          { SortBy: sort.SortBy, Direction: sort.Direction }
+        )).data;
+
+        setPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+        const list = data.items;
         setRows(Array.isArray(list) ? list : []);
       } catch (error) {
         let msg;
@@ -122,7 +116,7 @@ export default function CandidatesView() {
     }
     fetchCandidates();
     fetchDepartments();
-  }, [navigate, showNotification]);
+  }, [filterId, navigate, page, searchQuery, showNotification, sort.Direction, sort.SortBy]);
 
   const downloadResume = async (r, e) => {
     e.stopPropagation();
@@ -151,7 +145,7 @@ export default function CandidatesView() {
   };
 
   const columns = [
-    { label: 'ID', width: '8%', render: (r) => r.jobCandidateId },
+    { label: 'ID', width: '8%', field: 'jobCandidateId', render: (r) => r.jobCandidateId, sortable: true },
     {
       label: 'Resume', width: '10%',
       render: (r) => (
@@ -160,8 +154,8 @@ export default function CandidatesView() {
         </IconButton>
       ),
     },
-    { label: 'Name', width: '22%', render: (r) => r.firstName + ' ' + (r.middleName ? r.middleName + ' ' : '') + r.lastName },
-    { label: 'Email', width: '28%', render: (r) => r.email },
+    { label: 'Name', width: '22%', field: 'firstName', render: (r) => r.firstName + ' ' + (r.middleName ? r.middleName + ' ' : '') + r.lastName, sortable: true },
+    { label: 'Email', width: '28%', field: 'email', render: (r) => r.email, sortable: true },
     {
       label: 'Actions', width: '32%', align: 'center',
       render: (r) => (
@@ -235,11 +229,15 @@ export default function CandidatesView() {
           <SectionPaper sx={{ flex: 1 }}>
             <DataTable
               columns={columns}
-              rows={filtered}
+              rows={rows}
               getRowId={(r) => r.jobCandidateId}
               onRowClick={(r) => openDrawer(r)}
               tableSx={{ minWidth: 1000, tableLayout: 'auto' }}
               headSx={{ '& th': { backgroundColor: '#ffe0b2' } }}
+              pageSize={ROWS_PER_PAGE}
+              pageCount={pageCount}
+              onPageChange={(e, value) => setPage(value)}
+              onSortChange={(sort) => { setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); }}
             />
           </SectionPaper>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Container,
@@ -39,13 +39,7 @@ import AddIcon from '@mui/icons-material/AddCircleOutline';
 import ErrorHandler from '../../utils/ErrorHandler';
 import useNotification from '../../utils/UseNotification';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
-<<<<<<< HEAD
-import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
 import EmployeeViewModel from '../../models/viewModels/EmployeeViewModel.js';
-
-const SORTING_ASCENDING = 'asc';
-const SORTING_DESCENDING = 'desc';
-=======
 import { CapitalizeFirstLetter, FormatDate } from '../../utils/FormatingUtils';
 import DataTable from '../components/table/DataTable';
 import Paginator from '../components/table/Paginator';
@@ -54,12 +48,18 @@ import FormPopup from '../components/ui/popups/FormPopup';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 import { EditRowButton } from '../components/ui/buttons/EditRowButton';
 import { DeleteRowButton } from '../components/ui/buttons/DeleteRowButton';
->>>>>>> dev
+
+const SORTING_ASCENDING = 'asc';
+const SORTING_DESCENDING = 'desc';
 
 export default function EmployeesList() {
   const navigate = useNavigate();
   const notifs = useNotification();
   const [Users, setUsers] = useState([]);
+
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
+  const ROWS_PER_PAGE = 10;
 
   const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessEntityID)) + 1);
 
@@ -79,6 +79,7 @@ export default function EmployeesList() {
                   {label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true},
                   actionColum];
   
+  const [sort, setSort] = useState({ SortBy: 'BusinessEntityID', Direction: SORTING_ASCENDING });
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [mode, setMode] = useState('add');
@@ -140,84 +141,6 @@ export default function EmployeesList() {
     setFilterJobTitle('');
   };
 
-  const filteredEmployees = useMemo(() => {
-    return Users.filter((p) => {
-      if (filterBusinessId.trim()) {
-        const query = filterBusinessId.toString().toLowerCase();
-        if (!(p.BusinessEntityID.toString() || '').toLowerCase().includes(query)) return false;
-      }
-      if (filterName.trim()) {
-        const query = filterName.toLowerCase();
-        if (!(p.FirstName + p.MiddleName + p.LastName || '').toLowerCase().includes(query)) return false;
-      }
-      if (filterEmail.trim()) {
-        const query = filterEmail.toLowerCase();
-        if (!(p.Email || '').toLowerCase().includes(query)) return false;
-      }
-      if (filterEntryDateFrom) {
-        const entryDate = new Date(p.HireDate);
-        const fromDate = new Date(filterEntryDateFrom);
-        if (entryDate < fromDate) return false;
-      }
-      if (filterEntryDateTo) {
-        const entryDate = new Date(p.HireDate);
-        const toDate = new Date(filterEntryDateTo);
-        if (entryDate > toDate) return false;
-      }
-      if (filterDepartment.trim()) {
-        const query = filterDepartment.toLowerCase();
-        if (!(p.Department || '').toLowerCase().includes(query)) return false;
-      }
-      if (filterJobTitle.trim()) {
-        const query = filterJobTitle.toLowerCase();
-        if (!(p.JobTitle || '').toLowerCase().includes(query)) return false;
-      }
-      return true;
-    });
-  }, [Users, filterBusinessId, filterName, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterDepartment, filterJobTitle]);
-
-<<<<<<< HEAD
-  function clickHeader(parameter) {
-    let sortingOrder = sorting.parameter === parameter && sorting.order === SORTING_ASCENDING ? SORTING_DESCENDING : sorting.order === SORTING_DESCENDING ? '' : SORTING_ASCENDING;
-    setSorting({ "parameter": parameter, "order": sortingOrder });
-    var sorted = [];
-
-    sorted = Users;
-    if (sortingOrder === "") {
-      sorted = [...Users].sort((a, b) => {
-        if (a["HireDate"] < b["HireDate"]) return -1;
-        if (a["HireDate"] > b["HireDate"]) return 1;
-        return 0;
-      });
-    } else if (sortingOrder === SORTING_DESCENDING) {
-      sorted = [...Users].sort((a, b) => {
-        if (a[parameter] > b[parameter]) return -1;
-        if (a[parameter] < b[parameter]) return 1;
-        return 0;
-      });
-    } else if (sortingOrder === SORTING_ASCENDING) {
-      sorted = [...Users].sort((a, b) => {
-        if (a[parameter] < b[parameter]) return -1;
-        if (a[parameter] > b[parameter]) return 1;
-        return 0;
-      });
-    }
-
-    console.log(sorting);
-    setUsers(sorted);
-  }
-  
-  const ROWS_PER_PAGE = 10;
-  const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
-
-  const visibleUsers = useMemo(
-    () => filteredEmployees,
-    [filteredEmployees]
-  );
-=======
->>>>>>> dev
-
   const handleOpenAdd = () => {
     setMode('add');
     setForm({ businessId: nextBusinessIdRef.current, firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '' });
@@ -227,7 +150,7 @@ export default function EmployeesList() {
 
   const handleOpenEdit = (idx) => {
     setMode('edit');
-    const emp = filteredEmployees[idx];
+    const emp = Users[idx];
     console.log('Editing employee', emp);
     setForm({
       businessId: emp.BusinessEntityID,
@@ -295,7 +218,18 @@ export default function EmployeesList() {
   useEffect(() => {
     async function fetchData() {
       try {
-        var data = await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE);
+        var data = await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE,
+          [
+            { Fields: ['BusinessEntityID'], Values: [filterBusinessId] },
+            { Fields: ['FirstName', 'MiddleName', 'LastName'], Values: [filterName] },
+            { Fields: ['Email'], Values: [filterEmail] },
+            { Fields: ['HireDateFrom'], Values: [filterEntryDateFrom] },
+            { Fields: ['HireDateTo'], Values: [filterEntryDateTo] },
+            { Fields: ['Department'], Values: [filterDepartment] },
+            { Fields: ['JobTitle'], Values: [filterJobTitle] },
+          ],
+          { SortBy: sort.SortBy, Direction: sort.Direction }
+        );
         
         setPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
 
@@ -317,6 +251,8 @@ export default function EmployeesList() {
         console.log('Fetched employees:', employees);
         employees.forEach(element => {
           element.FirstName = CapitalizeFirstLetter(element.FirstName);
+          element.MiddleName = CapitalizeFirstLetter(element.MiddleName);
+          element.LastName = CapitalizeFirstLetter(element.LastName);
         });
         setUsers(employees);
       } catch (error) {
@@ -324,30 +260,8 @@ export default function EmployeesList() {
         notifs({ severity: 'error', message: ErrorHandler(error) ?? 'Error fetching employees.' });
       }
     }
-<<<<<<< HEAD
     fetchData();
-
-    async function fetchDepartments() {
-      try {
-        const deps = await EmployeeService.getAllDepartments();
-        deps.sort();
-        setDepartments(deps);
-      } catch (err) {
-        console.debug('Could not fetch departments for accept dialog', err);
-      }
-    }
-
-    fetchDepartments();
-  }, [Users.length, navigate, notifs, page]);
-
-  const changePage = (newPage) => {
-    console.log('Changing to page ', newPage);
-    setPage(newPage);
-  };
-=======
-    if (Users.length === 0) fetchData();
-  }, [Users.length, navigate, notifs]);
->>>>>>> dev
+  }, [Users.length, filterBusinessId, filterDepartment, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterJobTitle, filterName, navigate, notifs, page, sort, sort.Direction, sort.SortBy]);
 
 
   return (
@@ -461,135 +375,17 @@ export default function EmployeesList() {
           </Collapse>
         </Card>
 
-<<<<<<< HEAD
-          <Table
-            size="small"
-            sx={{
-              minWidth: 840,
-              tableLayout: 'fixed',
-            }}
-          >
-            <TableHead>
-              <TableRow sx={{ '& th': { fontWeight: 700 } }}>
-                {columns.map((c, i) => (
-                  <TableCell
-                    onClick={() => clickHeader(c.parameter)}
-                    key={c.label}
-                    sx={{
-                      borderRight: i < columns.length - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
-                      color: '#333',
-                    }}
-                  >
-                    <>
-                      {c.label}
-                      {sorting.parameter === c.parameter ? (
-                        sorting.order === SORTING_ASCENDING ? (
-                          <ArrowUpwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                        ) : sorting.order === SORTING_DESCENDING ? (
-                          <ArrowDownwardIcon sx={{ fontSize: 16, ml: 0.5, verticalAlign: 'middle' }} />
-                        ) : null
-                      ) : null}
-
-                    </>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {visibleUsers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 3, color: '#666' }}>
-                    No employees yet.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                visibleUsers.map((row) => (
-                  <TableRow key={row.BusinessEntityID}>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.BusinessEntityID}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {`${row.FirstName}${row.MiddleName ? ' ' + row.MiddleName : ''} ${row.LastName}`}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.Email}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.Department}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.JobTitle}
-                    </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.HireDate}
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <IconButton
-                          aria-label="editar"
-                          onClick={() => handleOpenEdit(row)}
-                          sx={{
-                            bgcolor: '#fff3e0',
-                            color: '#000000ff',
-                            '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                          }}
-                          size="small"
-                        >
-                          <EditOutlinedIcon />
-                        </IconButton>
-                        <Popups
-                          title="Remove record"
-                          message="Do you really want to delete this employee? This action is irreversible."
-                          onConfirm={async () => {
-                            await handleDelete(row.BusinessEntityID);
-                            notifs({
-                              severity: 'success',
-                              message: 'Employee deleted!'
-                            });
-                          }}
-                        >
-                          <IconButton
-                            aria-label="Delete"
-                            sx={{
-                              bgcolor: '#fff3e0',
-                              color: '#000000ff',
-                              '&:hover': { bgcolor: '#000000ff', color: '#fff' },
-                            }}
-                            size="small"
-                          >
-                            <DeleteOutlineIcon />
-                          </IconButton>
-                        </Popups>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-
-          <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-            <Pagination
-              count={pageCount}
-              page={page}
-              onChange={(_, p) => changePage(p)}
-              sx={{
-                '& .MuiPaginationItem-root.Mui-selected': {
-                  bgcolor: '#ff9800',
-                  color: '#fff',
-                },
-              }}
-            />
-          </Box>
-
-          <Box sx={{ height: 24 }} />
-        </Paper>
-=======
         <SectionPaper>
-          <DataTable columns={columns} rows={filteredEmployees} setRows={setUsers} getRowId={(r) => r.BusinessEntityID} />
+          <DataTable 
+            columns={columns} 
+            rows={Users} 
+            getRowId={(r) => r.BusinessEntityID} 
+            pageSize={ROWS_PER_PAGE}
+            pageCount={pageCount}
+            onPageChange={(e, value) => setPage(value)}
+            onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort);}}
+          />
         </SectionPaper>
->>>>>>> dev
       </Container>
 
       <FormPopup

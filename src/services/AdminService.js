@@ -1,18 +1,18 @@
 import api from "../utils/axiosClient";
-import UserDTO from "../models/dtos/UserDTO.js";
-import LogDTO from "../models/dtos/LogDTO.js";
 import UpdateUserRoleDTO from "../models/dtos/UpdateUserRoleDTO.js";
+import { buildFiltersQuery } from "../utils/axiosClient.js";
 
 const API_ADMIN_BASE = import.meta.env.VITE_API_ADMIN ?? '/api/v1/admin';
 
 const AdminService = {
     getUsers: async (pageNumber, pageSize, filters, sort) => {
-        const response = await api.get(`${API_ADMIN_BASE}/users`, {
+        const filtersQuery = buildFiltersQuery(filters);
+        const sortingQuery = sort ? `Sort.SortBy=${sort.SortBy}&Sort.Direction=${sort.Direction}` : '';
+        
+        const response = await api.get(`${API_ADMIN_BASE}/users?${sortingQuery}&${filtersQuery}`, {
             params: {
                 pageNumber,
                 pageSize,
-                Filters: filters,
-                Sort: sort
             }
         });
         return response.data;
@@ -23,12 +23,13 @@ const AdminService = {
         return response.data;
     },
     getLogs: async (pageNumber, pageSize, filters, sort) => {
-        const response = await api.get(`${API_ADMIN_BASE}/logs`, {
+        const filtersQuery = buildFiltersQuery(filters);
+        const sortingQuery = sort ? `Sort.SortBy=${sort.SortBy}&Sort.Direction=${sort.Direction}` : '';
+
+        const response = await api.get(`${API_ADMIN_BASE}/logs?${sortingQuery}&${filtersQuery}`, {
             params: {
                 pageNumber,
-                pageSize,
-                Filters: filters,
-                Sort: sort
+                pageSize
             }
         });
         return response.data;
