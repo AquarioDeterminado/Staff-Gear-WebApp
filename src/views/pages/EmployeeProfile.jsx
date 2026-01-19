@@ -26,6 +26,7 @@ import ErrorHandler from '../../utils/ErrorHandler';
 import ProfileFieldCard from '../components/ui/ProfileFieldCard';
 import FormPopup from '../components/ui/popups/FormPopup';
 import useNotification from '../../utils/UseNotification';
+import DashboardComponent from '../components/DashboardComponent';
 
 const NAME_CARD_W = 260;
 const INFO_CARD_W = 540;
@@ -232,137 +233,175 @@ export default function EmployeeProfile() {
 
         <Container maxWidth="lg" sx={{ pb: { xs: 5, md: 7 } }}>
           <Paper elevation={1} sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 3, bgcolor: '#fff' }}>
-            <Stack alignItems="center" spacing={2} sx={{ mb: 2 }}>
+            <Stack alignItems="center" spacing={2} sx={{ mb: 3 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                Account and Payment Stats
+                Account Information
               </Typography>
-              <Avatar sx={{ width: 120, height: 120 }}>
-                <PersonIcon sx={{ fontSize: 58 }} />
-              </Avatar>
-            </Stack>
-            <Grid container spacing={1.25} justifyContent="center" sx={{ mb: 2 }}>
-              <Grid item xs={12}>
-                <ProfileFieldCard
-                  label="First Name"
-                  isEdit={isEditMode}
-                  icon={<PersonIcon />}
-                  width={NAME_CARD_W}
-                  value={formData.FirstName}
-                  onChange={(v) => setFormData((prev) => ({ ...prev, FirstName: v }))}
-                  helperText={updateProfileError.FirstName}
-                  type="text"
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <ProfileFieldCard
-                  label="Middle Name"
-                  isEdit={isEditMode}
-                  width={NAME_CARD_W}
-                  value={formData.MiddleName}
-                  onChange={(v) => setFormData((prev) => ({ ...prev, MiddleName: v }))}
-                  type="text"
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <ProfileFieldCard
-                  label="Last Name"
-                  isEdit={isEditMode}
-                  width={NAME_CARD_W}
-                  value={formData.LastName}
-                  onChange={(v) => setFormData((prev) => ({ ...prev, LastName: v }))}
-                  helperText={updateProfileError.LastName}
-                  type="text"
-                />
-              </Grid>
-            </Grid>
-
-            <Stack spacing={1.25} alignItems="center">
-              <ProfileFieldCard
-                label="Department"
-                value={profileInfo?.Department || ''}
-                isEdit={false}
-                icon={<ApartmentIcon />}
-                width={INFO_CARD_W}
-                type="text"
-              />
-
-              <ProfileFieldCard
-                label="Job Title"
-                value={profileInfo?.JobTitle || ''}
-                isEdit={false}
-                icon={<WorkIcon />}
-                width={INFO_CARD_W}
-                type="text"
-              />
-
-              <ProfileFieldCard
-                label="Email"
-                value={formData.Email}
-                onChange={(v) => setFormData((prev) => ({ ...prev, Email: v }))}
-                isEdit={isEditMode}
-                icon={<EmailIcon />}
-                width={INFO_CARD_W}
-                type="email"
-                helperText={updateProfileError.Email}
-              />
             </Stack>
 
-            <Stack spacing={1.1} alignItems="center" sx={{ mt: 2 }}>
-              {!isEditMode ? (
-                <>
-                  <Tooltip title="Edit Profile">
-                    <span>
-                      <Button
-                        variant="contained"
-                        startIcon={<EditIcon />}
-                        onClick={enterEditMode}
-                        sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' }, width: INFO_CARD_W }}
-                      >
-                        Edit Profile
-                      </Button>
-                    </span>
-                  </Tooltip>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ alignItems: 'flex-start' }}>
+              {/* Left: Avatar */}
+              <Stack alignItems="center" sx={{ minWidth: 200 }}>
+                <Avatar sx={{ width: 120, height: 120 }}>
+                  <PersonIcon sx={{ fontSize: 58 }} />
+                </Avatar>
+              </Stack>
 
-                  <Button
-                    variant="contained"
-                    startIcon={<KeyIcon sx={{ fontSize: 20 }} />}
-                    sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' }, width: INFO_CARD_W }}
-                    onClick={openPwdDialog}
-                  >
-                    Change Password
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ width: INFO_CARD_W }}>
-                    <Button variant="text" onClick={cancelEdit} fullWidth>
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="contained"
-                      onClick={saveProfile}
-                      disabled={isSavingProfile}
-                      startIcon={isSavingProfile ? <CircularProgress size={18} color="inherit" /> : <EditIcon />}
-                      sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
-                      fullWidth
-                    >
-                      Save Changes
-                    </Button>
-                  </Stack>
+              {/* Right: Form Fields */}
+              <Box sx={{ flex: 1 }}>
+                <Grid container spacing={2}>
+                  {/* First Row */}
+                  <Grid item xs={12} sm={4}>
+                    <Stack alignItems="center">
+                      <ProfileFieldCard
+                        label="First Name"
+                        isEdit={isEditMode}
+                        icon={<PersonIcon />}
+                        width={NAME_CARD_W}
+                        value={formData.FirstName}
+                        onChange={(v) => setFormData((prev) => ({ ...prev, FirstName: v }))}
+                        helperText={updateProfileError.FirstName}
+                        type="text"
+                      />
+                    </Stack>
+                  </Grid>
 
-                  <Button
-                    variant="contained"
-                    startIcon={<KeyIcon sx={{ fontSize: 20 }} />}
-                    sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' }, width: INFO_CARD_W }}
-                    onClick={openPwdDialog}
-                  >
-                    Change Password
-                  </Button>
-                </>
-              )}
+                  <Grid item xs={12} sm={4}>
+                    <Stack alignItems="center">
+                      <ProfileFieldCard
+                        label="Middle Name"
+                        isEdit={isEditMode}
+                        width={NAME_CARD_W}
+                        value={formData.MiddleName}
+                        onChange={(v) => setFormData((prev) => ({ ...prev, MiddleName: v }))}
+                        type="text"
+                      />
+                    </Stack>
+                  </Grid>
+
+                  <Grid item xs={12} sm={4}>
+                    <Stack alignItems="center">
+                      <ProfileFieldCard
+                        label="Last Name"
+                        isEdit={isEditMode}
+                        width={NAME_CARD_W}
+                        value={formData.LastName}
+                        onChange={(v) => setFormData((prev) => ({ ...prev, LastName: v }))}
+                        helperText={updateProfileError.LastName}
+                        type="text"
+                      />
+                    </Stack>
+                  </Grid>
+
+                  {/* Second Row */}
+                  <Grid item xs={12} sm={4}>
+                    <Stack alignItems="center">
+                      <ProfileFieldCard
+                        label="Email"
+                        value={formData.Email}
+                        onChange={(v) => setFormData((prev) => ({ ...prev, Email: v }))}
+                        isEdit={isEditMode}
+                        icon={<EmailIcon />}
+                        width={NAME_CARD_W}
+                        type="email"
+                        helperText={updateProfileError.Email}
+                      />
+                    </Stack>
+                  </Grid>
+
+                  <Grid item xs={12} sm={4}>
+                    <Stack alignItems="center">
+                      <ProfileFieldCard
+                        label="Department"
+                        value={profileInfo?.Department || ''}
+                        isEdit={false}
+                        icon={<ApartmentIcon />}
+                        width={NAME_CARD_W}
+                        type="text"
+                      />
+                    </Stack>
+                  </Grid>
+
+                  <Grid item xs={12} sm={4}>
+                    <Stack alignItems="center">
+                      <ProfileFieldCard
+                        label="Job Title"
+                        value={profileInfo?.JobTitle || ''}
+                        isEdit={false}
+                        icon={<WorkIcon />}
+                        width={NAME_CARD_W}
+                        type="text"
+                      />
+                    </Stack>
+                  </Grid>
+
+                  {/* Buttons Row */}
+                  <Grid item xs={12} sm={4}></Grid>
+                  <Grid item xs={12} sm={4}>
+                    {!isEditMode ? (
+                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ width: '100%', justifyContent: 'center', alignItems: 'center' }}>
+                        <Tooltip title="Edit Profile">
+                          <span>
+                            <Button
+                              variant="contained"
+                              startIcon={<EditIcon />}
+                              onClick={enterEditMode}
+                              sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' }, width: 260 }}
+                            >
+                              Edit Profile
+                            </Button>
+                          </span>
+                        </Tooltip>
+
+                        <Button
+                          variant="contained"
+                          startIcon={<KeyIcon sx={{ fontSize: 20 }} />}
+                          sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' }, width: 260 }}
+                          onClick={openPwdDialog}
+                        >
+                          Change Password
+                        </Button>
+                      </Stack>
+                    ) : (
+                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ width: '100%', justifyContent: 'center', alignItems: 'center' }}>
+                        <Button variant="text" onClick={cancelEdit} sx={{ width: 260 }}>
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="contained"
+                          onClick={saveProfile}
+                          disabled={isSavingProfile}
+                          startIcon={isSavingProfile ? <CircularProgress size={18} color="inherit" /> : <EditIcon />}
+                          sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' }, width: 260 }}
+                        >
+                          Save Changes
+                        </Button>
+                        <Button
+                          variant="contained"
+                          startIcon={<KeyIcon sx={{ fontSize: 20 }} />}
+                          sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' }, width: 260 }}
+                          onClick={openPwdDialog}
+                        >
+                          Change Password
+                        </Button>
+                      </Stack>
+                    )}
+                  </Grid>
+                  <Grid item xs={12} sm={4}></Grid>
+                </Grid>
+              </Box>
             </Stack>
+
+          </Paper>
+
+          {/* Dashboard Component */}
+          <Paper elevation={1} sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 3, bgcolor: '#fff', mt: 4 }}>
+            <Stack alignItems="center" spacing={2} sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                Payment & Department Stats
+              </Typography>
+            </Stack>
+            <DashboardComponent />
           </Paper>
         </Container>
       </Box>

@@ -35,8 +35,6 @@ export const EmployeeSearchField = ({ values, onChange, error }) => {
         label: `${emp.FirstName} ${emp.LastName} (ID: ${emp.BusinessEntityID})`,
         BusinessEntityID: emp.BusinessEntityID,
       })) : []}
-      error={!!error}
-      helperText={error}
       getOptionLabel={(option) => option ? option.label : ""}
       renderInput={(params) => <TextField error={!!error} helperText={error} {...params} label="Employee" />}
     />
