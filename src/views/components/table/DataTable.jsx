@@ -4,7 +4,7 @@ Renderiza uma tabela dinâmica
 import { Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
 import SortingColumn from './SortingColumn';
 import Paginator from './Paginator';
-import { useState, useEffect } from 'react';
+import {useState} from 'react';
 
 export default function DataTable({
   columns,
@@ -17,23 +17,17 @@ export default function DataTable({
   headSx,
   bodySx,
   rowSx,
+  standoutRow = (row) => false,
   pageSize = 10,
   pageCount = 1,
-  onPageChange = () => {},
+  page = 1,
+  onPageChange,
   canSwitchPage = true,
   onSortChange,
-}) {
-  const [currentPage, setCurrentPage] = useState(1);
-  useEffect(() => onPageChange(currentPage), [currentPage, onPageChange, rows]);
-  
+}) {  
   const [active, setActive] = useState(null);
   console.log("rows:", rows);
   const currentPageRows = rows;
-
-  function _onPageChange(page) {
-    setCurrentPage(page);
-    onPageChange(page);
-  }
   
   return (
     <>
@@ -83,7 +77,7 @@ export default function DataTable({
                   key={id}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                   sx={{
-                    backgroundColor: row.standoutRow ? row.standoutRow : 'inherit',
+                    bgcolor: standoutRow(row) ? standoutRow(row) : 'inherit',
                     cursor: onRowClick ? 'pointer' : 'default',
                     '&:hover': onRowClick ? { bgcolor: '#f5f5f5' } : undefined,
                     ...rowSx,
@@ -102,8 +96,8 @@ export default function DataTable({
       </Table>
       <Paginator
         count={pageCount ?? Math.ceil(rows.length / pageSize)}
-        page={currentPage}
-        onChange={(_, p) => _onPageChange(p)}
+        page={page}
+        onChange={(_, p) => onPageChange(p)}
         canSwitchPage={canSwitchPage}
       />
     </>

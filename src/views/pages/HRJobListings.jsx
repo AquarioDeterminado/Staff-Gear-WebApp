@@ -10,7 +10,7 @@ import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import useNotification from '../../utils/UseNotification';
 import HeaderBar from '../components/layout/HeaderBar';
 import FilterPanel from '../components/filters/FilterPanel';
-import { DepartmentSelectField } from '../components/DepartmentSelectField';
+import { DepartmentSelectField } from '../components/fields/DepartmentSelectField';
 import CreateJobListingDialog from '../components/ui/dialogs/CreateJobListingDialog';
 import EditJobListingDialog from '../components/ui/dialogs/EditJobListingDialog';
 import DeleteJobListingDialog from '../components/ui/dialogs/DeleteJobListingDialog';

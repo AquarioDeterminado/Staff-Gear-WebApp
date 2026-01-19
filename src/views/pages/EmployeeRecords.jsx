@@ -34,6 +34,7 @@ export default function EmployeeRecords() {
 
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [jobChangesPage, setJobChangesPage] = useState(1);
+  const [page, setPage] = useState(1);
   const ROWS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -101,6 +102,10 @@ export default function EmployeeRecords() {
         <DataTable 
           columns={columns}
           rows={tab === PAYMENTS_TAB ? visiblePayments : visibleJobChanges}
+          pageSize={ROWS_PER_PAGE}
+          pageCount={tab === PAYMENTS_TAB ? Math.ceil(payments.length / ROWS_PER_PAGE) : Math.ceil(jobChanges.length / ROWS_PER_PAGE)}
+          page={page}
+          setPage={setPage}
         />
       </SectionPaper>
 

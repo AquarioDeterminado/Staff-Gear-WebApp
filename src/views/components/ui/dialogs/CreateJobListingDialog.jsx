@@ -10,7 +10,7 @@
 import React, { useEffect, useState } from 'react';
 import FormPopup from '../popups/FormPopup';
 import { TextField } from '@mui/material';
-import { DepartmentSelectField } from '../../DepartmentSelectField';
+import { DepartmentSelectField } from '../../fields/DepartmentSelectField';
 
 const JOB_TYPE_OPTIONS = [
   { value: 0, label: 'Remote' },

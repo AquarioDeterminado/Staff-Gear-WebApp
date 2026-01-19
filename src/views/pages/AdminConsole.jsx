@@ -246,6 +246,7 @@ export default function AdminConsole() {
                                                 value={filterActorId}
                                                 onChange={(e) => {
                                                     setFilterActorId(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 size="small"
                                                 sx={{ flex: 1 }}
@@ -255,6 +256,7 @@ export default function AdminConsole() {
                                                 value={filterTarget}
                                                 onChange={(e) => {
                                                     setFilterTarget(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 size="small"
                                                 sx={{ flex: 1 }}
@@ -266,6 +268,7 @@ export default function AdminConsole() {
                                                 value={filterAction === null || filterAction === '' ? "default" : filterAction}
                                                 onChange={(e) => {
                                                     setFilterAction(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 size="small"
                                                 sx={{ flex: 1 }}
@@ -283,6 +286,7 @@ export default function AdminConsole() {
                                                 value={filterCreateDateFrom}
                                                 onChange={(e) => {
                                                     setFilterCreateDateFrom(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 size="small"
                                                 sx={{ flex: 1 }}
@@ -294,6 +298,7 @@ export default function AdminConsole() {
                                                 value={filterCreateDateTo}
                                                 onChange={(e) => {
                                                     setFilterCreateDateTo(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 size="small"
                                                 sx={{ flex: 1 }}
@@ -312,6 +317,7 @@ export default function AdminConsole() {
                                                 value={filterUserId}
                                                 onChange={(e) => {
                                                     setFilterUserId(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 size="small"
                                                 sx={{ flex: 1 }}
@@ -321,6 +327,7 @@ export default function AdminConsole() {
                                                 value={filterUserName}
                                                 onChange={(e) => {
                                                     setFilterUserName(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 size="small"
                                                 sx={{ flex: 1 }}
@@ -333,6 +340,7 @@ export default function AdminConsole() {
                                                 value={filterEmployeeId}
                                                 onChange={(e) => {
                                                     setFilterEmployeeId(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 size="small"
                                                 sx={{ flex: 1 }}
@@ -343,6 +351,7 @@ export default function AdminConsole() {
                                                 value={filterActiveStatus === null || filterActiveStatus === '' ? "default" : filterActiveStatus}
                                                 onChange={(e) => {
                                                     setFilterActiveStatus(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 size="small"
                                                 sx={{ flex: 1 }}
@@ -356,6 +365,7 @@ export default function AdminConsole() {
                                                 value={filterRole === null || filterRole === '' ? "default" : filterRole}
                                                 onChange={(e) => {
                                                     setFilterRole(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 size="small"
                                                 sx={{ flex: 1 }}
@@ -386,6 +396,7 @@ export default function AdminConsole() {
                             setRows={setLogs}
                             getRowId={(r, idx) => `log-${idx}-${r.LogID}`}
                             pageSize={rowsPerPage}
+                            page={currentPage}
                             onPageChange={(v) => setCurrentPage(v)}
                             pageCount={logsCount}
                             canSwitchPage={canSwitchPage}
@@ -399,6 +410,7 @@ export default function AdminConsole() {
                             setRows={setUsers}
                             getRowId={(r, idx) => `user-${idx}-${r.UserID}`}
                             pageSize={rowsPerPage}
+                            page={currentPage}
                             onPageChange={(v) => setCurrentPage(v)}
                             pageCount={usersCount}
                             canSwitchPage={canSwitchPage}

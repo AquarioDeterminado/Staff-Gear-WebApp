@@ -28,6 +28,7 @@ import {
 import Collapse from '@mui/material/Collapse';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import UndoIcon from '@mui/icons-material/Undo';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -39,7 +40,7 @@ import UserSession from '../../utils/UserSession';
 import AddIcon from '@mui/icons-material/AddCircleOutline';
 import ErrorHandler from '../../utils/ErrorHandler';
 import useNotification from '../../utils/UseNotification';
-import { DepartmentSelectField } from '../components/DepartmentSelectField';
+import { DepartmentSelectField } from '../components/fields/DepartmentSelectField.jsx';
 import EmployeeViewModel from '../../models/viewModels/EmployeeViewModel.js';
 import { CapitalizeFirstLetter, FormatDate } from '../../utils/FormatingUtils';
 import DataTable from '../components/table/DataTable';
@@ -49,6 +50,7 @@ import FormPopup from '../components/ui/popups/FormPopup';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 import { EditRowButton } from '../components/ui/buttons/EditRowButton';
 import { DeleteRowButton } from '../components/ui/buttons/DeleteRowButton';
+import NumberField from '../components/fields/NumberField.js';
 
 const SORTING_ASCENDING = 'asc';
 const SORTING_DESCENDING = 'desc';
@@ -65,24 +67,40 @@ export default function EmployeesList() {
   const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessEntityID)) + 1);
 
   const actionColum = {
-      label: 'Actions', field: 'actions', sortable: false, render: (r, idx) =>
-      {r.IsActive? 
-        (<Stack direction="row" spacing={1}>
-          <EditRowButton openEdit={handleOpenEdit} idx={idx} />
-          <DeleteRowButton openConfirm={setConfirmOpen} setConfirmIndex={setConfirmId} idx={idx} />
-        </Stack>)
-        : null
-      }
+    label: 'Actions', field: 'actions', sortable: false, render: (r, idx) => {
+      return (
+        <>
+          {
+            r.IsActive ?
+              (<Stack direction="row" spacing={1}>
+                <EditRowButton openEdit={handleOpenEdit} idx={idx} />
+                <DeleteRowButton openConfirm={setConfirmOpen} setConfirmIndex={setConfirmId} idx={idx} />
+              </Stack>)
+              : (
+                <IconButton
+                  onClick={() => {
+                    handleOpenUndo(idx);
+                  }}
+                  sx={{ bgcolor: '#0000001e', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
+                  size="small"
+                >
+                  <UndoIcon />
+                </IconButton>
+              )
+          }
+        </>
+      );
+    }
   };
 
-  const columns = [{label: 'Business ID', field: 'BusinessEntityID', sortable: true}, 
-                  {label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`, sortable: true}, 
-                  {label: 'Email', field: 'Email', sortable: true}, 
-                  {label: 'Department', field: 'Department', sortable: true}, 
-                  {label: 'Job Title', field: 'JobTitle', sortable: true}, 
-                  {label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true},
-                  actionColum];
-  
+  const columns = [{ label: 'Business ID', field: 'BusinessEntityID', sortable: true },
+  { label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`, sortable: true },
+  { label: 'Email', field: 'Email', sortable: true },
+  { label: 'Department', field: 'Department', sortable: true },
+  { label: 'Job Title', field: 'JobTitle', sortable: true },
+  { label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true },
+    actionColum];
+
   const [sort, setSort] = useState({ SortBy: 'BusinessEntityID', Direction: SORTING_ASCENDING });
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -105,6 +123,9 @@ export default function EmployeesList() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
 
+  const [openConfirmUndo, setOpenConfirmUndo] = useState(false);
+  const [undoId, setUndoId] = useState(null);
+
   const isValidDateYMD = (str) => /^\d{4}-\d{2}-\d{2}$/.test(str);
   const isValidEmailBasic = (str) => /^[^@\s]+@[^@\s]+$/.test(str);
 
@@ -126,7 +147,7 @@ export default function EmployeesList() {
     setErrors(newErrors);
     return Object.values(newErrors).every((e) => e === '');
   };
-  
+
   const [filterExpanded, setFilterExpanded] = useState(false);
   const [filterBusinessId, setFilterBusinessId] = useState('');
   const [filterName, setFilterName] = useState('');
@@ -172,6 +193,11 @@ export default function EmployeesList() {
     setDialogOpen(true);
   };
 
+  const handleOpenUndo = (idx) => {
+    setUndoId(Users[idx].BusinessEntityID);
+    setOpenConfirmUndo(true);
+  };
+
   const handleClose = () => setDialogOpen(false);
 
   const handleSave = async () => {
@@ -188,15 +214,16 @@ export default function EmployeesList() {
         setUsers((await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE)).items);
         notifs({ severity: 'success', message: 'Employee created successfully!' });
       } else {
-        await EmployeeService.updateEmployee(form.businessId, {BusinessEntityID: form.businessId,
+        await EmployeeService.updateEmployee(form.businessId, {
+          BusinessEntityID: form.businessId,
           FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
           Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate,
         });
         setUsers((prev) => prev.map((u) =>
-          (u.BusinessEntityID === form.businessId ? {
-            BusinessEntityID: form.businessId, FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
-            Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate, IsActive: form.isActive
-          } : u)
+        (u.BusinessEntityID === form.businessId ? {
+          BusinessEntityID: form.businessId, FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
+          Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate, IsActive: form.isActive
+        } : u)
         ));
         notifs({ severity: 'success', message: 'Employee updated successfully!' });
       }
@@ -237,7 +264,7 @@ export default function EmployeesList() {
           ],
           { SortBy: sort.SortBy, Direction: sort.Direction }
         );
-        
+
         setPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
 
         const employees = data.items.map(
@@ -254,7 +281,7 @@ export default function EmployeesList() {
               Role: empData.role,
               IsActive: empData.isActive
             }
-          )
+            )
         );
         console.log('Fetched employees:', employees);
         employees.forEach(element => {
@@ -309,6 +336,7 @@ export default function EmployeesList() {
                     value={filterBusinessId}
                     onChange={(e) => {
                       setFilterBusinessId(e.target.value);
+                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -318,6 +346,7 @@ export default function EmployeesList() {
                     value={filterName}
                     onChange={(e) => {
                       setFilterName(e.target.value);
+                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -329,6 +358,7 @@ export default function EmployeesList() {
                     value={filterEmail}
                     onChange={(e) => {
                       setFilterEmail(e.target.value);
+                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -339,6 +369,7 @@ export default function EmployeesList() {
                     value={filterEntryDateFrom}
                     onChange={(e) => {
                       setFilterEntryDateFrom(e.target.value);
+                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -350,6 +381,7 @@ export default function EmployeesList() {
                     value={filterEntryDateTo}
                     onChange={(e) => {
                       setFilterEntryDateTo(e.target.value);
+                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
@@ -360,6 +392,7 @@ export default function EmployeesList() {
                   <DepartmentSelectField
                     onChange={(v) => {
                       setFilterDepartment(v);
+                      setPage(1);
                     }}
                     error={null}
                     sx={{ flex: 1 }}
@@ -369,13 +402,14 @@ export default function EmployeesList() {
                     value={filterJobTitle}
                     onChange={(e) => {
                       setFilterJobTitle(e.target.value);
+                      setPage(1);
                     }}
                     size="small"
                     sx={{ flex: 1 }}
                   />
-                  <Select 
+                  <Select
                     value={filterIsActive}
-                    onChange={(e) => setFilterIsActive(e.target.value)}
+                    onChange={(e) => { setFilterIsActive(e.target.value); setPage(1); }}
                     displayEmpty
                     size="small"
                     sx={{ flex: 1 }}
@@ -394,15 +428,16 @@ export default function EmployeesList() {
         </Card>
 
         <SectionPaper>
-          <DataTable 
-            columns={columns} 
-            rows={Users} 
-            getRowId={(r) => r.BusinessEntityID} 
+          <DataTable
+            columns={columns}
+            rows={Users}
+            getRowId={(r) => r.BusinessEntityID}
+            page={page}
+            onPageChange={setPage}
             pageSize={ROWS_PER_PAGE}
             pageCount={pageCount}
-            onPageChange={setPage}
-            onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort);}}
-            standoutRow={(r) => { if(!r.IsActive) return colors.red.A200; }}
+            onSortChange={(sort) => { setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort); }}
+            standoutRow={(r) => { if (!r.IsActive) return colors.red[100]; }}
           />
         </SectionPaper>
       </Container>
@@ -411,13 +446,13 @@ export default function EmployeesList() {
         open={dialogOpen}
         title={mode === 'add' ? 'Add User' : 'Edit User'}
         fields={[
-          { type: 'text',     label: 'First Name', value: form.firstName,  onChange: setField('firstName'),  required: true, error: !!errors.firstName,  helperText: errors.firstName },
-          { type: 'text',     label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
-          { type: 'text',     label: 'Last Name',  value: form.lastName,   onChange: setField('lastName'),   required: true, error: !!errors.lastName,   helperText: errors.lastName },
-          { type: 'email',    label: 'Email',      value: form.email,      onChange: setField('email'),      required: true, error: !!errors.email,      helperText: errors.email },
+          { type: 'text', label: 'First Name', value: form.firstName, onChange: setField('firstName'), required: true, error: !!errors.firstName, helperText: errors.firstName },
+          { type: 'text', label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
+          { type: 'text', label: 'Last Name', value: form.lastName, onChange: setField('lastName'), required: true, error: !!errors.lastName, helperText: errors.lastName },
+          { type: 'email', label: 'Email', value: form.email, onChange: setField('email'), required: true, error: !!errors.email, helperText: errors.email },
           { type: 'custom', render: () => <DepartmentSelectField label="Department" value={form.DepartmentName} onChange={setField('department')} error={errors.DepartmentName} fullWidth={true} /> },
-          { type: 'text',     label: 'Job Title',  value: form.jobTitle,   onChange: setField('jobTitle'),   required: true, error: !!errors.jobTitle,   helperText: errors.jobTitle },
-          { type: 'date',     label: 'Hire Date',  value: form.hireDate,   onChange: setField('hireDate'),   required: true, error: !!errors.hireDate,   helperText: errors.hireDate },
+          { type: 'text', label: 'Job Title', value: form.jobTitle, onChange: setField('jobTitle'), required: true, error: !!errors.jobTitle, helperText: errors.jobTitle },
+          { type: 'date', label: 'Hire Date', value: form.hireDate, onChange: setField('hireDate'), required: true, error: !!errors.hireDate, helperText: errors.hireDate },
           ...(mode === 'add'
             ? [{ type: 'password', label: 'Password', value: form.password, onChange: setField('password'), required: true, error: !!errors.password, helperText: errors.password }]
             : [])
@@ -437,6 +472,31 @@ export default function EmployeesList() {
         confirmLabel="Delete"
         confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
       />
+
+      <ConfirmPopup
+        open={openConfirmUndo}
+        title="ReActivate Employee"
+        content="Do you want to reactivate this employee?"
+        onCancel={() => { setOpenConfirmUndo(false); setUndoId(null); }}
+        onConfirm={async () => {
+          if (!undoId) return;
+          try {
+            await EmployeeService.undoDeleteEmployee(undoId);
+            setUsers((prev) => prev.map((u) =>
+              (u.BusinessEntityID === undoId ? { ...u, IsActive: true } : u)
+            ));
+            notifs({ severity: 'success', message: 'Employee reactivated successfully!' });
+          } catch (error) {
+            UserSession.verifyAuthorize(navigate, error.status);
+            notifs({ severity: 'error', message: ErrorHandler(error) ?? 'Error reactivating employee.' });
+          }
+          setOpenConfirmUndo(false);
+          setUndoId(null);
+        }}
+        confirmLabel="ReActivate"
+        confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
+      />
+
     </Box>
   );
 }

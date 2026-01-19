@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Select, MenuItem} from '@mui/material';
-import EmployeeService from '../../services/EmployeeService';
+import EmployeeService from '../../../services/EmployeeService';
 
 export const DepartmentSelectField = ({value, onChange, error, fullWidth = false, autoWidth = false, sx = {}}) => {
   const [departments, setDepartments] = useState([]);
@@ -15,9 +15,9 @@ export const DepartmentSelectField = ({value, onChange, error, fullWidth = false
 
   return (
     <Select
-      value={value || ""}
+      value={value === ""? "default" : value}
       onChange={(e) => { 
-        onChange(e.target.value);
+        onChange(e.target.value === "default" ? "" : e.target.value);
       }}
       size='small'
       label="Department"  
@@ -27,7 +27,7 @@ export const DepartmentSelectField = ({value, onChange, error, fullWidth = false
       autoWidth={autoWidth}
       sx={sx}
     >
-      <MenuItem value="">All Departments</MenuItem>
+      <MenuItem value="default">All Departments</MenuItem>
       {departments.map((d) => (
         <MenuItem key={d} value={d}>
           {d}
