@@ -381,7 +381,7 @@ export default function EmployeesList() {
             getRowId={(r) => r.BusinessEntityID} 
             pageSize={ROWS_PER_PAGE}
             pageCount={pageCount}
-            onPageChange={(e, value) => setPage(value)}
+            onPageChange={setPage}
             onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort);}}
           />
         </SectionPaper>

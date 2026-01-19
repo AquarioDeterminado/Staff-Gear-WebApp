@@ -25,6 +25,7 @@ api.interceptors.response.use(
   response => response,
   error => {
     const status = error.response?.status;
+    console.log('API response error status:', error);
     if (status === 401 && window.location.pathname !== '/' && window.location.pathname !== '/login') {
         console.warn('Invalid session or expired');
         // Guardar o caminho atual antes de remover o token
