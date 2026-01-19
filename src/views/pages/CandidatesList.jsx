@@ -86,7 +86,7 @@ export default function CandidatesView() {
       try {
         const data = (await CandidateService.list(page, ROWS_PER_PAGE,
           [
-            { Fields: ['JobCandidateID'], Values: filterId ? [filterId] : [] },
+            { Fields: ['JobListing'], Values: filterJobListing ? [filterJobListing] : [] },
             { Fields: ['FirstName', 'MiddleName', 'LastName', 'Email'], Values: searchQuery ? [searchQuery] : [] },
           ],
           { SortBy: sort.SortBy, Direction: sort.Direction }
@@ -141,8 +141,10 @@ export default function CandidatesView() {
         console.error('Error fetching job listings*:', err);
       }
     }
+    fetchCandidates();
+    fetchJobListings();
     fetchDepartments();
-  }, [filterId, navigate, page, searchQuery, showNotification, sort.Direction, sort.SortBy]);
+  }, [filterJobListing, navigate, page, searchQuery, showNotification, sort.Direction, sort.SortBy]);
 
   const handleJobListingClick = (jobListing, e) => {
     e.stopPropagation();

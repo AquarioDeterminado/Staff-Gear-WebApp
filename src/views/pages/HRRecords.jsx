@@ -171,10 +171,10 @@ export default function HRRecords() {
         console.log('sort', sort);
         const data = await HRService.getAllMovements(currentPage, ROWS_PER_PAGE,
           [
-            { Field: 'FullName', Value: filterJobEmployee},
-            { Field: 'DepartmentName', Value: filterDepartment},
-            { Field: 'StartDateFrom', Value: filterJobDateFrom},
-            { Field: 'StartDateTo', Value: filterJobDateTo}
+            { Fields: ['FullName'], Values: [filterJobEmployee]},
+            { Fields: ['DepartmentName'], Values: [filterDepartment]},
+            { Fields: ['StartDateFrom'], Values: [filterJobDateFrom]},
+            { Fields: ['StartDateTo'], Values: [filterJobDateTo]}
           ], 
           { SortBy: sort.SortBy, Direction: sort.Direction });
 
