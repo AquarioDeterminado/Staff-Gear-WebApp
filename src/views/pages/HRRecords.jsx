@@ -29,6 +29,8 @@ import EmployeeService from '../../services/EmployeeService';
 import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
 import { EmployeeSearchField } from '../components/EmployeeSearchField';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
+import PaymentViewModel from '../../models/viewModels/PaymentViewModel.js';
+import MovementViewModel from '../../models/viewModels/MovementViewModel.js';
 import DataTable from '../components/table/DataTable';
 import Paginator from '../components/table/Paginator';
 import FilterPanel from '../components/filters/FilterPanel';
@@ -58,6 +60,7 @@ export default function HRRecords() {
   }, [navigate]);
 
   const [tab, setTab] = useState(0);
+  const [canSwitchPage, setCanSwitchPage] = useState(true);
 
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
@@ -76,6 +79,8 @@ export default function HRRecords() {
   const [filterJobDateFrom, setFilterJobDateFrom] = useState('');
   const [filterJobDateTo, setFilterJobDateTo] = useState('');
   const [filterJobChangesExpanded, setFilterJobChangesExpanded] = useState(false);
+
+  const [sort, setSort] = useState({ SortBy: 'CreatedAt', Direction: 'asc' });
 
   // Columns
   const actionColum = {
@@ -100,84 +105,14 @@ export default function HRRecords() {
   ];
 
   // Pages
-  const [paymentsPage, setPaymentsPage] = useState(1);
-  const [jobChangesPage, setJobChangesPage] = useState(1);
-  const ROWS_PER_PAGE = 9;
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredPayments = useMemo(() => {
-    return payments.filter((p) => {
-      if (filterPaymentEmployee.trim()) {
-        const query = filterPaymentEmployee.toLowerCase();
-        if (!((p.FullName || '').toLowerCase().includes(query))) return false;
-      }
-      if (filterRateMin) {
-        const minVal = parseFloat(filterRateMin);
-        if (p.Rate < minVal) return false;
-      }
-      if (filterRateMax) {
-        const maxVal = parseFloat(filterRateMax);
-        if (p.Rate > maxVal) return false;
-      }
-      if (filterPayFrequency) {
-        if (p.PayFrequency !== parseInt(filterPayFrequency, 10)) return false;
-      }
-      if (filterPaymentDateFrom) {
-        const payDate = new Date(p.RateChangeDate);
-        const fromDate = new Date(filterPaymentDateFrom);
-        if (payDate < fromDate) return false;
-      }
-      if (filterPaymentDateTo) {
-        const payDate = new Date(p.RateChangeDate);
-        const toDate = new Date(filterPaymentDateTo);
-        if (payDate > toDate) return false;
-      }
-      return true;
-    });
-  }, [
-    payments,
-    filterPaymentEmployee,
-    filterRateMin,
-    filterRateMax,
-    filterPayFrequency,
-    filterPaymentDateFrom,
-    filterPaymentDateTo,
-  ]);
+  const [paymentsPageCount, setPaymentsPageCount] = useState(1);
+  const [jobChangesPageCount, setJobChangesPageCount] = useState(1);
+  const ROWS_PER_PAGE = 10;
 
-  const filteredJobChanges = useMemo(() => {
-    return jobChanges.filter((j) => {
-      if (filterJobEmployee.trim()) {
-        const query = filterJobEmployee.toLowerCase();
-        if (!((j.FullName || '').toLowerCase().includes(query))) return false;
-      }
-      if (filterDepartment) {
-        if (j.DepartmentName !== filterDepartment) return false;
-      }
-      if (filterJobDateFrom) {
-        const jobDate = new Date(j.StartDate);
-        const fromDate = new Date(filterJobDateFrom);
-        if (jobDate < fromDate) return false;
-      }
-      if (filterJobDateTo) {
-        const jobDate = new Date(j.StartDate);
-        const toDate = new Date(filterJobDateTo);
-        if (jobDate > toDate) return false;
-      }
-      return true;
-    });
-  }, [jobChanges, filterJobEmployee, filterDepartment, filterJobDateFrom, filterJobDateTo]);
-
-  const paymentsStart = (paymentsPage - 1) * ROWS_PER_PAGE;
-  const jobChangesStart = (jobChangesPage - 1) * ROWS_PER_PAGE;
-
-  const visiblePayments = useMemo(
-    () => filteredPayments.slice(paymentsStart, paymentsStart + ROWS_PER_PAGE),
-    [filteredPayments, paymentsStart]
-  );
-
-  const visibleJobChanges = useMemo(
-    () => filteredJobChanges.slice(jobChangesStart, jobChangesStart + ROWS_PER_PAGE),
-    [filteredJobChanges, jobChangesStart]
-  );
+  const visiblePayments = payments;
+  const visibleJobChanges = jobChanges;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [mode, setMode] = useState('add');
@@ -200,28 +135,62 @@ export default function HRRecords() {
   const [confirmIndex, setConfirmIndex] = useState(null);
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchPayments() {
       try {
-        const paymentsData = await HRService.getAllPayments();
-        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
+        setCanSwitchPage(false);
+
+        const data = await HRService.getAllPayments(currentPage, ROWS_PER_PAGE,
+          [
+            { Fields: ['FullName'], Values: [filterPaymentEmployee]},
+            { Fields: ['RateFrom'], Values: [filterRateMin]},
+            { Fields: ['RateTo'], Values: [filterRateMax]},
+            { Fields: ['RateFrom', 'RateTo'], Values: [filterRateMin, filterRateMax]},
+            { Fields: ['PayFrequency'], Values: [filterPayFrequency]},
+            { Fields: ['RateChangeDateFrom', 'RateChangeDateTo'], Values: [filterPaymentDateFrom, filterPaymentDateTo]}
+          ], 
+          { SortBy: sort.SortBy, Direction: sort.Direction });
+
+        setPaymentsPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+        const paymentsData = data.items.map(payment => (new PaymentViewModel({ BusinessEntityID: payment.businessEntityID, FullName: payment.fullName, Rate: payment.rate, RateChangeDate: payment.rateChangeDate, PayFrequency: payment.payFrequency })));
+
+        setPayments(paymentsData);
+        setCanSwitchPage(true);
       } catch (error) {
         console.error('Error fetching payments:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
       }
+    }
+    fetchPayments();
+  }, [currentPage, filterPayFrequency, filterPaymentDateFrom, filterPaymentDateTo, filterPaymentEmployee, filterRateMax, filterRateMin, navigate, sort.Direction, sort.SortBy]);
 
+  useEffect(() => {
+    async function fetchMovements() {
       try {
-        const jobChangesData = await HRService.getAllMovements();
-        setJobChanges(Array.isArray(jobChangesData) ? jobChangesData : []);
+        setCanSwitchPage(false);
+        console.log('sort', sort);
+        const data = await HRService.getAllMovements(currentPage, ROWS_PER_PAGE,
+          [
+            { Field: 'FullName', Value: filterJobEmployee},
+            { Field: 'DepartmentName', Value: filterDepartment},
+            { Field: 'StartDateFrom', Value: filterJobDateFrom},
+            { Field: 'StartDateTo', Value: filterJobDateTo}
+          ], 
+          { SortBy: sort.SortBy, Direction: sort.Direction });
+
+        setJobChangesPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+        const movementsData = data.items.map(movement => (new MovementViewModel({ BusinessEntityID: movement.businessEntityID, FullName: movement.fullName, DepartmentName: movement.departmentName, JobTitle: movement.jobTitle, StartDate: movement.startDate, EndDate: movement.endDate })));
+
+        setJobChanges(movementsData);
+        setCanSwitchPage(true);
       } catch (error) {
         console.error('Error fetching job changes:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
       }
-
-      setPaymentsPage(1);
-      setJobChangesPage(1);
     }
-    fetchData();
-  }, [navigate]);
+    fetchMovements();
+  }, [currentPage, filterDepartment, filterJobDateFrom, filterJobDateTo, filterJobEmployee, navigate, sort, sort.Direction, sort.SortBy]);
 
   function setFormDefaults() {
     setForm({
@@ -268,32 +237,29 @@ export default function HRRecords() {
   }
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchJobChangesData() {
       try {
-        const paymentsData = await HRService.getAllPayments();
-        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
-      } catch (error) {
-        console.error('Error fetching payments:', error);
-        UserSession.verifyAuthorize(navigate, error?.status);
-      }
+        const data = await HRService.getAllMovements(currentPage, ROWS_PER_PAGE);
 
-      try {
-        const jobChangesData = await HRService.getAllMovements();
-        jobChangesData.forEach(element => {
+        setJobChangesPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+        var items = data.items;
+        var movements = [];
+        for (let movement of items) {
+          var newMovement = new MovementViewModel({ BusinessEntityID: movement.businessEntityID, FullName: movement.fullName, DepartmentName: movement.departmentName, JobTitle: movement.jobTitle, StartDate: movement.startDate, EndDate: movement.endDate }); // Supondo que movement já esteja no formato desejado
+          movements.push(newMovement);
+        }
+        movements.forEach(element => {
           element.JobTitle = CapitalizeFirstLetter(element.JobTitle);
         });
-        setJobChanges(Array.isArray(jobChangesData) ? jobChangesData : []);
+        setJobChanges(movements);
       } catch (error) {
         console.error('Error fetching job changes:', error);
         UserSession.verifyAuthorize(navigate, error?.status);
       }
-
-      setPaymentsPage(1);
-      setJobChangesPage(1);
     }
-    fetchData();
-
-  }, [navigate]);
+    fetchJobChangesData();
+  }, [navigate, currentPage]);
 
   const handleTabChange = (_e, v) => {
     setTab(v);
@@ -311,13 +277,10 @@ export default function HRRecords() {
     setMode('edit');
     setFormErrorsDefaults();
     setFormDefaults();
-    const realIndex = tab === PAYMENT_TAB ? paymentsStart + indexInPage : jobChangesStart + indexInPage;
-    setEditIndex(realIndex);
+    setEditIndex(indexInPage);
 
     if (tab === PAYMENT_TAB) {
-      const item = payments[realIndex];
-      console.log(item);
-
+      const item = payments[indexInPage];
       setForm({
         BusinessEntityID: item?.BusinessEntityID || '',
         Rate: (item?.Rate || '').toString().trim() ? item?.Rate : `€${item?.Rate ?? ''}`,
@@ -331,7 +294,7 @@ export default function HRRecords() {
         J_FullName: '',
       });
     } else {
-      const item = jobChanges[realIndex];
+      const item = jobChanges[indexInPage];
       setForm({
         BusinessEntityID: item?.BusinessEntityID || '',
         Rate: '',
@@ -431,8 +394,7 @@ export default function HRRecords() {
             RateChangeDate: newItem.RateChangeDate + 'T00:00:00',
             PayFrequency: newItem.PayFrequency,
           });
-          setPayments(await HRService.getAllPayments());
-          setPaymentsPage(1);
+          setPayments(await HRService.getAllPayments(currentPage, ROWS_PER_PAGE));
           notif({ severity: 'success', message: 'Payment created with success!' });
         } catch (error) {
           console.error('Error creating payment:', error);
@@ -487,7 +449,6 @@ export default function HRRecords() {
             EndDate: newItem.EndDate,
           });
           setJobChanges(await HRService.getAllMovements());
-          setJobChangesPage(1);
           notif({ severity: 'success', message: 'Job change created with success!' });
         } catch (error) {
           console.error('Error creating job change:', error);
@@ -591,7 +552,6 @@ export default function HRRecords() {
     setFilterPayFrequency('');
     setFilterPaymentDateFrom('');
     setFilterPaymentDateTo('');
-    setPaymentsPage(1);
   };
 
   const handleClearFiltersJobChanges = () => {
@@ -599,7 +559,6 @@ export default function HRRecords() {
     setFilterDepartment('');
     setFilterJobDateFrom('');
     setFilterJobDateTo('');
-    setJobChangesPage(1);
   };
 
   const uniqueDepartments = useMemo(() => {
@@ -713,7 +672,6 @@ export default function HRRecords() {
                 value={filterPaymentEmployee}
                 onChange={(e) => {
                   setFilterPaymentEmployee(e.target.value);
-                  setPaymentsPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -724,7 +682,6 @@ export default function HRRecords() {
                 value={filterRateMin}
                 onChange={(e) => {
                   setFilterRateMin(e.target.value);
-                  setPaymentsPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -736,7 +693,6 @@ export default function HRRecords() {
                 value={filterRateMax}
                 onChange={(e) => {
                   setFilterRateMax(e.target.value);
-                  setPaymentsPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -746,7 +702,7 @@ export default function HRRecords() {
                 value={filterPayFrequency}
                 onChange={(e) => {
                   setFilterPayFrequency(e.target.value);
-                  setPaymentsPage(1);
+
                 }}
                 size="small"
                 displayEmpty
@@ -764,7 +720,6 @@ export default function HRRecords() {
                 value={filterPaymentDateFrom}
                 onChange={(e) => {
                   setFilterPaymentDateFrom(e.target.value);
-                  setPaymentsPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -776,7 +731,6 @@ export default function HRRecords() {
                 value={filterPaymentDateTo}
                 onChange={(e) => {
                   setFilterPaymentDateTo(e.target.value);
-                  setPaymentsPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -799,7 +753,6 @@ export default function HRRecords() {
                 value={filterJobEmployee}
                 onChange={(e) => {
                   setFilterJobEmployee(e.target.value);
-                  setJobChangesPage(1);
                 }}
                 size="small"
                 sx={{ flex: 2 }}
@@ -808,7 +761,6 @@ export default function HRRecords() {
                 value={filterDepartment}
                 onChange={(e) => {
                   setFilterDepartment(e.target.value);
-                  setJobChangesPage(1);
                 }}
                 size="small"
                 displayEmpty
@@ -829,7 +781,6 @@ export default function HRRecords() {
                 value={filterJobDateFrom}
                 onChange={(e) => {
                   setFilterJobDateFrom(e.target.value);
-                  setJobChangesPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -841,7 +792,6 @@ export default function HRRecords() {
                 value={filterJobDateTo}
                 onChange={(e) => {
                   setFilterJobDateTo(e.target.value);
-                  setJobChangesPage(1);
                 }}
                 size="small"
                 sx={{ flex: 1 }}
@@ -855,16 +805,22 @@ export default function HRRecords() {
           {tab === PAYMENT_TAB ? (
             <DataTable
               columns={paymentColumnsWithActions}
-              rows={filteredPayments}
-              setRows={setPayments}
+              rows={payments}
               getRowId={(r, idx) => `${r.FullName}-${r.RateChangeDate}-${idx}`}
+              onPageChange={setCurrentPage}
+              pageCount={paymentsPageCount}
+              canSwitchPage={canSwitchPage}
+              onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction });}}
             />
           ) : (
             <DataTable
               columns={jobColumnsWithActions}
-              rows={filteredJobChanges}
-              setRows={setJobChanges}
+              rows={jobChanges}
               getRowId={(r, idx) => `${r.FullName}-${r.JobTitle}-${r.StartDate}-${idx}`}
+              onPageChange={setCurrentPage}
+              pageCount={jobChangesPageCount}
+              canSwitchPage={canSwitchPage}
+              onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction });}}
             />
 
           )}

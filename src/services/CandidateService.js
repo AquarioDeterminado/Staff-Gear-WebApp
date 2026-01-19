@@ -1,4 +1,5 @@
 import api from '../utils/axiosClient';
+import { buildFiltersQuery } from "../utils/axiosClient.js";
 
 const CANDIDATE_BASE = import.meta.env.VITE_API_CANDIDATE ?? '/api/v1/candidate';
 
@@ -24,8 +25,11 @@ const CandidateService = {
         });
     },
 
-    list: (params = {}, opts = {}) => {
-        return api.get(CANDIDATE_BASE, { params, ...opts });
+    list: (pageNumber, pageSize, filters, sort) => {
+        const filtersQuery = buildFiltersQuery(filters);
+        const sortingQuery = sort ? `Sort.SortBy=${sort.SortBy}&Sort.Direction=${sort.Direction}` : '';
+                
+        return api.get(`${CANDIDATE_BASE}?${sortingQuery}&${filtersQuery}`, { params: { pageNumber, pageSize } });
     },
 
     accept: (id, data = {}, opts = {}) => {

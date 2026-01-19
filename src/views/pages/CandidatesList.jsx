@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Container, Typography, IconButton, Button, Stack, Divider, TextField
 } from '@mui/material';
@@ -26,8 +26,12 @@ export default function CandidatesView() {
 
   const [rows, setRows] = useState([]);
   const ROWS_PER_PAGE = 10;
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
 
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [sort, setSort] = useState({ SortBy: 'BusinessEntityID', Direction: 'asc' });
   const [filterJobListing, setFilterJobListing] = useState('');
   const [jobListingMap, setJobListingMap] = useState({});
 
@@ -43,26 +47,6 @@ export default function CandidatesView() {
   // Drawer Details
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-
-  const filtered = useMemo(() => {
-    let result = rows;
-    if (filterJobListing.trim()) {
-      const query = filterJobListing.toLowerCase();
-      result = result.filter((r) => {
-        const jobTitle = (r.jobListingTitle || '').toLowerCase();
-        return jobTitle.includes(query);
-      });
-    }
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter((r) => {
-        const fullName = (r.firstName + ' ' + (r.middleName ? r.middleName + ' ' : '') + r.lastName).toLowerCase();
-        const email = (r.email || '').toLowerCase();
-        return fullName.includes(query) || email.includes(query);
-      });
-    }
-    return result;
-  }, [rows, filterJobListing, searchQuery]);
 
   const openAcceptDialog = (candidate) => {
     setCandidateToAccept(candidate);
@@ -100,8 +84,16 @@ export default function CandidatesView() {
   useEffect(() => {
     async function fetchCandidates() {
       try {
-        const list = (await CandidateService.list()).data;
-        console.log('Candidates data*:', list);
+        const data = (await CandidateService.list(page, ROWS_PER_PAGE,
+          [
+            { Fields: ['JobCandidateID'], Values: filterId ? [filterId] : [] },
+            { Fields: ['FirstName', 'MiddleName', 'LastName', 'Email'], Values: searchQuery ? [searchQuery] : [] },
+          ],
+          { SortBy: sort.SortBy, Direction: sort.Direction }
+        )).data;
+
+        setPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+        const list = data.items;
         setRows(Array.isArray(list) ? list : []);
       } catch (error) {
         let msg;
@@ -150,8 +142,7 @@ export default function CandidatesView() {
       }
     }
     fetchDepartments();
-    fetchJobListings();
-  }, [navigate, showNotification]);
+  }, [filterId, navigate, page, searchQuery, showNotification, sort.Direction, sort.SortBy]);
 
   const handleJobListingClick = (jobListing, e) => {
     e.stopPropagation();
@@ -185,7 +176,7 @@ export default function CandidatesView() {
   };
 
   const columns = [
-    { label: 'ID', width: '8%', render: (r) => r.jobCandidateId },
+    { label: 'ID', width: '8%', field: 'jobCandidateId', render: (r) => r.jobCandidateId, sortable: true },
     {
       label: 'Resume', width: '10%',
       render: (r) => (
@@ -194,8 +185,8 @@ export default function CandidatesView() {
         </IconButton>
       ),
     },
-    { label: 'Name', width: '18%', render: (r) => r.firstName + ' ' + (r.middleName ? r.middleName + ' ' : '') + r.lastName },
-    { label: 'Email', width: '20%', render: (r) => r.email },
+    { label: 'Name', width: '18%', field: 'firstName', render: (r) => r.firstName + ' ' + (r.middleName ? r.middleName + ' ' : '') + r.lastName, sortable: true },
+    { label: 'Email', width: '20%', field: 'email', render: (r) => r.email, sortable: true },
     {
       label: 'Job Listing', width: '14%',
       render: (r) => (
@@ -286,11 +277,15 @@ export default function CandidatesView() {
           <SectionPaper sx={{ flex: 1 }}>
             <DataTable
               columns={columns}
-              rows={filtered}
+              rows={rows}
               getRowId={(r) => r.jobCandidateId}
               onRowClick={(r) => openDrawer(r)}
               tableSx={{ minWidth: 1000, tableLayout: 'auto' }}
               headSx={{ '& th': { backgroundColor: '#ffe0b2' } }}
+              pageSize={ROWS_PER_PAGE}
+              pageCount={pageCount}
+              onPageChange={(e, value) => setPage(value)}
+              onSortChange={(sort) => { setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); }}
             />
           </SectionPaper>
 

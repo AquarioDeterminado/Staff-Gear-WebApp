@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Container,
@@ -39,6 +39,7 @@ import AddIcon from '@mui/icons-material/AddCircleOutline';
 import ErrorHandler from '../../utils/ErrorHandler';
 import useNotification from '../../utils/UseNotification';
 import { DepartmentSelectField } from '../components/DepartmentSelectField';
+import EmployeeViewModel from '../../models/viewModels/EmployeeViewModel.js';
 import { CapitalizeFirstLetter, FormatDate } from '../../utils/FormatingUtils';
 import DataTable from '../components/table/DataTable';
 import Paginator from '../components/table/Paginator';
@@ -48,10 +49,17 @@ import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 import { EditRowButton } from '../components/ui/buttons/EditRowButton';
 import { DeleteRowButton } from '../components/ui/buttons/DeleteRowButton';
 
+const SORTING_ASCENDING = 'asc';
+const SORTING_DESCENDING = 'desc';
+
 export default function EmployeesList() {
   const navigate = useNavigate();
   const notifs = useNotification();
   const [Users, setUsers] = useState([]);
+
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
+  const ROWS_PER_PAGE = 10;
 
   const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessEntityID)) + 1);
 
@@ -71,6 +79,7 @@ export default function EmployeesList() {
                   {label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true},
                   actionColum];
   
+  const [sort, setSort] = useState({ SortBy: 'BusinessEntityID', Direction: SORTING_ASCENDING });
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [mode, setMode] = useState('add');
@@ -132,43 +141,6 @@ export default function EmployeesList() {
     setFilterJobTitle('');
   };
 
-  const filteredEmployees = useMemo(() => {
-    return Users.filter((p) => {
-      if (filterBusinessId.trim()) {
-        const query = filterBusinessId.toString().toLowerCase();
-        if (!(p.BusinessEntityID.toString() || '').toLowerCase().includes(query)) return false;
-      }
-      if (filterName.trim()) {
-        const query = filterName.toLowerCase();
-        if (!(p.FirstName + p.MiddleName + p.LastName || '').toLowerCase().includes(query)) return false;
-      }
-      if (filterEmail.trim()) {
-        const query = filterEmail.toLowerCase();
-        if (!(p.Email || '').toLowerCase().includes(query)) return false;
-      }
-      if (filterEntryDateFrom) {
-        const entryDate = new Date(p.HireDate);
-        const fromDate = new Date(filterEntryDateFrom);
-        if (entryDate < fromDate) return false;
-      }
-      if (filterEntryDateTo) {
-        const entryDate = new Date(p.HireDate);
-        const toDate = new Date(filterEntryDateTo);
-        if (entryDate > toDate) return false;
-      }
-      if (filterDepartment.trim()) {
-        const query = filterDepartment.toLowerCase();
-        if (!(p.Department || '').toLowerCase().includes(query)) return false;
-      }
-      if (filterJobTitle.trim()) {
-        const query = filterJobTitle.toLowerCase();
-        if (!(p.JobTitle || '').toLowerCase().includes(query)) return false;
-      }
-      return true;
-    });
-  }, [Users, filterBusinessId, filterName, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterDepartment, filterJobTitle]);
-
-
   const handleOpenAdd = () => {
     setMode('add');
     setForm({ businessId: nextBusinessIdRef.current, firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '' });
@@ -178,7 +150,7 @@ export default function EmployeesList() {
 
   const handleOpenEdit = (idx) => {
     setMode('edit');
-    const emp = filteredEmployees[idx];
+    const emp = Users[idx];
     console.log('Editing employee', emp);
     setForm({
       businessId: emp.BusinessEntityID,
@@ -207,7 +179,7 @@ export default function EmployeesList() {
           firstName: form.firstName, middleName: form.middleName, lastName: form.lastName,
           email: form.email, department: form.department, jobTitle: form.jobTitle, hireDate: form.hireDate, password: form.password,
         });
-        setUsers(await EmployeeService.getAllEmployees());
+        setUsers((await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE)).items);
         notifs({ severity: 'success', message: 'Employee created successfully!' });
       } else {
         await EmployeeService.updateEmployee(form.businessId, {BusinessEntityID: form.businessId,
@@ -246,10 +218,41 @@ export default function EmployeesList() {
   useEffect(() => {
     async function fetchData() {
       try {
-        var employees = await EmployeeService.getAllEmployees();
-        console.log(employees);
+        var data = await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE,
+          [
+            { Fields: ['BusinessEntityID'], Values: [filterBusinessId] },
+            { Fields: ['FirstName', 'MiddleName', 'LastName'], Values: [filterName] },
+            { Fields: ['Email'], Values: [filterEmail] },
+            { Fields: ['HireDateFrom'], Values: [filterEntryDateFrom] },
+            { Fields: ['HireDateTo'], Values: [filterEntryDateTo] },
+            { Fields: ['Department'], Values: [filterDepartment] },
+            { Fields: ['JobTitle'], Values: [filterJobTitle] },
+          ],
+          { SortBy: sort.SortBy, Direction: sort.Direction }
+        );
+        
+        setPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
+
+        const employees = data.items.map(
+          (empData) =>
+            new EmployeeViewModel({
+              BusinessEntityID: empData.businessEntityID,
+              FirstName: empData.firstName,
+              MiddleName: empData.middleName,
+              LastName: empData.lastName,
+              JobTitle: empData.jobTitle,
+              Department: empData.department,
+              Email: empData.email,
+              HireDate: empData.hireDate,
+              Role: empData.role
+            }
+          )
+        );
+        console.log('Fetched employees:', employees);
         employees.forEach(element => {
           element.FirstName = CapitalizeFirstLetter(element.FirstName);
+          element.MiddleName = CapitalizeFirstLetter(element.MiddleName);
+          element.LastName = CapitalizeFirstLetter(element.LastName);
         });
         setUsers(employees);
       } catch (error) {
@@ -257,8 +260,8 @@ export default function EmployeesList() {
         notifs({ severity: 'error', message: ErrorHandler(error) ?? 'Error fetching employees.' });
       }
     }
-    if (Users.length === 0) fetchData();
-  }, [Users.length, navigate, notifs]);
+    fetchData();
+  }, [Users.length, filterBusinessId, filterDepartment, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterJobTitle, filterName, navigate, notifs, page, sort, sort.Direction, sort.SortBy]);
 
 
   return (
@@ -372,7 +375,15 @@ export default function EmployeesList() {
         </Card>
 
         <SectionPaper>
-          <DataTable columns={columns} rows={filteredEmployees} setRows={setUsers} getRowId={(r) => r.BusinessEntityID} />
+          <DataTable 
+            columns={columns} 
+            rows={Users} 
+            getRowId={(r) => r.BusinessEntityID} 
+            pageSize={ROWS_PER_PAGE}
+            pageCount={pageCount}
+            onPageChange={(e, value) => setPage(value)}
+            onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort);}}
+          />
         </SectionPaper>
       </Container>
 

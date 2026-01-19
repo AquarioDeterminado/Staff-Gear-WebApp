@@ -2,6 +2,7 @@ import api from '../utils/axiosClient';
 import EmployeeViewModel from '../models/viewModels/EmployeeViewModel.js';
 import PaymentViewModel from '../models/viewModels/PaymentViewModel.js';
 import MovementViewModel from '../models/viewModels/MovementViewModel.js';
+import { buildFiltersQuery } from "../utils/axiosClient.js";
 
 const EMPLOYEE_PATH = import.meta.env.VITE_API_EMPLOYEE;
 
@@ -30,30 +31,23 @@ const EmployeeService = {
     }
   },
 
-  getAllEmployees: async () => {
-    const response = await api.get(EMPLOYEE_PATH);
+  getAllEmployees: async (pageNumber, pageSize, filters, sort) => {
+    const filtersQuery = buildFiltersQuery(filters);
+    const sortingQuery = sort ? `Sort.SortBy=${sort.SortBy}&Sort.Direction=${sort.Direction}` : '';
+
+    const response = await api.get(`${EMPLOYEE_PATH}?${sortingQuery}&${filtersQuery}`, {
+      params: {
+        pageNumber,
+        pageSize
+      }
+    });
 
     if (!response || (response.status !== 200 && response.status !== 201)) {
       throw new Error('Error retrieving the employee! Error code: ' + response?.status);
     } else {
       console.log('Employees retrieved successfully!');
     }
-
-    const employees = response.data.map(
-      (empData) =>
-        new EmployeeViewModel({
-          BusinessEntityID: empData.businessEntityID,
-          FirstName: empData.firstName,
-          MiddleName: empData.middleName,
-          LastName: empData.lastName,
-          JobTitle: empData.jobTitle,
-          Department: empData.department,
-          Email: empData.email,
-          HireDate: empData.hireDate,
-          Role: empData.role
-        })
-    );
-    return employees;
+    return response.data;
   },
 
   getEmployee: async (id) => {

@@ -4,12 +4,11 @@ Renderiza uma tabela dinâmica
 import { Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
 import SortingColumn from './SortingColumn';
 import Paginator from './Paginator';
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function DataTable({
   columns,
   rows,
-  setRows,
   getRowId = (r, i) => i,
   onRowClick,
   emptyMessage = 'No data found.',
@@ -19,16 +18,22 @@ export default function DataTable({
   bodySx,
   rowSx,
   pageSize = 10,
+  pageCount = 1,
+  onPageChange = () => {},
+  canSwitchPage = true,
+  onSortChange,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
+  useEffect(() => onPageChange(currentPage), [currentPage, onPageChange, rows]);
   
   const [active, setActive] = useState(null);
+  console.log("rows:", rows);
+  const currentPageRows = rows;
 
-  const currentPageRows = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return rows.slice(startIndex, startIndex + pageSize);
-  }, [rows, currentPage, pageSize]);
-
+  function _onPageChange(page) {
+    setCurrentPage(page);
+    onPageChange(page);
+  }
   
   return (
     <>
@@ -42,10 +47,9 @@ export default function DataTable({
                   idx={i ?? col.id}
                   column={col}
                   totalColumns={columns.length}
-                  setValues={setRows}
-                  values={rows}
                   active={active === (i ?? col.id) ? true : false}
                   onClick={() => setActive(i ?? col.id)}
+                  onSortChange={onSortChange}
                 />
               ) : (
                 <TableCell
@@ -96,9 +100,10 @@ export default function DataTable({
         </TableBody>
       </Table>
       <Paginator
-        count={Math.ceil(rows.length / pageSize)}
+        count={pageCount ?? Math.ceil(rows.length / pageSize)}
         page={currentPage}
-        onChange={(_, p) => setCurrentPage(p)}
+        onChange={(_, p) => _onPageChange(p)}
+        canSwitchPage={canSwitchPage}
       />
     </>
   );
