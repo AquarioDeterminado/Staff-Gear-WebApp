@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -46,12 +46,18 @@ const ui = {
     },
 };
 
-export default function ApplyFormComponent({ jobListingId = null }) {
+export default function ApplyFormComponent({
+    jobListingId = null,
+    initialFirstName = '',
+    initialMiddleName = '',
+    initialLastName = '',
+    initialEmail = '',
+}) {
     const [form, setForm] = useState({
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        email: '',
+        firstName: initialFirstName,
+        middleName: initialMiddleName,
+        lastName: initialLastName,
+        email: initialEmail,
         phone: '',
         message: '',
         resumeFile: null,
@@ -62,6 +68,17 @@ export default function ApplyFormComponent({ jobListingId = null }) {
     const abortRef = useRef(null);
 
     const notif = useNotification();
+
+    useEffect(() => {
+        // Update form state when initial props change (when parent fetches user data)
+        setForm((prev) => ({
+            ...prev,
+            firstName: initialFirstName || '',
+            middleName: initialMiddleName || '',
+            lastName: initialLastName || '',
+            email: initialEmail || '',
+        }));
+    }, [initialFirstName, initialMiddleName, initialLastName, initialEmail]);
 
     const onChange = (e) => {
         const { name, value, files } = e.target;
