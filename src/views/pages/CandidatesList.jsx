@@ -24,6 +24,7 @@ export default function CandidatesView() {
 
   // Simple states
   const [page, setPage] = useState(1);
+  const [canSwitchPage, setCanSwitchPage] = useState(true);
   const [pageCount, setPageCount] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -44,6 +45,8 @@ export default function CandidatesView() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const ROWS_PER_PAGE = 10;
+
+
 
   // Effect 1: Fetch job listings once on mount
   useEffect(() => {
@@ -80,6 +83,7 @@ export default function CandidatesView() {
   useEffect(() => {
     async function fetchCandidates() {
       try {
+        setCanSwitchPage(false);
         const filters = [];
 
         // Add job listing filter if exists
@@ -97,7 +101,7 @@ export default function CandidatesView() {
             Values: [debouncedSearch] 
           });
         }
-
+        console.log('Fetching candidates with filters:', page);
         const response = await CandidateService.list(
           page,
           ROWS_PER_PAGE,
@@ -119,6 +123,7 @@ export default function CandidatesView() {
         });
 
         setRows(enrichedList);
+        setCanSwitchPage(true);
       } catch (error) {
         let msg = 'Error retrieving applications.';
         const data = error?.response?.data;
@@ -144,7 +149,7 @@ export default function CandidatesView() {
       try {
         const deps = await EmployeeService.getAllDepartments();
         setDepartments((deps || []).sort());
-      } catch (error) {
+      } catch (e) {
         showNotification({ message: 'Error fetching departments', severity: 'error' });
       }
     }
@@ -387,8 +392,10 @@ export default function CandidatesView() {
                 tableSx={{ minWidth: 1000, tableLayout: 'auto' }}
                 pageSize={ROWS_PER_PAGE}
                 pageCount={pageCount}
-                onPageChange={(e, value) => setPage(value)}
+                onPageChange={(value) => setPage(value)}
+                page={page}
                 onSortChange={(sortConfig) => setSort({ SortBy: sortConfig.SortBy, Direction: sortConfig.Direction })}
+                canSwitchPage={canSwitchPage}
               />
             </SectionPaper>
 
@@ -402,14 +409,14 @@ export default function CandidatesView() {
                 label="Name or Email"
                 placeholder="Search..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {setSearchQuery(e.target.value); setPage(1);}}
                 fullWidth
                 size="small"
               />
               <Select
                 label="Job Listing"
                 value={filterJobListingId || ''}
-                onChange={handleJobListingFilterChange}
+                onChange={(e) => {handleJobListingFilterChange(e); setPage(1);}}
                 fullWidth
                 size="small"
                 displayEmpty
