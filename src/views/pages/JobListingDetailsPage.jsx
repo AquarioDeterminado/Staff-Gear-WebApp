@@ -16,8 +16,10 @@ import {
 } from '@mui/material';
 import { AccessTime, LocationOn, Work, Business, Description, Send, ArrowDownward } from '@mui/icons-material';
 import JobListingService from '../../services/JobListingService';
+import EmployeeService from '../../services/EmployeeService';
 import ApplyFormComponent from '../components/forms/ApplyFormComponent';
 import useNotification from '../../utils/UseNotification';
+import UserSession from '../../utils/UserSession';
 import HeaderBar from '../components/layout/HeaderBar';
 
 const formatJobType = (type) => {
@@ -73,6 +75,12 @@ export default function JobListingDetailsPage() {
   const [jobListing, setJobListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState({
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    email: '',
+  });
 
   useEffect(() => {
     const fetchJobListing = async () => {
@@ -90,7 +98,31 @@ export default function JobListingDetailsPage() {
       }
     };
 
+    const fetchCurrentUser = async () => {
+      try {
+        const token = UserSession.getToken();
+        if (!token) return; // User not logged in, silently skip
+
+        const businessId = localStorage.getItem('BusinessID');
+        if (!businessId) return; // No BusinessID, silently skip
+
+        const employee = await EmployeeService.getEmployee(businessId);
+        if (employee) {
+          setCurrentUser({
+            firstName: employee.FirstName || '',
+            middleName: employee.MiddleName || '',
+            lastName: employee.LastName || '',
+            email: employee.Email || '',
+          });
+        }
+      } catch (err) {
+        // Silently fail - don't show error or notification
+        console.error('Error fetching current user:', err);
+      }
+    };
+
     fetchJobListing();
+    fetchCurrentUser();
   }, [id, showNotification]);
 
   if (loading) {
@@ -302,7 +334,13 @@ export default function JobListingDetailsPage() {
                       }}
                     >
                       {vagaAberta ? (
-                        <ApplyFormComponent jobListingId={jobListing.jobListingID} />
+                        <ApplyFormComponent
+                          jobListingId={jobListing.jobListingID}
+                          initialFirstName={currentUser.firstName}
+                          initialMiddleName={currentUser.middleName}
+                          initialLastName={currentUser.lastName}
+                          initialEmail={currentUser.email}
+                        />
                       ) : (
                         <Box sx={{ textAlign: 'center', py: 4 }}>
                           <Box

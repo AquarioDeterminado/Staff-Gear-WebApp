@@ -63,12 +63,19 @@ export function buildFiltersQuery(filters) {
     }).map((f, idx) => {
             if (f.Values === null || f.Values === undefined) return '';
             var filterBase = `Filters[${idx}]`
-            
-            var filterValues = f.Values.filter(value => value !== '').map((value, index) => `${filterBase}.Values[${index}]=${encodeURIComponent(value)}`).join('&');
+            var filterValues = '';
+            //If type == "Range", we expect two values: From and To
+            if(f.Type === 'Range') {
+                var fromValue =  `${filterBase}.Values[0]=${encodeURIComponent(f.Values[0])}` ;
+                var toValue = `${filterBase}.Values[1]=${encodeURIComponent(f.Values[1])}`;
+                filterValues = [fromValue, toValue].join('&');
+            } else {
+                filterValues = f.Values.filter(value => value !== '').map((value, index) => `${filterBase}.Values[${index}]=${encodeURIComponent(value)}`).join('&');
+            }
 
             var filterFields = f.Fields.map((field, index) => `${filterBase}.Fields[${index}]=${encodeURIComponent(field)}`).join('&');
 
-            return `${filterValues}&${filterFields}`;
+            return `Filters[${idx}].Type=${f.Type}&${filterValues}&${filterFields}`;
         }).filter(f => f !== '').join('&');
 }
 

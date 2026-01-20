@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Autocomplete, TextField } from '@mui/material';
-import EmployeeService from '../../services/EmployeeService';
+import EmployeeService from '../../../services/EmployeeService';
 
 export const EmployeeSearchField = ({ values, onChange, error }) => {
 

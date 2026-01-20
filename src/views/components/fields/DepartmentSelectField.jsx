@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react';
-import {FormControl, Select, MenuItem, FormHelperText} from '@mui/material';
-import EmployeeService from '../../services/EmployeeService';
+import React, { useEffect, useState } from 'react';
+import { FormControl, Select, MenuItem, FormHelperText } from '@mui/material';
+import EmployeeService from '../../../services/EmployeeService';
 
-export const DepartmentSelectField = ({value, onChange, error, fullWidth = false, autoWidth = false, sx = {}}) => {
+export const DepartmentSelectField = ({ value, onChange, error, fullWidth = false, autoWidth = false, sx = {} }) => {
   const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
@@ -12,19 +12,19 @@ export const DepartmentSelectField = ({value, onChange, error, fullWidth = false
     }
     fetchDepartments();
   }, []);
-
   return (
     <FormControl fullWidth={fullWidth} error={!!error} sx={sx}>
+
       <Select
-        value={value || ""}
-        onChange={(e) => { 
-          onChange(e.target.value);
+        value={value === "" || value === null || value === undefined ? "default" : value}
+        onChange={(e) => {
+          onChange(e.target.value === "default" ? "" : e.target.value);
         }}
         size='small'
         label="Department"
         autoWidth={autoWidth}
       >
-        <MenuItem value="">All Departments</MenuItem>
+        <MenuItem value="default">All Departments</MenuItem>
         {departments.map((d) => (
           <MenuItem key={d} value={d}>
             {d}

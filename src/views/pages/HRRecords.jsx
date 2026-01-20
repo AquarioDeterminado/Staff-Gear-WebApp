@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, Fragment } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import {
   Box,
   Container,
@@ -31,8 +31,8 @@ import HRService from '../../services/HRService';
 import useNotification from '../../utils/UseNotification';
 import EmployeeService from '../../services/EmployeeService';
 import { CapitalizeFirstLetter } from '../../utils/FormatingUtils';
-import { EmployeeSearchField } from '../components/EmployeeSearchField';
-import { DepartmentSelectField } from '../components/DepartmentSelectField';
+import { EmployeeSearchField } from '../components/fields/EmployeeSearchField.jsx';
+import { DepartmentSelectField } from '../components/fields/DepartmentSelectField.jsx';
 import PaymentViewModel from '../../models/viewModels/PaymentViewModel.js';
 import MovementViewModel from '../../models/viewModels/MovementViewModel.js';
 import DataTable from '../components/table/DataTable';
@@ -46,6 +46,7 @@ import StatCard from '../components/ui/StatCard';
 import { FormatCurrency, FormatPayFrequency, FormatDate } from '../../utils/FormatingUtils';
 import { EditRowButton } from '../components/ui/buttons/EditRowButton';
 import { DeleteRowButton } from '../components/ui/buttons/DeleteRowButton';
+import NumberField from '../components/fields/NumberField.jsx';
 
 const PAYMENT_TAB = 0;
 const JOB_CHANGE_TAB = 1;
@@ -156,12 +157,10 @@ export default function HRRecords() {
           currentPage,
           ROWS_PER_PAGE,
           [
-            { Fields: ['FullName'], Values: [filterPaymentEmployee] },
-            { Fields: ['RateFrom'], Values: [filterRateMin] },
-            { Fields: ['RateTo'], Values: [filterRateMax] },
-            { Fields: ['RateFrom', 'RateTo'], Values: [filterRateMin, filterRateMax] },
-            { Fields: ['PayFrequency'], Values: [filterPayFrequency] },
-            { Fields: ['RateChangeDateFrom', 'RateChangeDateTo'], Values: [filterPaymentDateFrom, filterPaymentDateTo] },
+            { Fields: ['FullName'], Values: [filterPaymentEmployee], Type: 'Contains' },
+            { Fields: ['RateFrom', 'RateTo'], Values: [filterRateMin, filterRateMax], Type: 'Range' },
+            { Fields: ['PayFrequency'], Values: [filterPayFrequency], Type: 'Equals' },
+            { Fields: ['RateChangeDateFrom', 'RateChangeDateTo'], Values: [filterPaymentDateFrom, filterPaymentDateTo], Type: 'Range' },
           ],
           { SortBy: sort.SortBy, Direction: sort.Direction }
         );
@@ -209,10 +208,10 @@ export default function HRRecords() {
           currentPage,
           ROWS_PER_PAGE,
           [
-            { Fields: ['FullName'], Values: [filterJobEmployee] },
-            { Fields: ['DepartmentName'], Values: [filterDepartment] },
-            { Fields: ['StartDateFrom'], Values: [filterJobDateFrom] },
-            { Fields: ['StartDateTo'], Values: [filterJobDateTo] },
+            { Fields: ['FullName'], Values: [filterJobEmployee], Type: 'Contains' },
+            { Fields: ['DepartmentName'], Values: [filterDepartment], Type: 'Contains' },
+            { Fields: ['StartDateFrom'], Values: [filterJobDateFrom], Type: 'Range' },
+            { Fields: ['StartDateTo'], Values: [filterJobDateTo], Type: 'Range' },
           ],
           { SortBy: sort.SortBy, Direction: sort.Direction }
         );
@@ -293,38 +292,6 @@ export default function HRRecords() {
       J_FullName: '',
     });
   }
-
-  useEffect(() => {
-    async function fetchJobChangesData() {
-      try {
-        const data = await HRService.getAllMovements(currentPage, ROWS_PER_PAGE);
-
-        setJobChangesPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
-
-        var items = data.items;
-        var movements = [];
-        for (let movement of items) {
-          var newMovement = new MovementViewModel({
-            BusinessEntityID: movement.businessEntityID,
-            FullName: movement.fullName,
-            DepartmentName: movement.departmentName,
-            JobTitle: movement.jobTitle,
-            StartDate: movement.startDate,
-            EndDate: movement.endDate,
-          });
-          movements.push(newMovement);
-        }
-        movements.forEach((element) => {
-          element.JobTitle = CapitalizeFirstLetter(element.JobTitle);
-        });
-        setJobChanges(movements);
-      } catch (error) {
-        console.error('Error fetching job changes:', error);
-        UserSession.verifyAuthorize(navigate, error?.status);
-      }
-    }
-    fetchJobChangesData();
-  }, [navigate, currentPage]);
 
   const handleTabChange = (_e, v) => {
     setTab(v);
@@ -622,10 +589,6 @@ export default function HRRecords() {
     setFilterJobDateTo('');
   };
 
-  const uniqueDepartments = useMemo(() => {
-    const deps = [...new Set(jobChanges.map((j) => j.DepartmentName).filter(Boolean))];
-    return deps.sort();
-  }, [jobChanges]);
 
   const paymentColumnsWithActions = paymentsColumns.map((col) =>
     col.label !== 'Actions'
@@ -643,19 +606,20 @@ export default function HRRecords() {
                 <EditOutlinedIcon />
               </IconButton>
 
-              <IconButton
-                onClick={() => {
-                  setConfirmIndex(idx);
-                  setConfirmOpen(true);
-                }}
-                sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
-                size="small"
-              >
-                <DeleteOutlineIcon />
-              </IconButton>
-            </Stack>
-          ),
-        }
+            <IconButton
+              onClick={() => {
+                setConfirmIndex(idx);
+                setConfirmOpen(true);
+
+              }}
+              sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
+              size="small"
+            >
+              <DeleteOutlineIcon />
+            </IconButton>
+          </Stack>
+        ),
+      }
   );
 
   const jobColumnsWithActions = jobChangesColumns.map((col) =>
@@ -744,23 +708,23 @@ export default function HRRecords() {
                   size="small"
                   sx={{ flex: 1 }}
                 />
-                <TextField
+                <NumberField
                   label="Rate Min"
-                  type="number"
+                  type="float"
                   value={filterRateMin}
-                  onChange={(e) => {
-                    setFilterRateMin(e.target.value);
+                  onChange={(value) => {
+                    setFilterRateMin(value);
                   }}
                   size="small"
                   sx={{ flex: 1 }}
                   inputProps={{ step: '0.01' }}
                 />
-                <TextField
+                <NumberField
                   label="Rate Max"
-                  type="number"
+                  type="float"
                   value={filterRateMax}
-                  onChange={(e) => {
-                    setFilterRateMax(e.target.value);
+                  onChange={(value) => {
+                    setFilterRateMax(value);
                   }}
                   size="small"
                   sx={{ flex: 1 }}
@@ -824,22 +788,15 @@ export default function HRRecords() {
                   size="small"
                   sx={{ flex: 2 }}
                 />
-                <Select
+                <DepartmentSelectField
+                  label="Department"
                   value={filterDepartment}
-                  onChange={(e) => {
-                    setFilterDepartment(e.target.value);
+                  onChange={(value) => {
+                    setFilterDepartment(value);
                   }}
                   size="small"
-                  displayEmpty
                   sx={{ flex: 1 }}
-                >
-                  <MenuItem value="">All Departments</MenuItem>
-                  {uniqueDepartments.map((dept) => (
-                    <MenuItem key={dept} value={dept}>
-                      {dept}
-                    </MenuItem>
-                  ))}
-                </Select>
+                />
               </Stack>
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                 <TextField
@@ -975,6 +932,7 @@ export default function HRRecords() {
                 onSortChange={(sort) => {
                   setSort({ SortBy: sort.SortBy, Direction: sort.Direction });
                 }}
+                page={currentPage}
               />
             ) : (
               <DataTable
@@ -987,6 +945,7 @@ export default function HRRecords() {
                 onSortChange={(sort) => {
                   setSort({ SortBy: sort.SortBy, Direction: sort.Direction });
                 }}
+                page={currentPage}
               />
             )}
           </SectionPaper>

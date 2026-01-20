@@ -1,7 +1,7 @@
-import { Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
+import { Table, TableHead, TableRow, TableCell, TableBody, colors } from '@mui/material';
 import SortingColumn from './SortingColumn';
 import Paginator from './Paginator';
-import { useState, useEffect } from 'react';
+import {useState} from 'react';
 
 export default function DataTable({
   columns,
@@ -14,23 +14,17 @@ export default function DataTable({
   headSx,
   bodySx,
   rowSx,
+  standoutRow = () => false,
   pageSize = 10,
   pageCount = 1,
-  onPageChange = () => {},
+  page = 1,
+  onPageChange,
   canSwitchPage = true,
   onSortChange,
-}) {
-  const [currentPage, setCurrentPage] = useState(1);
-  useEffect(() => onPageChange(currentPage), [currentPage, onPageChange, rows]);
-
+}) {  
   const [active, setActive] = useState(null);
   const currentPageRows = rows;
-
-  function _onPageChange(page) {
-    setCurrentPage(page);
-    onPageChange(page);
-  }
-
+  
   return (
     <>
       <Table
@@ -106,7 +100,7 @@ export default function DataTable({
                       key={(col.id ?? col.label) + String(id)} 
                       align={col.align ?? 'left'}
                       sx={{
-                        backgroundColor: '#fff5e6',
+                        backgroundColor: standoutRow(row) ? standoutRow(row) : '#fff5e6',
                         borderRight: colIdx < columns.length - 1 ? '1px solid #ffe0b2' : 'none',
                       }}
                     >
@@ -122,8 +116,8 @@ export default function DataTable({
 
       <Paginator
         count={pageCount ?? Math.ceil(rows.length / pageSize)}
-        page={currentPage}
-        onChange={(_, p) => _onPageChange(p)}
+        page={page}
+        onChange={(_, p) => onPageChange(p)}
         canSwitchPage={canSwitchPage}
       />
     </>

@@ -179,8 +179,10 @@ const EmployeeService = {
       console.log('Profile photo uploaded with success!');
     }
 
+
     return response.data;
   }
 };
 
 export default EmployeeService;
+
