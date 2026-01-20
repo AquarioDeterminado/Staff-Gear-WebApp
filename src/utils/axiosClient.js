@@ -68,7 +68,7 @@ export function buildFiltersQuery(filters) {
 
             var filterFields = f.Fields.map((field, index) => `${filterBase}.Fields[${index}]=${encodeURIComponent(field)}`).join('&');
 
-            return `${filterValues}&${filterFields}`;
+            return `Filters[${idx}].Type=${f.Type}&${filterValues}&${filterFields}`;
         }).filter(f => f !== '').join('&');
 }
 

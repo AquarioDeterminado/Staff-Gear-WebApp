@@ -253,14 +253,13 @@ export default function EmployeesList() {
       try {
         var data = await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE,
           [
-            { Fields: ['BusinessEntityID'], Values: [filterBusinessId] },
-            { Fields: ['FirstName', 'MiddleName', 'LastName'], Values: [filterName] },
-            { Fields: ['Email'], Values: [filterEmail] },
-            { Fields: ['HireDateFrom'], Values: [filterEntryDateFrom] },
-            { Fields: ['HireDateTo'], Values: [filterEntryDateTo] },
-            { Fields: ['Department'], Values: [filterDepartment] },
-            { Fields: ['JobTitle'], Values: [filterJobTitle] },
-            { Fields: ['IsActive'], Values: [filterIsActive] },
+            { Fields: ['BusinessEntityID'], Values: [filterBusinessId], Type: 'Contains' },
+            { Fields: ['FirstName', 'MiddleName', 'LastName'], Values: [filterName], Type: 'Contains' },
+            { Fields: ['Email'], Values: [filterEmail], Type: 'Contains' },
+            { Fields: ['HireDateFrom', 'HireDateTo'], Values: [filterEntryDateFrom, filterEntryDateTo], Type: 'Range' },
+            { Fields: ['Department'], Values: [filterDepartment], Type: 'Contains' },
+            { Fields: ['JobTitle'], Values: [filterJobTitle], Type: 'Contains' },
+            { Fields: ['IsActive'], Values: [filterIsActive], Type: 'Equals' },
           ],
           { SortBy: sort.SortBy, Direction: sort.Direction }
         );

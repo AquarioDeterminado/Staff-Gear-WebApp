@@ -12,10 +12,10 @@ export const DepartmentSelectField = ({value, onChange, error, fullWidth = false
     }
     fetchDepartments();
   }, []);
-
   return (
+    
     <Select
-      value={value === ""? "default" : value}
+      value={value === "" || value === null || value === undefined ? "default" : value}
       onChange={(e) => { 
         onChange(e.target.value === "default" ? "" : e.target.value);
       }}
