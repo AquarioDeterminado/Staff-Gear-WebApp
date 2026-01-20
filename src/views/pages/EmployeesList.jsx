@@ -3,34 +3,17 @@ import {
   Box,
   Container,
   Typography,
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   IconButton,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Stack,
-  Divider,
-  Select,
-  MenuItem,
   Card,
   CardHeader,
   CardContent,
 } from '@mui/material';
 import Collapse from '@mui/material/Collapse';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import HeaderBar from '../components/layout/HeaderBar';
 import EmployeeService from '../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
@@ -42,7 +25,6 @@ import { DepartmentSelectField } from '../components/DepartmentSelectField';
 import EmployeeViewModel from '../../models/viewModels/EmployeeViewModel.js';
 import { CapitalizeFirstLetter, FormatDate } from '../../utils/FormatingUtils';
 import DataTable from '../components/table/DataTable';
-import Paginator from '../components/table/Paginator';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import FormPopup from '../components/ui/popups/FormPopup';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
@@ -64,20 +46,22 @@ export default function EmployeesList() {
   const nextBusinessIdRef = useRef(Math.max(0, ...Users.map((r) => r.BusinessEntityID)) + 1);
 
   const actionColum = {
-      label: 'Actions', field: 'actions', sortable: false, render: (r, idx) =>
-      (<Stack direction="row" spacing={1}>
-        <EditRowButton openEdit={handleOpenEdit} idx={idx} />
-        <DeleteRowButton openConfirm={setConfirmOpen} setConfirmIndex={setConfirmId} idx={idx} />
-      </Stack>)
+    label: 'Actions', field: 'actions', sortable: false, render: (r, idx) =>
+    (<Stack direction="row" spacing={1}>
+      <EditRowButton openEdit={handleOpenEdit} idx={idx} />
+      <DeleteRowButton openConfirm={setConfirmOpen} setConfirmIndex={setConfirmId} idx={idx} />
+    </Stack>)
   };
 
-  const columns = [{label: 'Business ID', field: 'BusinessEntityID', sortable: true}, 
-                  {label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`, sortable: true}, 
-                  {label: 'Email', field: 'Email', sortable: true}, 
-                  {label: 'Department', field: 'Department', sortable: true}, 
-                  {label: 'Job Title', field: 'JobTitle', sortable: true}, 
-                  {label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true},
-                  actionColum];
+  const columns = [
+    {label: 'Business ID', field: 'BusinessEntityID', sortable: true}, 
+    {label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`, sortable: true}, 
+    {label: 'Email', field: 'Email', sortable: true}, 
+    {label: 'Department', field: 'Department', sortable: true}, 
+    {label: 'Job Title', field: 'JobTitle', sortable: true}, 
+    {label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true},
+    actionColum
+  ];
   
   const [sort, setSort] = useState({ SortBy: 'BusinessEntityID', Direction: SORTING_ASCENDING });
 
@@ -118,7 +102,6 @@ export default function EmployeesList() {
         : 'Mandatory.',
       password: mode === 'edit' ? '' : (curr.password !== '' && curr.password?.trim() ? '' : 'Mandatory.'),
     };
-    console.log('Validation', { curr, newErrors });
     setErrors(newErrors);
     return Object.values(newErrors).every((e) => e === '');
   };
@@ -151,7 +134,6 @@ export default function EmployeesList() {
   const handleOpenEdit = (idx) => {
     setMode('edit');
     const emp = Users[idx];
-    console.log('Editing employee', emp);
     setForm({
       businessId: emp.BusinessEntityID,
       firstName: emp.FirstName,
@@ -169,9 +151,7 @@ export default function EmployeesList() {
   const handleClose = () => setDialogOpen(false);
 
   const handleSave = async () => {
-    console.log('Saving form', form);
     const ok = validateForm(form);
-    console.log(ok);
     if (!ok) return;
     try {
       if (mode === 'add') {
@@ -218,7 +198,7 @@ export default function EmployeesList() {
   useEffect(() => {
     async function fetchData() {
       try {
-        var data = await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE,
+        const data = await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE,
           [
             { Fields: ['BusinessEntityID'], Values: [filterBusinessId] },
             { Fields: ['FirstName', 'MiddleName', 'LastName'], Values: [filterName] },
@@ -248,7 +228,6 @@ export default function EmployeesList() {
             }
           )
         );
-        console.log('Fetched employees:', employees);
         employees.forEach(element => {
           element.FirstName = CapitalizeFirstLetter(element.FirstName);
           element.MiddleName = CapitalizeFirstLetter(element.MiddleName);
@@ -263,160 +242,162 @@ export default function EmployeesList() {
     fetchData();
   }, [Users.length, filterBusinessId, filterDepartment, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterJobTitle, filterName, navigate, notifs, page, sort, sort.Direction, sort.SortBy]);
 
-
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
-      <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
-        <Stack direction="row" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: '#000' }}>Employees</Typography>
-          <Box sx={{ ml: 'auto' }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleOpenAdd}
-              sx={{ bgcolor: '#ff9800', color: '#000', textTransform: 'none', fontWeight: 700 }}
-            >
-              Add User
-            </Button>
-          </Box>
-        </Stack>
-        <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
-          <CardHeader
-            title="Filters"
-            action={
-              <IconButton onClick={() => setFilterExpanded(!filterExpanded)} sx={{ p: 0 }}>
-                {filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-              </IconButton>
-            }
-            sx={{ pb: 0 }}
-          />
-          <Collapse in={filterExpanded}>
-            <CardContent>
-              <Stack direction="column" spacing={2}>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                  <TextField
-                    label="Business ID"
-                    type='number'
-                    value={filterBusinessId}
-                    onChange={(e) => {
-                      setFilterBusinessId(e.target.value);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                  />
-                  <TextField
-                    label="Name"
-                    value={filterName}
-                    onChange={(e) => {
-                      setFilterName(e.target.value);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                  />
-                </Stack>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                  <TextField
-                    label="Email"
-                    value={filterEmail}
-                    onChange={(e) => {
-                      setFilterEmail(e.target.value);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                  />
-                  <TextField
-                    label="Date From"
-                    type="date"
-                    value={filterEntryDateFrom}
-                    onChange={(e) => {
-                      setFilterEntryDateFrom(e.target.value);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                  <TextField
-                    label="Date To"
-                    type="date"
-                    value={filterEntryDateTo}
-                    onChange={(e) => {
-                      setFilterEntryDateTo(e.target.value);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Stack>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent={"space-evenly"} >
-                  <DepartmentSelectField
-                    onChange={(v) => {
-                      setFilterDepartment(v);
-                    }}
-                    error={null}
-                    sx={{ flex: 1 }}
-                  />
-                  <TextField
-                    label="Job Title"
-                    value={filterJobTitle}
-                    onChange={(e) => {
-                      setFilterJobTitle(e.target.value);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                  />
-                  <Button variant="outlined" onClick={handleClearFilters} sx={{ textTransform: 'none', fontWeight: 600 }}>
-                    Clear Filters
-                  </Button>
-                </Stack>
-              </Stack>
-            </CardContent>
-          </Collapse>
-        </Card>
+      <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
+        <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
+          <Stack direction="row" alignItems="center" sx={{ mb: 2 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: '#000' }}>Employees</Typography>
+            <Box sx={{ ml: 'auto' }}>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleOpenAdd}
+                sx={{ bgcolor: '#ff9800', color: '#000', textTransform: 'none', fontWeight: 700 }}
+              >
+                Add User
+              </Button>
+            </Box>
+          </Stack>
 
-        <SectionPaper>
-          <DataTable 
-            columns={columns} 
-            rows={Users} 
-            getRowId={(r) => r.BusinessEntityID} 
-            pageSize={ROWS_PER_PAGE}
-            pageCount={pageCount}
-            onPageChange={(e, value) => setPage(value)}
-            onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort);}}
-          />
-        </SectionPaper>
-      </Container>
+          <Card sx={{ mb: 2, bgcolor: '#fff5e6', border: '2px solid #ffe0b2' }}>
+            <CardHeader
+              title="Filters"
+              action={
+                <IconButton onClick={() => setFilterExpanded(!filterExpanded)} sx={{ p: 0 }} aria-label="toggle filters">
+                  {filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              }
+              sx={{ pb: 0 }}
+            />
+            <Collapse in={filterExpanded}>
+              <CardContent>
+                <Stack direction="column" spacing={2}>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                    <TextField
+                      label="Business ID"
+                      type='number'
+                      value={filterBusinessId}
+                      onChange={(e) => {
+                        setFilterBusinessId(e.target.value);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      label="Name"
+                      value={filterName}
+                      onChange={(e) => {
+                        setFilterName(e.target.value);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                  </Stack>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                    <TextField
+                      label="Email"
+                      value={filterEmail}
+                      onChange={(e) => {
+                        setFilterEmail(e.target.value);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      label="Date From"
+                      type="date"
+                      value={filterEntryDateFrom}
+                      onChange={(e) => {
+                        setFilterEntryDateFrom(e.target.value);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                      label="Date To"
+                      type="date"
+                      value={filterEntryDateTo}
+                      onChange={(e) => {
+                        setFilterEntryDateTo(e.target.value);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Stack>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent={"space-evenly"} >
+                    <DepartmentSelectField
+                      onChange={(v) => {
+                        setFilterDepartment(v);
+                      }}
+                      error={null}
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      label="Job Title"
+                      value={filterJobTitle}
+                      onChange={(e) => {
+                        setFilterJobTitle(e.target.value);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                    <Button variant="outlined" onClick={handleClearFilters} sx={{ textTransform: 'none', fontWeight: 600 }}>
+                      Clear Filters
+                    </Button>
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Collapse>
+          </Card>
 
-      <FormPopup
-        open={dialogOpen}
-        title={mode === 'add' ? 'Add User' : 'Edit User'}
-        fields={[
-          { type: 'text',     label: 'First Name', value: form.firstName,  onChange: setField('firstName'),  required: true, error: !!errors.firstName,  helperText: errors.firstName },
-          { type: 'text',     label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
-          { type: 'text',     label: 'Last Name',  value: form.lastName,   onChange: setField('lastName'),   required: true, error: !!errors.lastName,   helperText: errors.lastName },
-          { type: 'email',    label: 'Email',      value: form.email,      onChange: setField('email'),      required: true, error: !!errors.email,      helperText: errors.email },
-          { type: 'custom', render: () => <DepartmentSelectField label="Department" value={form.DepartmentName} onChange={setField('department')} error={errors.DepartmentName} fullWidth={true} /> },
-          { type: 'text',     label: 'Job Title',  value: form.jobTitle,   onChange: setField('jobTitle'),   required: true, error: !!errors.jobTitle,   helperText: errors.jobTitle },
-          { type: 'date',     label: 'Hire Date',  value: form.hireDate,   onChange: setField('hireDate'),   required: true, error: !!errors.hireDate,   helperText: errors.hireDate },
-          ...(mode === 'add'
-            ? [{ type: 'password', label: 'Password', value: form.password, onChange: setField('password'), required: true, error: !!errors.password, helperText: errors.password }]
-            : [])
-        ]}
-        onCancel={handleClose}
-        onSubmit={handleSave}
-        submitLabel="Save"
-        submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
-      />
+          <SectionPaper>
+            <DataTable 
+              columns={columns} 
+              rows={Users} 
+              getRowId={(r) => r.BusinessEntityID} 
+              pageSize={ROWS_PER_PAGE}
+              pageCount={pageCount}
+              onPageChange={(e, value) => setPage(value)}
+              onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction });}}
+            />
+          </SectionPaper>
+        </Container>
 
-      <ConfirmPopup
-        open={confirmOpen}
-        title="Remove record"
-        content="Do you really want to delete this employee? This action is irreversible."
-        onCancel={() => { setConfirmOpen(false); setConfirmId(null); }}
-        onConfirm={async () => { if (!confirmId) return; await handleDelete(confirmId); setConfirmOpen(false); setConfirmId(null); }}
-        confirmLabel="Delete"
-        confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
-      />
+        <FormPopup
+          open={dialogOpen}
+          title={mode === 'add' ? 'Add User' : 'Edit User'}
+          fields={[
+            { type: 'text',     label: 'First Name', value: form.firstName,  onChange: setField('firstName'),  required: true, error: !!errors.firstName,  helperText: errors.firstName },
+            { type: 'text',     label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
+            { type: 'text',     label: 'Last Name',  value: form.lastName,   onChange: setField('lastName'),   required: true, error: !!errors.lastName,   helperText: errors.lastName },
+            { type: 'email',    label: 'Email',      value: form.email,      onChange: setField('email'),      required: true, error: !!errors.email,      helperText: errors.email },
+            { type: 'custom', render: () => <DepartmentSelectField label="Department" value={form.DepartmentName} onChange={setField('department')} error={errors.DepartmentName} fullWidth={true} /> },
+            { type: 'text',     label: 'Job Title',  value: form.jobTitle,   onChange: setField('jobTitle'),   required: true, error: !!errors.jobTitle,   helperText: errors.jobTitle },
+            { type: 'date',     label: 'Hire Date',  value: form.hireDate,   onChange: setField('hireDate'),   required: true, error: !!errors.hireDate,   helperText: errors.hireDate },
+            ...(mode === 'add'
+              ? [{ type: 'password', label: 'Password', value: form.password, onChange: setField('password'), required: true, error: !!errors.password, helperText: errors.password }]
+              : [])
+          ]}
+          onCancel={handleClose}
+          onSubmit={handleSave}
+          submitLabel="Save"
+          submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
+        />
+
+        <ConfirmPopup
+          open={confirmOpen}
+          title="Remove record"
+          content="Do you really want to delete this employee? This action is irreversible."
+          onCancel={() => { setConfirmOpen(false); setConfirmId(null); }}
+          onConfirm={async () => { if (!confirmId) return; await handleDelete(confirmId); setConfirmOpen(false); setConfirmId(null); }}
+          confirmLabel="Delete"
+          confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
+        />
+      </Box>
     </Box>
   );
 }

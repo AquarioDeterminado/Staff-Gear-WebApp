@@ -1,6 +1,3 @@
-/*
-Barra superior fixa usada em todas as páginas
-*/
 import { useEffect, useState } from 'react';
 import {
   AppBar,
@@ -76,7 +73,7 @@ export default function HeaderBar() {
 
   return (
     <>
-      <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '0.1px solid #000000ff' }}>
+      <AppBar position="static" sx={{ bgcolor: '#fff3e0', borderBottom: '0.1px solid #000000ff', boxShadow: '0 2px 8px rgba(255, 152, 0, 0.08)', elevation: 0 }}>
         <Toolbar
           sx={{
             position: 'relative',
@@ -115,7 +112,7 @@ export default function HeaderBar() {
           <Box sx={{ display: 'flex', color: '#FFF4E6', alignItems: 'center', gap: 1.5, marginLeft: 'auto' }}>
             {isAuthenticated ? (
               <>
-                <IconButton onClick={(e) => setAnchorNotif(e.currentTarget)} aria-label="notificações">
+                <IconButton onClick={(e) => setAnchorNotif(e.currentTarget)} aria-label="notifications">
                   <Badge badgeContent={notifications.length} color="error">
                     <NotificationsIcon sx={{ fontSize: 26 }} />
                   </Badge>
@@ -155,7 +152,7 @@ export default function HeaderBar() {
                   Log out
                 </Button>
 
-                <IconButton onClick={() => navigate('/profile')} aria-label="perfil">
+                <IconButton onClick={() => navigate('/profile')} aria-label="profile">
                   <Avatar sx={{ bgcolor: '#607d8b' }}>
                     <PersonIcon />
                   </Avatar>
@@ -247,7 +244,7 @@ export default function HeaderBar() {
             ))
           ) : (
             <MenuItem disabled>
-              <ListItemText primary="Without notifications." />
+              <ListItemText primary="No notifications." />
             </MenuItem>
           )}
         </Menu>

@@ -72,9 +72,10 @@ export default function JobListingsPage() {
   };
 
   return (
-    <>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
         <Stack spacing={3}>
           {/* Header */}
           <Stack spacing={1}>
@@ -192,7 +193,8 @@ export default function JobListingsPage() {
             </>
           )}
         </Stack>
-      </Container>
-    </>
+        </Container>
+      </Box>
+    </Box>
   );
 }

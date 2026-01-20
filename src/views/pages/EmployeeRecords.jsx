@@ -4,6 +4,8 @@ import {
   Container,
   Pagination,
 } from '@mui/material';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import HeaderBar from '../components/layout/HeaderBar';
 import EmployeeService from '../../services/EmployeeService';
 import {useNavigate } from 'react-router-dom';
@@ -26,11 +28,20 @@ export default function EmployeeRecords() {
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
 
-  const paymentsColumns = [{label: 'Rate Changed Rate', field: 'RateChangeDate', render: (r) => new Date(r.RateChangeDate).toLocaleDateString()}, 
-                            {label: 'Rate', field: 'Rate', render: (r) => `${r.Rate}€`}, 
-                            {label: 'Pay Frequency', field: 'PayFrequency', render: (r) => r.PayFrequency === 1 ? 'Monthly' :  'Biweekly'}];
-  const jobChangesColumns = [{label: 'Job Title', field: 'JobTitle'}, {label: 'Department', field: 'DepartmentName'}, {label: 'Start Date', field: 'StartDate', render: (r) => new Date(r.StartDate).toLocaleDateString()}, {label: 'End Date', field: 'EndDate', render: (r) => r.EndDate ? new Date(r.EndDate).toLocaleDateString() : 'Present'}];
-  const columns = tab === 0 ? paymentsColumns : jobChangesColumns;
+  const paymentsColumns = [
+    {label: 'Rate Changed Rate', field: 'RateChangeDate', render: (r) => new Date(r.RateChangeDate).toLocaleDateString()}, 
+    {label: 'Rate', field: 'Rate', render: (r) => `${r.Rate}€`}, 
+    {label: 'Pay Frequency', field: 'PayFrequency', render: (r) => r.PayFrequency === 1 ? 'Monthly' :  'Biweekly'}
+  ];
+
+  const jobChangesColumns = [
+    {label: 'Job Title', field: 'JobTitle'},
+    {label: 'Department', field: 'DepartmentName'},
+    {label: 'Start Date', field: 'StartDate', render: (r) => new Date(r.StartDate).toLocaleDateString()},
+    {label: 'End Date', field: 'EndDate', render: (r) => r.EndDate ? new Date(r.EndDate).toLocaleDateString() : 'Present'}
+  ];
+
+  const columns = tab === PAYMENTS_TAB ? paymentsColumns : jobChangesColumns;
 
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [jobChangesPage, setJobChangesPage] = useState(1);
@@ -88,23 +99,33 @@ export default function EmployeeRecords() {
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
 
-      <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
-        <Box sx={{ mb: 2 }}>
-          <StyledTabs value={tab} onChange={handleTabChange}>
-            <StyledTab label="Payments" />
-            <StyledTab label="Job Changes" />
-          </StyledTabs>
-        </Box>
+      <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
+        <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
+          
+          <Box sx={{ mb: 2 }}>
+            <StyledTabs value={tab} onChange={handleTabChange}>
+              <StyledTab 
+                label="Payments"
+                icon={<AttachMoneyIcon fontSize="small" />}
+                iconPosition="start"
+              />
+              <StyledTab 
+                label="Job Changes"
+                icon={<SwapHorizIcon fontSize="small" />}
+                iconPosition="start"
+              />
+            </StyledTabs>
+          </Box>
 
-        
-      <SectionPaper>
-        <DataTable 
-          columns={columns}
-          rows={tab === PAYMENTS_TAB ? visiblePayments : visibleJobChanges}
-        />
-      </SectionPaper>
+          <SectionPaper>
+            <DataTable 
+              columns={columns}
+              rows={tab === PAYMENTS_TAB ? visiblePayments : visibleJobChanges}
+            />
+          </SectionPaper>
 
-      </Container>
+        </Container>
+      </Box>
     </Box>
   );
 }

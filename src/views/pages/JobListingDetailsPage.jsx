@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -83,8 +83,8 @@ export default function JobListingDetailsPage() {
         setJobListing(listing);
       } catch (err) {
         console.error('Error fetching job listing:', err);
-        setError('Não foi possível carregar os detalhes da vaga');
-        showNotification('Erro ao carregar vaga', 'error');
+        setError('Failed to load job listing details');             // ← Inglês
+        showNotification({ message: 'Failed to load job listing', severity: 'error' }); // ← Inglês
       } finally {
         setLoading(false);
       }
@@ -119,7 +119,7 @@ export default function JobListingDetailsPage() {
             ← Back to Job Listings
           </Button>
 
-          <Alert severity="error">{error || 'Job listing not found'}</Alert>
+          <Alert severity="error">{error || 'Job listing not found'}</Alert> {/* ← Inglês */}
 
           <Button
             variant="contained"
@@ -150,226 +150,227 @@ export default function JobListingDetailsPage() {
   return (
     <>
       <HeaderBar />
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Stack spacing={4} sx={{ alignItems: 'center' }}>
-        <Box sx={{ alignSelf: 'flex-start', width: '100%' }}>
-          <Button
-            variant="text"
-            onClick={() => navigate('/job-listings')}
-            sx={{
-              color: '#ff9800',
-              textTransform: 'none',
-              fontWeight: 500,
-              width: 'fit-content',
-              '&:hover': { bgcolor: '#fff3e0' },
-            }}
-          >
-            ← Back to Job Listings
-          </Button>
-        </Box>
-
-        <Box sx={{ width: '100%', maxWidth: '1000px' }}>
-          <Stack spacing={4}>
-            <Box
-              sx={{
-                position: 'relative',
-                bgcolor: '#fafafa',
-                border: '1px solid #f0f0f0',
-                borderRadius: 2,
-                p: 4,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-              }}
-            >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-              color: '#999',
-              fontSize: '0.875rem',
-              bgcolor: '#fff',
-              px: 1.5,
-              py: 0.75,
-              borderRadius: 1.5,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-            }}
-          >
-            <AccessTime sx={{ fontSize: 16 }} />
-            <Typography variant="caption" sx={{ color: '#999' }}>
-              {formatDate(jobListing.postedDate)}
-            </Typography>
-          </Box>
-
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 700,
-              color: '#000',
-              mb: 2,
-              fontSize: { xs: '1.875rem', sm: '2.5rem' },
-              lineHeight: 1.2,
-              mt: 2,
-            }}
-          >
-            {jobListing.jobTitle}
-          </Typography>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
-            sx={{ color: '#666', mb: 3 }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <LocationOn sx={{ fontSize: 18, color: '#ff9800' }} />
-              <Typography variant="body1">{jobListing.location}</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <Work sx={{ fontSize: 18, color: '#ff9800' }} />
-              <Typography variant="body1">{formatJobType(jobListing.jobType)}</Typography>
-            </Box>
-            {jobListing.department && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                <Business sx={{ fontSize: 18, color: '#ff9800' }} />
-                <Typography variant="body1">{jobListing.department.name}</Typography>
-              </Box>
-            )}
-          </Stack>
-
-          <Divider sx={{ my: 2 }} />
-        </Box>
-
-        {!vagaAberta && (
-          <Alert
-            severity="warning"
-            sx={{
-              bgcolor: '#fffbf0',
-              borderColor: '#ffe4ba',
-              border: '1px solid #ffe4ba',
-              color: '#666',
-            }}
-          >
-            {statusMsg}
-          </Alert>
-        )}
-
-        <Grid container spacing={4} sx={{ justifyContent: 'center' }}>
-          <Grid item xs={12} md={6}>
-            <Paper
-              sx={{
-                p: 4,
-                bgcolor: '#fff',
-                border: '1px solid #f0f0f0',
-                borderRadius: 2,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <Description sx={{ color: '#ff9800', fontSize: 24 }} />
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: 700, color: '#000', m: 0 }}
-                >
-                  About the Position
-                </Typography>
-              </Box>
-              <Typography
-                variant="body1"
+      <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Stack spacing={4} sx={{ alignItems: 'center' }}>
+            <Box sx={{ alignSelf: 'flex-start', width: '100%' }}>
+              <Button
+                variant="text"
+                onClick={() => navigate('/job-listings')}
                 sx={{
-                  color: '#444',
-                  lineHeight: 1.8,
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
+                  color: '#000000',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  width: 'fit-content',
+                  '&:hover': { bgcolor: '#fff3e0' },
                 }}
               >
-                {jobListing.description}
-              </Typography>
-            </Paper>
-          </Grid>
+                ← Back to Job Listings
+              </Button>
+            </Box>
 
-          <Grid item xs={12} md={7}>
-            <Paper
-              ref={formRef}
-              sx={{
-                p: 4,
-                bgcolor: '#fff',
-                border: '1px solid #f0f0f0',
-                borderRadius: 2,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              }}
-            >
-              {vagaAberta ? (
-                <ApplyFormComponent jobListingId={jobListing.jobListingID} />
-              ) : (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Box sx={{ width: '100%', maxWidth: '1000px' }}>
+              <Stack spacing={4}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    bgcolor: '#fafafa',
+                    border: '1px solid #f0f0f0',
+                    borderRadius: 2,
+                    p: 4,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  }}
+                >
                   <Box
                     sx={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: '50%',
-                      bgcolor: '#f5f5f5',
+                      position: 'absolute',
+                      top: 16,
+                      right: 16,
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      mx: 'auto',
-                      mb: 2,
+                      gap: 0.5,
+                      color: '#999',
+                      fontSize: '0.875rem',
+                      bgcolor: '#fff',
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: 1.5,
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
                     }}
                   >
-                    <Send sx={{ fontSize: 28, color: '#ccc' }} />
+                    <AccessTime sx={{ fontSize: 16 }} />
+                    <Typography variant="caption" sx={{ color: '#999' }}>
+                      {formatDate(jobListing.postedDate)}
+                    </Typography>
                   </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#666', mb: 1 }}>
-                    Application Not Available
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#999' }}>
-                    {statusMsg}
-                  </Typography>
-                </Box>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
-          </Stack>
-        </Box>
-      </Stack>
 
-      {vagaAberta && (
-    
-    <Tooltip title="Submit Application" arrow placement="left">
-      <Fab
-        aria-label="apply now - scroll to application form"
-        onClick={handleScrollToForm}
-        sx={{
-          position: 'fixed',
-          bottom: 32,
-          right: 32,
-          width: 80,
-          height: 80,
-          bgcolor: '#ff9800',
-          color: '#fff',
-          borderRadius: '50%', 
-          '&:hover': {
-            bgcolor: '#e68a00',
-            boxShadow: '0 6px 20px rgba(255,152,0,0.4)',
-          },
-          boxShadow: '0 4px 12px rgba(255,152,0,0.3)',
-          p: 1,
-        }}
-      >
-        <Box display="flex" flexDirection="column" alignItems="center" lineHeight={1}>
-          <Typography
-            variant="caption"
-            sx={{ fontWeight: 700, color: '#fff', textTransform: 'uppercase', mb: 0.5 }}
-          >
-            Apply Now
-          </Typography>
-          <ArrowDownward fontSize="small" />
-        </Box>
-      </Fab>
-    </Tooltip>
-    
-      )}
-    </Container>
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: 700,
+                      color: '#000',
+                      mb: 2,
+                      fontSize: { xs: '1.875rem', sm: '2.5rem' },
+                      lineHeight: 1.2,
+                      mt: 2,
+                    }}
+                  >
+                    {jobListing.jobTitle}
+                  </Typography>
+
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={2}
+                    sx={{ color: '#666', mb: 3 }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <LocationOn sx={{ fontSize: 18, color: '#ff9800' }} />
+                      <Typography variant="body1">{jobListing.location}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <Work sx={{ fontSize: 18, color: '#ff9800' }} />
+                      <Typography variant="body1">{formatJobType(jobListing.jobType)}</Typography>
+                    </Box>
+                    {jobListing.department && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                        <Business sx={{ fontSize: 18, color: '#ff9800' }} />
+                        <Typography variant="body1">{jobListing.department.name}</Typography>
+                      </Box>
+                    )}
+                  </Stack>
+
+                  <Divider sx={{ my: 2 }} />
+                </Box>
+
+                {!vagaAberta && (
+                  <Alert
+                    severity="warning"
+                    sx={{
+                      bgcolor: '#fffbf0',
+                      borderColor: '#ffe4ba',
+                      border: '1px solid #ffe4ba',
+                      color: '#666',
+                    }}
+                  >
+                    {statusMsg}
+                  </Alert>
+                )}
+
+                <Grid container spacing={4} sx={{ justifyContent: 'center' }}>
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      sx={{
+                        p: 4,
+                        bgcolor: '#fff',
+                        border: '1px solid #f0f0f0',
+                        borderRadius: 2,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                        <Description sx={{ color: '#ff9800', fontSize: 24 }} />
+                        <Typography
+                          variant="h6"
+                          sx={{ fontWeight: 700, color: '#000', m: 0 }}
+                        >
+                          About the Position
+                        </Typography>
+                      </Box>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: '#444',
+                          lineHeight: 1.8,
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                        }}
+                      >
+                        {jobListing.description}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12} md={7}>
+                    <Paper
+                      ref={formRef}
+                      sx={{
+                        p: 4,
+                        bgcolor: '#fff',
+                        border: '1px solid #f0f0f0',
+                        borderRadius: 2,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      }}
+                    >
+                      {vagaAberta ? (
+                        <ApplyFormComponent jobListingId={jobListing.jobListingID} />
+                      ) : (
+                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                          <Box
+                            sx={{
+                              width: 60,
+                              height: 60,
+                              borderRadius: '50%',
+                              bgcolor: '#f5f5f5',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              mx: 'auto',
+                              mb: 2,
+                            }}
+                          >
+                            <Send sx={{ fontSize: 28, color: '#ccc' }} />
+                          </Box>
+                          <Typography variant="h6" sx={{ fontWeight: 600, color: '#666', mb: 1 }}>
+                            Application Not Available
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#999' }}>
+                            {statusMsg}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </Stack>
+            </Box>
+          </Stack>
+
+          {vagaAberta && (
+            <Tooltip title="Submit Application" arrow placement="left">
+              <Fab
+                aria-label="apply now - scroll to application form"
+                onClick={handleScrollToForm}
+                sx={{
+                  position: 'fixed',
+                  bottom: 32,
+                  right: 32,
+                  width: 80,
+                  height: 80,
+                  bgcolor: '#ff9800',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  '&:hover': {
+                    bgcolor: '#e68a00',
+                    boxShadow: '0 6px 20px rgba(255,152,0,0.4)',
+                  },
+                  boxShadow: '0 4px 12px rgba(255,152,0,0.3)',
+                  p: 1,
+                }}
+              >
+                <Box display="flex" flexDirection="column" alignItems="center" lineHeight={1}>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 700, color: '#fff', textTransform: 'uppercase', mb: 0.5 }}
+                  >
+                    Apply Now
+                  </Typography>
+                  <ArrowDownward fontSize="small" />
+                </Box>
+              </Fab>
+            </Tooltip>
+          )}
+        </Container>
+      </Box>
     </>
   );
 }

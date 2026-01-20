@@ -8,7 +8,7 @@ export const DeleteRowButton = ({ setConfirmIndex, setConfirmOpen, idx }) => (
                 setConfirmIndex(idx);
                 setConfirmOpen(true);
               }}
-              sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
+              sx={{ bgcolor: '#fff5e6', color: '#333', '&:hover': { bgcolor: '#ffe0b2', color: '#000' } }}
               size="small"
             >
               <DeleteOutlineIcon />
