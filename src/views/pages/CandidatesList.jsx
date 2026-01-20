@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box, Container, Typography, IconButton, Button, Stack, Divider, TextField
 } from '@mui/material';
@@ -34,6 +34,10 @@ export default function CandidatesView() {
   const [sort, setSort] = useState({ SortBy: 'BusinessEntityID', Direction: 'asc' });
   const [filterJobListing, setFilterJobListing] = useState('');
   const [jobListingMap, setJobListingMap] = useState({});
+
+  const filterJobListingID = useMemo(() => {
+    return filterJobListing ? Object.keys(jobListingMap).map(key => jobListingMap[key].toLowerCase().includes(filterJobListing.toLowerCase()) ? key : null).filter(id => id !== null) : null;
+  }, [filterJobListing, jobListingMap]);
 
   // Dialog Accept
   const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
@@ -84,9 +88,20 @@ export default function CandidatesView() {
   useEffect(() => {
     async function fetchCandidates() {
       try {
+        // Fetch job listings to enrich candidates
+        const listings = await JobListingService.getAll();
+        const jobListingMap = {};
+        const deptMap = {};
+        listings.forEach((listing) => {
+          jobListingMap[listing.jobListingID] = listing.jobTitle;
+          deptMap[listing.jobListingID] = listing.departmentName;
+        });
+        setJobListingMap(jobListingMap);
+
+        // Fetch paginated candidates
         const data = (await CandidateService.list(page, ROWS_PER_PAGE,
           [
-            { Fields: ['JobListing'], Values: filterJobListing ? [filterJobListing] : [] },
+            { Fields: ['JobListingIDStrict'], Values: filterJobListingID ? filterJobListingID : [] },
             { Fields: ['FirstName', 'MiddleName', 'LastName', 'Email'], Values: searchQuery ? [searchQuery] : [] },
           ],
           { SortBy: sort.SortBy, Direction: sort.Direction }
@@ -94,7 +109,14 @@ export default function CandidatesView() {
 
         setPageCount(Math.ceil(data.totalCount / ROWS_PER_PAGE));
         const list = data.items;
-        setRows(Array.isArray(list) ? list : []);
+        
+        // Enrich candidates with job listing titles and departments
+        const enrichedList = Array.isArray(list) ? list.map(candidate => ({
+          ...candidate,
+          jobListingTitle: jobListingMap[candidate.jobListingID] || null,
+          jobListingDepartment: deptMap[candidate.jobListingID] || null
+        })) : [];
+        setRows(enrichedList);
       } catch (error) {
         let msg;
         const data = error?.response?.data;
@@ -107,6 +129,11 @@ export default function CandidatesView() {
         UserSession.verifyAuthorize(navigate, error?.response?.status);
       }
     }
+    
+    fetchCandidates();
+  }, [filterJobListingID, navigate, page, searchQuery, showNotification, sort.Direction, sort.SortBy]);
+
+  useEffect(() => {
     async function fetchDepartments() {
       try {
         const deps = await EmployeeService.getAllDepartments();
@@ -116,35 +143,8 @@ export default function CandidatesView() {
         console.error('Error fetching departments:', err);
       }
     }
-    async function fetchJobListings() {
-      try {
-        const listings = await JobListingService.getAll();
-        console.log('Job listings*:', listings);
-        const map = {};
-        const deptMap = {};
-        listings.forEach((listing) => {
-          map[listing.jobListingID] = listing.jobTitle;
-          deptMap[listing.jobListingID] = listing.departmentName;
-        });
-        console.log('Job listing map*:', map);
-        setJobListingMap(map);
-        
-        // Enrich candidates with job listing titles and departments
-        const candidatesList = (await CandidateService.list()).data;
-        const enrichedList = Array.isArray(candidatesList) ? candidatesList.map(candidate => ({
-          ...candidate,
-          jobListingTitle: map[candidate.jobListingID] || null,
-          jobListingDepartment: deptMap[candidate.jobListingID] || null
-        })) : [];
-        setRows(enrichedList);
-      } catch (err) {
-        console.error('Error fetching job listings*:', err);
-      }
-    }
-    fetchCandidates();
-    fetchJobListings();
     fetchDepartments();
-  }, [filterJobListing, navigate, page, searchQuery, showNotification, sort.Direction, sort.SortBy]);
+  }, []);
 
   const handleJobListingClick = (jobListing, e) => {
     e.stopPropagation();
