@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Box, Container, Typography, IconButton, Button, Stack, Divider, TextField
+  Box, Container, Typography, IconButton, Button, Stack, Divider, TextField, Select, MenuItem
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import HeaderBar from '../components/layout/HeaderBar';
@@ -28,7 +28,6 @@ export default function CandidatesView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterJobListingId, setFilterJobListingId] = useState(null);
-  const [jobListingTextField, setJobListingTextField] = useState('');
   const [jobListings, setJobListings] = useState([]);
   const [rows, setRows] = useState([]);
   const [sort, setSort] = useState({ SortBy: 'BusinessEntityID', Direction: 'asc' });
@@ -155,25 +154,13 @@ export default function CandidatesView() {
   // Handle job listing filter change
   const handleJobListingFilterChange = (e) => {
     const value = e.target.value;
-    setJobListingTextField(value);
-
-    if (!value) {
-      setFilterJobListingId(null);
-      return;
-    }
-
-    const matchingListing = jobListings.find(j => 
-      j.jobTitle.toLowerCase().includes(value.toLowerCase())
-    );
-
-    setFilterJobListingId(matchingListing?.jobListingID || null);
+    setFilterJobListingId(value || null);
     setPage(1);
   };
 
   // Clear all filters
   const handleClearFilters = () => {
     setSearchQuery('');
-    setJobListingTextField('');
     setFilterJobListingId(null);
     setPage(1);
   };
@@ -419,14 +406,23 @@ export default function CandidatesView() {
                 fullWidth
                 size="small"
               />
-              <TextField
+              <Select
                 label="Job Listing"
-                placeholder="Search..."
-                value={jobListingTextField}
+                value={filterJobListingId || ''}
                 onChange={handleJobListingFilterChange}
                 fullWidth
                 size="small"
-              />
+                displayEmpty
+              >
+                <MenuItem value="">
+                  <em>All Job Listings</em>
+                </MenuItem>
+                {jobListings.map((listing) => (
+                  <MenuItem key={listing.jobListingID} value={listing.jobListingID}>
+                    {listing.jobTitle}
+                  </MenuItem>
+                ))}
+              </Select>
             </FilterBox>
           </Stack>
         </Container>
