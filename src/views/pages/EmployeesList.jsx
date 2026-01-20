@@ -10,6 +10,7 @@ import {
   Card,
   CardHeader,
   CardContent,
+  Avatar,
   colors,
   Select,
   MenuItem,
@@ -18,6 +19,7 @@ import Collapse from '@mui/material/Collapse';
 import UndoIcon from '@mui/icons-material/Undo';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import PersonIcon from '@mui/icons-material/Person';
 import HeaderBar from '../components/layout/HeaderBar';
 import EmployeeService from '../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
@@ -38,6 +40,95 @@ import NumberField from '../components/fields/NumberField';
 
 const SORTING_ASCENDING = 'asc';
 const SORTING_DESCENDING = 'desc';
+const imageCompressionCache = new Map();
+
+/**
+ * @param {string} base64
+ * @param {{maxWidth?: number, maxHeight?: number, quality?: number}} options
+ * @returns {Promise<string>}
+ */
+function compressAndResizeBase64(
+  base64,
+  { maxWidth = 80, maxHeight = 80, quality = 0.4 } = {}
+) {
+  return new Promise((resolve) => {
+    const img = new Image();
+
+    const normalized =
+      base64?.startsWith('data:')
+        ? base64
+        : base64
+        ? `data:image/jpeg;base64,${base64}`
+        : '';
+
+    img.onload = () => {
+      const { width, height } = img;
+
+      const scale = Math.min(maxWidth / width, maxHeight / height, 1);
+      const targetW = Math.round(width * scale);
+      const targetH = Math.round(height * scale);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+
+      const out = canvas.toDataURL('image/jpeg', quality);
+      resolve(out);
+    };
+
+    img.src = normalized || '';
+  });
+}
+function CompressedAvatar({ src, alt = 'avatar', size = 40 }) {
+  const [outSrc, setOutSrc] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!src) {
+      setOutSrc(null);
+      return;
+    }
+
+    const normalized = src.startsWith('data:')
+      ? src
+      : `data:image/jpeg;base64,${src}`;
+
+    const cached = imageCompressionCache.get(normalized);
+    if (cached) {
+      setOutSrc(cached);
+      return;
+    }
+
+    compressAndResizeBase64(normalized, {
+      maxWidth: size * 2,
+      maxHeight: size * 2,
+      quality: 0.3,
+    }).then((res) => {
+      if (!cancelled) {
+        imageCompressionCache.set(normalized, res);
+        setOutSrc(res);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [src, size]);
+
+  return (
+    <Avatar
+      sx={{ width: size, height: size }}
+      src={outSrc || (src?.startsWith?.('data:') ? src : src ? `data:image/jpeg;base64,${src}` : undefined)}
+      imgProps={{ loading: 'lazy' }}
+    >
+      {!src && <PersonIcon sx={{ fontSize: size * 0.6 }} />}
+    </Avatar>
+  );
+}
 
 export default function EmployeesList() {
   const navigate = useNavigate();
@@ -77,13 +168,29 @@ export default function EmployeesList() {
     }
   };
 
-  const columns = [{ label: 'Business ID', field: 'BusinessEntityID', sortable: true },
-  { label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`, sortable: true },
-  { label: 'Email', field: 'Email', sortable: true },
-  { label: 'Department', field: 'Department', sortable: true },
-  { label: 'Job Title', field: 'JobTitle', sortable: true },
-  { label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true },
-    actionColum];
+  const columns = [
+    { label: 'Business ID', field: 'BusinessEntityID', sortable: true, width: '120px' },
+    {
+      label: 'Photo',
+      field: 'ProfilePhoto',
+      sortable: false,
+      width: '90px',
+      render: (r) => {
+        return (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+            <CompressedAvatar src={r.ProfilePhoto} size={40} />
+          </div>
+        );
+      }
+    },
+
+    { label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`, sortable: true },
+    { label: 'Email', field: 'Email', sortable: true },
+    { label: 'Department', field: 'Department', sortable: true },
+    { label: 'Job Title', field: 'JobTitle', sortable: true },
+    { label: 'Hire Date', field: 'HireDate', render: (r) => FormatDate(r.HireDate), sortable: true },
+    actionColum
+  ];
 
   const [sort, setSort] = useState({ SortBy: 'BusinessEntityID', Direction: SORTING_ASCENDING });
 
@@ -200,10 +307,10 @@ export default function EmployeesList() {
           Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate,
         });
         setUsers((prev) => prev.map((u) =>
-        (u.BusinessEntityID === form.businessId ? {
-          BusinessEntityID: form.businessId, FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
-          Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate, IsActive: form.isActive
-        } : u)
+          (u.BusinessEntityID === form.businessId ? {
+            BusinessEntityID: form.businessId, FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
+            Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate, IsActive: form.isActive
+          } : u)
         ));
         notifs({ severity: 'success', message: 'Employee updated successfully!' });
       }
@@ -258,6 +365,7 @@ export default function EmployeesList() {
               Email: empData.email,
               HireDate: empData.hireDate,
               Role: empData.role,
+              ProfilePhoto: empData.profilePhoto,
               IsActive: empData.isActive
             }
             )
@@ -280,7 +388,7 @@ export default function EmployeesList() {
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
       <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
-        <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
+        <Container maxWidth="xl" sx={{ pt: 3, pb: 5 }}>
           <Stack direction="row" alignItems="center" sx={{ mb: 2 }}>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#000' }}>Employees</Typography>
             <Box sx={{ ml: 'auto' }}>
@@ -375,6 +483,7 @@ export default function EmployeesList() {
                       }}
                       error={null}
                       sx={{ flex: 1 }}
+                      value={filterDepartment}
                     />
                     <TextField
                       label="Job Title"
@@ -386,7 +495,7 @@ export default function EmployeesList() {
                       size="small"
                       sx={{ flex: 1 }}
                     />
-                    <Select 
+                    <Select
                       value={filterIsActive === "" || filterIsActive === null || filterIsActive === undefined ? "default" : filterIsActive}
                       onChange={(e) => {
                         setFilterIsActive(e.target.value === "default" ? "" : e.target.value);
@@ -409,76 +518,76 @@ export default function EmployeesList() {
             </Collapse>
           </Card>
 
-        <SectionPaper>
-          <DataTable 
-            columns={columns} 
-            rows={Users} 
-            getRowId={(r) => r.BusinessEntityID} 
-            pageSize={ROWS_PER_PAGE}
-            pageCount={pageCount}
-            onPageChange={setPage}
-            onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort);}}
-            standoutRow={(r) => { if (!r.IsActive) return colors.red.A100; }}
-          />
-        </SectionPaper>
-      </Container>
+          <SectionPaper>
+            <DataTable
+              columns={columns}
+              rows={Users}
+              getRowId={(r) => r.BusinessEntityID}
+              pageSize={ROWS_PER_PAGE}
+              pageCount={pageCount}
+              onPageChange={setPage}
+              onSortChange={(sort) => { setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort); }}
+              standoutRow={(r) => { if (!r.IsActive) return colors.red.A100; }}
+            />
+          </SectionPaper>
+        </Container>
 
-      <FormPopup
-        open={dialogOpen}
-        title={mode === 'add' ? 'Add User' : 'Edit User'}
-        fields={[
-          { type: 'text',     label: 'First Name', value: form.firstName,  onChange: setField('firstName'),  required: true, error: !!errors.firstName,  helperText: errors.firstName },
-          { type: 'text',     label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
-          { type: 'text',     label: 'Last Name',  value: form.lastName,   onChange: setField('lastName'),   required: true, error: !!errors.lastName,   helperText: errors.lastName },
-          { type: 'email',    label: 'Email',      value: form.email,      onChange: setField('email'),      required: true, error: !!errors.email,      helperText: errors.email },
-          { type: 'custom', render: () => <DepartmentSelectField label="Department" value={form.DepartmentName} onChange={setField('department')} error={errors.DepartmentName} fullWidth={true} /> },
-          { type: 'text',     label: 'Job Title',  value: form.jobTitle,   onChange: setField('jobTitle'),   required: true, error: !!errors.jobTitle,   helperText: errors.jobTitle },
-          { type: 'date',     label: 'Hire Date',  value: form.hireDate,   onChange: setField('hireDate'),   required: true, error: !!errors.hireDate,   helperText: errors.hireDate },
-          ...(mode === 'add'
-            ? [{ type: 'password', label: 'Password', value: form.password, onChange: setField('password'), required: true, error: !!errors.password, helperText: errors.password }]
-            : [])
-        ]}
-        onCancel={handleClose}
-        onSubmit={handleSave}
-        submitLabel="Save"
-        submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
-      />
+        <FormPopup
+          open={dialogOpen}
+          title={mode === 'add' ? 'Add User' : 'Edit User'}
+          fields={[
+            { type: 'text', label: 'First Name', value: form.firstName, onChange: setField('firstName'), required: true, error: !!errors.firstName, helperText: errors.firstName },
+            { type: 'text', label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
+            { type: 'text', label: 'Last Name', value: form.lastName, onChange: setField('lastName'), required: true, error: !!errors.lastName, helperText: errors.lastName },
+            { type: 'email', label: 'Email', value: form.email, onChange: setField('email'), required: true, error: !!errors.email, helperText: errors.email },
+            { type: 'custom', render: () => <DepartmentSelectField label="Department" value={form.DepartmentName} onChange={setField('department')} error={errors.DepartmentName} fullWidth={true} /> },
+            { type: 'text', label: 'Job Title', value: form.jobTitle, onChange: setField('jobTitle'), required: true, error: !!errors.jobTitle, helperText: errors.jobTitle },
+            { type: 'date', label: 'Hire Date', value: form.hireDate, onChange: setField('hireDate'), required: true, error: !!errors.hireDate, helperText: errors.hireDate },
+            ...(mode === 'add'
+              ? [{ type: 'password', label: 'Password', value: form.password, onChange: setField('password'), required: true, error: !!errors.password, helperText: errors.password }]
+              : [])
+          ]}
+          onCancel={handleClose}
+          onSubmit={handleSave}
+          submitLabel="Save"
+          submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
+        />
 
-      <ConfirmPopup
-        open={confirmOpen}
-        title="Remove record"
-        content="Do you really want to delete this employee? This action is irreversible."
-        onCancel={() => { setConfirmOpen(false); setConfirmId(null); }}
-        onConfirm={async () => { if (!confirmId) return; await handleDelete(confirmId); setConfirmOpen(false); setConfirmId(null); }}
-        confirmLabel="Delete"
-        confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
-      />
+        <ConfirmPopup
+          open={confirmOpen}
+          title="Remove record"
+          content="Do you really want to delete this employee? This action is irreversible."
+          onCancel={() => { setConfirmOpen(false); setConfirmId(null); }}
+          onConfirm={async () => { if (!confirmId) return; await handleDelete(confirmId); setConfirmOpen(false); setConfirmId(null); }}
+          confirmLabel="Delete"
+          confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
+        />
 
-      <ConfirmPopup
-        open={openConfirmUndo}
-        title="ReActivate Employee"
-        content="Do you want to reactivate this employee?"
-        onCancel={() => { setOpenConfirmUndo(false); setUndoId(null); }}
-        onConfirm={async () => {
-          if (!undoId) return;
-          try {
-            await EmployeeService.undoDeleteEmployee(undoId);
-            setUsers((prev) => prev.map((u) =>
-              (u.BusinessEntityID === undoId ? { ...u, IsActive: true } : u)
-            ));
-            notifs({ severity: 'success', message: 'Employee reactivated successfully!' });
-          } catch (error) {
-            UserSession.verifyAuthorize(navigate, error.status);
-            notifs({ severity: 'error', message: ErrorHandler(error) ?? 'Error reactivating employee.' });
-          }
-          setOpenConfirmUndo(false);
-          setUndoId(null);
-        }}
-        confirmLabel="ReActivate"
-        confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
-      />
+        <ConfirmPopup
+          open={openConfirmUndo}
+          title="ReActivate Employee"
+          content="Do you want to reactivate this employee?"
+          onCancel={() => { setOpenConfirmUndo(false); setUndoId(null); }}
+          onConfirm={async () => {
+            if (!undoId) return;
+            try {
+              await EmployeeService.undoDeleteEmployee(undoId);
+              setUsers((prev) => prev.map((u) =>
+                (u.BusinessEntityID === undoId ? { ...u, IsActive: true } : u)
+              ));
+              notifs({ severity: 'success', message: 'Employee reactivated successfully!' });
+            } catch (error) {
+              UserSession.verifyAuthorize(navigate, error.status);
+              notifs({ severity: 'error', message: ErrorHandler(error) ?? 'Error reactivating employee.' });
+            }
+            setOpenConfirmUndo(false);
+            setUndoId(null);
+          }}
+          confirmLabel="ReActivate"
+          confirmButtonSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
+        />
 
+      </Box>
     </Box>
-  </Box>
   );
 }

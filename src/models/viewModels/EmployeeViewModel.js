@@ -1,7 +1,7 @@
 class EmployeeViewModel 
 {
     constructor({
-        BusinessEntityID, FirstName, MiddleName, LastName, JobTitle, Department, Email, PassWord, HireDate, Role, IsActive }) {
+        BusinessEntityID, FirstName, MiddleName, LastName, JobTitle, Department, Email, PassWord, HireDate, Role, IsActive, ProfilePhoto }) {
         this.BusinessEntityID = BusinessEntityID;
         this.FirstName = FirstName;
         this.MiddleName = MiddleName;
@@ -12,7 +12,8 @@ class EmployeeViewModel
         this.PassWord = PassWord;
         this.HireDate = HireDate;
         this.Role = Role;
-        this.IsActive = IsActive
+        this.IsActive = IsActive;
+        this.ProfilePhoto = ProfilePhoto;
     }
 }
 

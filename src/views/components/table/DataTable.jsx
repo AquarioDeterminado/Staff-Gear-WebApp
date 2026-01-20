@@ -90,7 +90,7 @@ export default function DataTable({
                   sx={{
                     cursor: onRowClick ? 'pointer' : 'default',
                     transition: 'all 0.2s ease',
-                    backgroundColor: standoutRow(row) ? standoutRow(row) : '#fff5e6',
+                    backgroundColor: row.standoutRow ? row.standoutRow : '#fff5e6',
                     borderBottom: '1px solid #ffe0b2',
                     ...rowSx,
                   }}
