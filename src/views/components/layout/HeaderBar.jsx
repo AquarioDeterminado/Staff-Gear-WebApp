@@ -21,6 +21,7 @@ import {
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
+import DeleteIcon from '@mui/icons-material/Delete';
 import NoticationService from '../../../services/NotificationService';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../../../services/AuthService';
@@ -89,19 +90,6 @@ export default function HeaderBar() {
       setSelectedNotifications(new Set());
     } catch (error) {
       console.error('Error deleting selected notifications:', error);
-    }
-  }
-
-  function handleDeleteAll() {
-    if (notifications.length === 0) return;
-
-    const allNotificationIds = notifications.map((n) => n.NotificationID);
-    try {
-      NoticationService.deleteMultipleNotifications(allNotificationIds);
-      setNotifications([]);
-      setSelectedNotifications(new Set());
-    } catch (error) {
-      console.error('Error deleting all notifications:', error);
     }
   }
 
@@ -292,45 +280,52 @@ export default function HeaderBar() {
         >
           {notifications.length > 0
             ? [
-                <MenuItem key="header" sx={{ flexDirection: 'column', alignItems: 'flex-start', p: 1 }}>
-                  <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MenuItem 
+                  key="header" 
+                  sx={{ 
+                    flexDirection: 'column', 
+                    alignItems: 'stretch', 
+                    p: 1.5,
+                    bgcolor: '#fafafa',
+                    '&:hover': { bgcolor: '#f5f5f5' }
+                  }}
+                >
+                  <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
                       <Checkbox
                         checked={selectedNotifications.size === notifications.length && notifications.length > 0}
                         indeterminate={selectedNotifications.size > 0 && selectedNotifications.size < notifications.length}
                         onChange={handleSelectAll}
                         size="small"
                       />
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                        Selecionar Todas ({selectedNotifications.size}/{notifications.length})
-                      </Typography>
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          Select All
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#999' }}>
+                          {selectedNotifications.size} of {notifications.length}
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
 
-                  {selectedNotifications.size > 0 && (
-                    <Box sx={{ width: '100%', display: 'flex', gap: 1, mt: 1 }}>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="error"
-                        onClick={handleDeleteSelected}
-                        sx={{ flex: 1, textTransform: 'none', fontSize: '0.8rem' }}
-                      >
-                        Eliminar ({selectedNotifications.size})
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        onClick={handleDeleteAll}
-                        sx={{ flex: 1, textTransform: 'none', fontSize: '0.8rem' }}
-                      >
-                        Eliminar Todas
-                      </Button>
-                    </Box>
-                  )}
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={handleDeleteSelected}
+                      disabled={selectedNotifications.size === 0}
+                      sx={{ 
+                        textTransform: 'none', 
+                        fontWeight: 600,
+                        opacity: selectedNotifications.size === 0 ? 0.5 : 1,
+                      }}
+                    >
+                      Delete ({selectedNotifications.size})
+                    </Button>
+                  </Box>
                 </MenuItem>,
-                <Divider key="divider" />,
+                <Divider key="divider" sx={{ my: 0 }} />,
                 ...notifications.map((n) => (
                   <MenuItem
                     key={n.NotificationID}
