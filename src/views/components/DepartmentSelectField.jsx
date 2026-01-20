@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Select, MenuItem} from '@mui/material';
+import {FormControl, Select, MenuItem, FormHelperText} from '@mui/material';
 import EmployeeService from '../../services/EmployeeService';
 
 export const DepartmentSelectField = ({value, onChange, error, fullWidth = false, autoWidth = false, sx = {}}) => {
@@ -14,25 +14,24 @@ export const DepartmentSelectField = ({value, onChange, error, fullWidth = false
   }, []);
 
   return (
-    <Select
-      value={value || ""}
-      onChange={(e) => { 
-        onChange(e.target.value);
-      }}
-      size='small'
-      label="Department"  
-      error={!!error}
-      helperText={error}
-      fullWidth={fullWidth}
-      autoWidth={autoWidth}
-      sx={sx}
-    >
-      <MenuItem value="">All Departments</MenuItem>
-      {departments.map((d) => (
-        <MenuItem key={d} value={d}>
-          {d}
-        </MenuItem>
-      ))}
-    </Select>
+    <FormControl fullWidth={fullWidth} error={!!error} sx={sx}>
+      <Select
+        value={value || ""}
+        onChange={(e) => { 
+          onChange(e.target.value);
+        }}
+        size='small'
+        label="Department"
+        autoWidth={autoWidth}
+      >
+        <MenuItem value="">All Departments</MenuItem>
+        {departments.map((d) => (
+          <MenuItem key={d} value={d}>
+            {d}
+          </MenuItem>
+        ))}
+      </Select>
+      {error && <FormHelperText>{error}</FormHelperText>}
+    </FormControl>
   );
 } 

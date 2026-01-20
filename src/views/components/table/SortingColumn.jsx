@@ -37,6 +37,7 @@ const SortingColumn = ({column, totalColumns, idx, onClick, active, onSortChange
               width: column.width,
               color: '#333',
               borderRight: idx < totalColumns - 1 ? '1px solid #ffe0b2' : 'none',
+              borderBottom: '2px solid #ffe0b2',
               backgroundColor: '#fff5e6',
             }}
             onClick={() => onClickHandler(column.field)}  

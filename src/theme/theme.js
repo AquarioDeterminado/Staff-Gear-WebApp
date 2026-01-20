@@ -106,11 +106,8 @@ export const theme = createTheme({
     info: { main: colors.info },
     divider: colors.orange[100],
   },
-  // Shared color variables
-  colors,
   shadows: shadows,
   transitions: transitions,
-  spacing: spacing,
   borderRadius: borderRadius,
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',

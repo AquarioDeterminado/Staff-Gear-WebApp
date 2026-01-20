@@ -68,7 +68,8 @@ const EmployeeService = {
       JobTitle: data.jobTitle,
       Department: data.department,
       Email: data.email,
-      Role: data.role
+      Role: data.role,
+      ProfilePhoto: data.profilePhoto
     });
     return employee;
   },
@@ -159,6 +160,25 @@ const EmployeeService = {
     } else {
       console.log('Departments retrieved successfully!');
     }
+    return response.data;
+  },
+
+  uploadProfilePhoto: async (id, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post(`${EMPLOYEE_PATH}/${id}/profile-photo`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    if (!response || response.status !== 200) {
+      throw new Error('Error uploading profile photo! Error code: ' + response?.status);
+    } else {
+      console.log('Profile photo uploaded with success!');
+    }
+
     return response.data;
   }
 };

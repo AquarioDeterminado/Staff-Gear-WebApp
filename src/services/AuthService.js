@@ -7,6 +7,8 @@ const AUTH_PATH = import.meta.env.VITE_API_URL + import.meta.env.VITE_API_AUTH_L
 
 const AuthService = {
     login: async (credentials) => {
+        localStorage.removeItem('profilePhotoUrl');
+        
         var response = await api.post(AUTH_PATH, credentials);
 
         if (!response || response.status !== 200) {
@@ -31,6 +33,7 @@ const AuthService = {
         localStorage.removeItem('access_token');
         localStorage.removeItem('BusinessID');
         localStorage.removeItem('user_role');
+        localStorage.removeItem('profilePhotoUrl');
         console.log('Logout made successully!');
     }
 }

@@ -10,6 +10,10 @@ import {
   CircularProgress,
   Grid,
   Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 
 import EditIcon from '@mui/icons-material/Edit';
@@ -18,6 +22,7 @@ import WorkIcon from '@mui/icons-material/Work';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import PersonIcon from '@mui/icons-material/Person';
 import KeyIcon from '@mui/icons-material/Key';
+import AddIcon from '@mui/icons-material/Add';
 import HeaderBar from '../components/layout/HeaderBar';
 import { useNavigate } from 'react-router-dom';
 import EmployeeService from '../../services/EmployeeService';
@@ -56,7 +61,41 @@ export default function EmployeeProfile() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmittingPwd, setIsSubmittingPwd] = useState(false);
+  
+  const [isUploadPhotoDialogOpen, setIsUploadPhotoDialogOpen] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(() => {
+    // Initialize from localStorage
+    return localStorage.getItem('profilePhotoUrl') || null;
+  });
+  const [tempProfilePhotoUrl, setTempProfilePhotoUrl] = useState(null);
+  const [selectedPhotoFile, setSelectedPhotoFile] = useState(null);
+  
   const notif = useNotification();
+
+  // Listen for profile photo updates from HeaderBar or other components
+  useEffect(() => {
+    const handleProfilePhotoUpdated = (event) => {
+      if (event.detail?.profilePhoto) {
+        setProfilePhotoUrl(event.detail.profilePhoto);
+      }
+    };
+    
+    window.addEventListener('profilePhotoUpdated', handleProfilePhotoUpdated);
+    return () => window.removeEventListener('profilePhotoUpdated', handleProfilePhotoUpdated);
+  }, []);
+
+  // Listen for storage changes to sync profile photo updates from other tabs
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'profilePhotoUrl' && e.newValue) {
+        setProfilePhotoUrl(e.newValue);
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   useEffect(() => {
     if (!BusinessID) {
@@ -68,6 +107,12 @@ export default function EmployeeProfile() {
       try {
         const info = await EmployeeService.getEmployee(BusinessID);
         setProfileInfo(info);
+        
+        // Set profile photo from employee data
+        if (info?.ProfilePhoto) {
+          setProfilePhotoUrl(info.ProfilePhoto);
+          localStorage.setItem('profilePhotoUrl', info.ProfilePhoto);
+        }
 
         setFormData({
           FirstName: info?.FirstName || '',
@@ -115,6 +160,8 @@ export default function EmployeeProfile() {
       Role: profileInfo?.Role || ''
     });
     setUpdateProfileError({"FirstName": "", "LastName": "", "Email": ""});
+    setTempProfilePhotoUrl(null);
+    setSelectedPhotoFile(null);
     setIsEditMode(false);
   };
 
@@ -158,6 +205,19 @@ export default function EmployeeProfile() {
       await EmployeeService.updateEmployee(BusinessID, payload);
 
       setProfileInfo((prev) => ({ ...(prev || {}), ...payload }));
+      
+      if (tempProfilePhotoUrl) {
+        setProfilePhotoUrl(tempProfilePhotoUrl);
+        setProfileInfo(prev => ({ ...prev, ProfilePhoto: tempProfilePhotoUrl }));
+        localStorage.setItem('profilePhotoUrl', tempProfilePhotoUrl);
+        
+        window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { 
+          detail: { profilePhoto: tempProfilePhotoUrl } 
+        }));
+        
+        setTempProfilePhotoUrl(null);
+      }
+      
       setIsEditMode(false);
       notif({ severity: 'success', message: 'Profile updated with success!' });
     } catch (error) {
@@ -174,6 +234,54 @@ export default function EmployeeProfile() {
       }
     } finally {
       setIsSavingProfile(false);
+    }
+  };
+
+  // Photo Upload
+  const openUploadPhotoDialog = () => setIsUploadPhotoDialogOpen(true);
+  const closeUploadPhotoDialog = () => {
+    setIsUploadPhotoDialogOpen(false);
+    setSelectedPhotoFile(null);
+  };
+
+  const handlePhotoFileSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedPhotoFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setTempProfilePhotoUrl(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadPhoto = async () => {
+    if (!selectedPhotoFile) {
+      notif({ severity: 'warning', message: 'Please select a photo to upload.' });
+      return;
+    }
+
+    try {
+      setIsUploadingPhoto(true);
+      const response = await EmployeeService.uploadProfilePhoto(BusinessID, selectedPhotoFile);
+      
+      if (response?.profilePhoto) {
+        const photoUrl = response.profilePhoto;
+        
+        // Store the new photo URL temporarily (not persisted yet)
+        setTempProfilePhotoUrl(photoUrl);
+        
+        notif({ severity: 'success', message: 'Photo selected. Click Save Changes to confirm.' });
+      }
+      
+      closeUploadPhotoDialog();
+    } catch (error) {
+      const msg = ErrorHandler(error);
+      notif({ severity: 'error', message: msg || 'Error uploading profile photo.' });
+      setTempProfilePhotoUrl(null);
+    } finally {
+      setIsUploadingPhoto(false);
     }
   };
 
@@ -242,9 +350,39 @@ export default function EmployeeProfile() {
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ alignItems: 'flex-start' }}>
               {/* Left: Avatar */}
               <Stack alignItems="center" sx={{ minWidth: 200 }}>
-                <Avatar sx={{ width: 120, height: 120 }}>
-                  <PersonIcon sx={{ fontSize: 58 }} />
-                </Avatar>
+                <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                  <Avatar 
+                    sx={{ width: 180, height: 180 }}
+                    src={tempProfilePhotoUrl || profilePhotoUrl}
+                  >
+                    {!tempProfilePhotoUrl && !profilePhotoUrl && <PersonIcon sx={{ fontSize: 80 }} />}
+                  </Avatar>
+                  {isEditMode && (
+                    <Tooltip title="Upload Profile Photo">
+                      <Button
+                        onClick={openUploadPhotoDialog}
+                        sx={{
+                          position: 'absolute',
+                          bottom: 0,
+                          right: 0,
+                          minWidth: 'auto',
+                          width: 48,
+                          height: 48,
+                          borderRadius: '50%',
+                          bgcolor: '#000',
+                          color: '#fff',
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          '&:hover': { bgcolor: '#222' }
+                        }}
+                      >
+                        <AddIcon sx={{ fontSize: 24 }} />
+                      </Button>
+                    </Tooltip>
+                  )}
+                </Box>
               </Stack>
 
               {/* Right: Form Fields */}
@@ -420,6 +558,59 @@ export default function EmployeeProfile() {
         submitDisabled={isSubmittingPwd}
         submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
       />
+
+      <Dialog open={isUploadPhotoDialogOpen} onClose={closeUploadPhotoDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Upload Profile Photo</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Stack spacing={2}>
+            <Typography variant="body2" color="textSecondary">
+              Select a photo to upload (JPEG, PNG, GIF, WebP - Max 5MB)
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={() => document.getElementById('photo-input').click()}
+              sx={{ textTransform: 'none', fontWeight: 600 }}
+            >
+              Select Photo
+            </Button>
+            <input
+              id="photo-input"
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoFileSelect}
+              style={{ display: 'none' }}
+            />
+            {selectedPhotoFile && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="caption" color="textSecondary">
+                  Selected: {selectedPhotoFile.name} ({(selectedPhotoFile.size / 1024).toFixed(2)} KB)
+                </Typography>
+              </Box>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            variant="text"
+            onClick={() => {
+              cancelEdit();
+              closeUploadPhotoDialog();
+            }}
+            sx={{ width: 260 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUploadPhoto}
+            variant="contained"
+            disabled={isUploadingPhoto || !selectedPhotoFile}
+            startIcon={isUploadingPhoto ? <CircularProgress size={18} color="inherit" /> : undefined}
+            sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
+          >
+            {isUploadingPhoto ? 'Uploading...' : 'Upload'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

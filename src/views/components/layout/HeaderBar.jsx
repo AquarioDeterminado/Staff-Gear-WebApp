@@ -12,7 +12,8 @@ import {
   MenuItem,
   ListItemText,
   Checkbox,
-  Divider
+  Divider,
+  CircularProgress
 } from '@mui/material';
 
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -20,6 +21,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
 import DeleteIcon from '@mui/icons-material/Delete';
 import NoticationService from '../../../services/NotificationService';
+import EmployeeService from '../../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../../../services/AuthService';
 import SideMenu from './SideMenu';
@@ -33,7 +35,63 @@ export default function HeaderBar() {
   const [notifications, setNotifications] = useState([]);
   const [anchorNotif, setAnchorNotif] = useState(null);
   const [selectedNotifications, setSelectedNotifications] = useState(new Set());
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
+  const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
   const notifOpen = Boolean(anchorNotif);
+
+  useEffect(() => {
+    // Load profile photo from localStorage
+    const savedPhoto = localStorage.getItem('profilePhotoUrl');
+    if (savedPhoto) {
+      setProfilePhotoUrl(savedPhoto);
+    }
+  }, []);
+
+  // Load profile photo if authenticated but not yet loaded
+  useEffect(() => {
+    async function loadProfilePhoto() {
+      if (isAuthenticated && BusinessId && !profilePhotoUrl) {
+        try {
+          setIsLoadingPhoto(true);
+          const employeeData = await EmployeeService.getEmployee(BusinessId);
+          if (employeeData?.ProfilePhoto) {
+            setProfilePhotoUrl(employeeData.ProfilePhoto);
+            localStorage.setItem('profilePhotoUrl', employeeData.ProfilePhoto);
+          }
+        } catch (error) {
+          console.error('Error loading profile photo:', error);
+        } finally {
+          setIsLoadingPhoto(false);
+        }
+      }
+    }
+
+    loadProfilePhoto();
+  }, [isAuthenticated, BusinessId, profilePhotoUrl]);
+
+  // Listen for profile photo updates
+  useEffect(() => {
+    const handleProfilePhotoUpdated = (event) => {
+      if (event.detail?.profilePhoto) {
+        setProfilePhotoUrl(event.detail.profilePhoto);
+      }
+    };
+    
+    window.addEventListener('profilePhotoUpdated', handleProfilePhotoUpdated);
+    return () => window.removeEventListener('profilePhotoUpdated', handleProfilePhotoUpdated);
+  }, []);
+
+  // Listen for storage changes to sync profile photo updates from other tabs
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'profilePhotoUrl' && e.newValue) {
+        setProfilePhotoUrl(e.newValue);
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   useEffect(() => {
     async function fetchNotifications() {
@@ -197,10 +255,21 @@ export default function HeaderBar() {
                   Log out
                 </Button>
 
-                <IconButton onClick={() => navigate('/profile')} aria-label="profile">
-                  <Avatar sx={{ bgcolor: '#607d8b' }}>
-                    <PersonIcon />
-                  </Avatar>
+                <IconButton onClick={() => navigate('/profile')} aria-label="profile" disabled={isLoadingPhoto}>
+                  <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Avatar sx={{ bgcolor: '#607d8b' }} src={profilePhotoUrl}>
+                      {!profilePhotoUrl && !isLoadingPhoto && <PersonIcon />}
+                    </Avatar>
+                    {isLoadingPhoto && (
+                      <CircularProgress 
+                        size={40} 
+                        sx={{ 
+                          position: 'absolute',
+                          color: '#ff9800'
+                        }} 
+                      />
+                    )}
+                  </Box>
                 </IconButton>
               </>
             ) : (

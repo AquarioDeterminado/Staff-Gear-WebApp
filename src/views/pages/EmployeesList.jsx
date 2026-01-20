@@ -10,10 +10,12 @@ import {
   Card,
   CardHeader,
   CardContent,
+  Avatar,
 } from '@mui/material';
 import Collapse from '@mui/material/Collapse';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import PersonIcon from '@mui/icons-material/Person';
 import HeaderBar from '../components/layout/HeaderBar';
 import EmployeeService from '../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
@@ -54,7 +56,22 @@ export default function EmployeesList() {
   };
 
   const columns = [
-    {label: 'Business ID', field: 'BusinessEntityID', sortable: true}, 
+    {label: 'Business ID', field: 'BusinessEntityID', sortable: true, width: '120px'}, 
+    {label: 'Photo', field: 'ProfilePhoto', sortable: false, width: '90px', render: (r) => {
+      const photoSrc = r.ProfilePhoto && !r.ProfilePhoto.startsWith('data:') 
+        ? `data:image/jpeg;base64,${r.ProfilePhoto}`
+        : r.ProfilePhoto;
+      return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+          <Avatar 
+            sx={{ width: 40, height: 40 }}
+            src={photoSrc}
+          >
+            {!r.ProfilePhoto && <PersonIcon sx={{ fontSize: 24 }} />}
+          </Avatar>
+        </div>
+      );
+    }}, 
     {label: 'Name', field: 'FirstName', render: (r) => `${r.FirstName} ${r.MiddleName ? r.MiddleName + ' ' : ''}${r.LastName}`, sortable: true}, 
     {label: 'Email', field: 'Email', sortable: true}, 
     {label: 'Department', field: 'Department', sortable: true}, 
@@ -224,7 +241,8 @@ export default function EmployeesList() {
               Department: empData.department,
               Email: empData.email,
               HireDate: empData.hireDate,
-              Role: empData.role
+              Role: empData.role,
+              ProfilePhoto: empData.profilePhoto
             }
           )
         );
@@ -246,7 +264,7 @@ export default function EmployeesList() {
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
       <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
-        <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
+        <Container maxWidth="xl" sx={{ pt: 3, pb: 5 }}>
           <Stack direction="row" alignItems="center" sx={{ mb: 2 }}>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#000' }}>Employees</Typography>
             <Box sx={{ ml: 'auto' }}>
