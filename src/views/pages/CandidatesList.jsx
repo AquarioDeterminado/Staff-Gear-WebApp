@@ -231,7 +231,8 @@ export default function CandidatesView() {
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
 
-      <DetailsDrawer open={drawerOpen} onClose={closeDrawer} title="Candidate Details">
+      <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
+        <DetailsDrawer open={drawerOpen} onClose={closeDrawer} title="Candidate Details">
         {selectedCandidate && (
           <Stack spacing={3}>
             <Box>
@@ -283,7 +284,6 @@ export default function CandidatesView() {
               getRowId={(r) => r.jobCandidateId}
               onRowClick={(r) => openDrawer(r)}
               tableSx={{ minWidth: 1000, tableLayout: 'auto' }}
-              headSx={{ '& th': { backgroundColor: '#ffe0b2' } }}
               pageSize={ROWS_PER_PAGE}
               pageCount={pageCount}
               onPageChange={(e, value) => setPage(value)}
@@ -334,6 +334,7 @@ export default function CandidatesView() {
         onClose={closeRejectDialog}
         onReject={handleReject}
       />
+      </Box>
     </Box>
   );
 }

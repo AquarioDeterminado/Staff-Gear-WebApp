@@ -1,7 +1,4 @@
-/*
-Renderiza uma tabela dinâmica
-*/
-import { Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
+import { Table, TableHead, TableRow, TableCell, TableBody, colors } from '@mui/material';
 import SortingColumn from './SortingColumn';
 import Paginator from './Paginator';
 import {useState} from 'react';
@@ -17,7 +14,7 @@ export default function DataTable({
   headSx,
   bodySx,
   rowSx,
-  standoutRow = (row) => false,
+  standoutRow = () => false,
   pageSize = 10,
   pageCount = 1,
   page = 1,
@@ -26,22 +23,34 @@ export default function DataTable({
   onSortChange,
 }) {  
   const [active, setActive] = useState(null);
-  console.log("rows:", rows);
   const currentPageRows = rows;
   
   return (
     <>
-      <Table size={size} sx={{ minWidth: 720, tableLayout: 'fixed', ...tableSx }}>
-        <TableHead sx={headSx}>
-          <TableRow sx={{ '& th': { fontWeight: 700 } }}>
-            {columns.map((col, i) => (
+      <Table
+        size={size}
+        sx={{
+          minWidth: 720,
+          tableLayout: 'fixed',
+          overflow: 'hidden',
+          backgroundColor: '#fff5e6',
+          border: '2px solid #ffe0b2',
+          ...tableSx,
+        }}
+      >
+        <TableHead sx={{
+          backgroundColor: '#fff5e6',
+          ...headSx
+        }}>
+          <TableRow sx={{ '& th': { fontWeight: 700, backgroundColor: '#fff5e6', borderBottom: '2px solid #ffe0b2' } }}>
+            {columns.map((col, i) =>
               col.sortable ? (
                 <SortingColumn
                   key={i ?? col.id}
                   idx={i ?? col.id}
                   column={col}
                   totalColumns={columns.length}
-                  active={active === (i ?? col.id) ? true : false}
+                  active={active === (i ?? col.id)}
                   onClick={() => setActive(i ?? col.id)}
                   onSortChange={onSortChange}
                 />
@@ -52,20 +61,22 @@ export default function DataTable({
                   sx={{
                     width: col.width,
                     color: '#333',
-                    borderRight: i < columns.length - 1 ? '1px solid rgba(0,0,0,0.2)' : 'none',
+                    borderRight: i < columns.length - 1 ? '1px solid #ffe0b2' : 'none',
+                    borderBottom: '2px solid #ffe0b2',
+                    backgroundColor: '#fff5e6',
                   }}
                 >
                   {col.label}
                 </TableCell>
               )
-            ))}
+            )}
           </TableRow>
         </TableHead>
 
-        <TableBody sx={bodySx}>
+        <TableBody sx={{ backgroundColor: '#fff5e6', ...bodySx }}>
           {currentPageRows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={columns.length} align="center" sx={{ py: 3, color: '#666' }}>
+              <TableCell colSpan={columns.length} align="center" sx={{ py: 3, color: '#666', backgroundColor: '#fff5e6' }}>
                 {emptyMessage}
               </TableCell>
             </TableRow>
@@ -77,14 +88,22 @@ export default function DataTable({
                   key={id}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                   sx={{
-                    bgcolor: standoutRow(row) ? standoutRow(row) : 'inherit',
                     cursor: onRowClick ? 'pointer' : 'default',
-                    '&:hover': onRowClick ? { bgcolor: '#f5f5f5' } : undefined,
+                    transition: 'all 0.2s ease',
+                    backgroundColor: standoutRow(row) ? standoutRow(row) : '#fff5e6',
+                    borderBottom: '1px solid #ffe0b2',
                     ...rowSx,
                   }}
                 >
-                  {columns.map((col) => (
-                    <TableCell key={(col.id ?? col.label) + String(id)} align={col.align ?? 'left'}>
+                  {columns.map((col, colIdx) => (
+                    <TableCell 
+                      key={(col.id ?? col.label) + String(id)} 
+                      align={col.align ?? 'left'}
+                      sx={{
+                        backgroundColor: standoutRow(row) ? standoutRow(row) : '#fff5e6',
+                        borderRight: colIdx < columns.length - 1 ? '1px solid #ffe0b2' : 'none',
+                      }}
+                    >
                       {typeof col.render === 'function' ? col.render(row, idx) : row[col.field]}
                     </TableCell>
                   ))}
@@ -94,6 +113,7 @@ export default function DataTable({
           )}
         </TableBody>
       </Table>
+
       <Paginator
         count={pageCount ?? Math.ceil(rows.length / pageSize)}
         page={page}

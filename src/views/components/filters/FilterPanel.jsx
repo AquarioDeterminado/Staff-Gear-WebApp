@@ -17,8 +17,8 @@ export default function FilterPanel({
     <Card
       sx={{
         mb: 2,
-        bgcolor: '#f7f7f7ff',
-        border: '2px solid #fff7cbff',
+        bgcolor: '#fff5e6',
+        border: '2px solid #ffe0b2',
         ...(sx || {}),
       }}
     >

@@ -6,7 +6,7 @@ export const EditRowButton = ({ openEdit, idx }) => (
   <IconButton
               aria-label="edit"
               onClick={() => openEdit(idx)}
-              sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
+              sx={{ bgcolor: '#fff5e6', color: '#333', '&:hover': { bgcolor: '#ffe0b2', color: '#000' } }}
               size="small"
             >
               <EditOutlinedIcon />

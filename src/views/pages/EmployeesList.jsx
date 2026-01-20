@@ -3,36 +3,21 @@ import {
   Box,
   Container,
   Typography,
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   IconButton,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Stack,
-  Divider,
-  Select,
-  MenuItem,
   Card,
   CardHeader,
   CardContent,
   colors,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import Collapse from '@mui/material/Collapse';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import UndoIcon from '@mui/icons-material/Undo';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import HeaderBar from '../components/layout/HeaderBar';
 import EmployeeService from '../../services/EmployeeService';
 import { useNavigate } from 'react-router-dom';
@@ -44,13 +29,12 @@ import { DepartmentSelectField } from '../components/fields/DepartmentSelectFiel
 import EmployeeViewModel from '../../models/viewModels/EmployeeViewModel.js';
 import { CapitalizeFirstLetter, FormatDate } from '../../utils/FormatingUtils';
 import DataTable from '../components/table/DataTable';
-import Paginator from '../components/table/Paginator';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
 import FormPopup from '../components/ui/popups/FormPopup';
 import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 import { EditRowButton } from '../components/ui/buttons/EditRowButton';
 import { DeleteRowButton } from '../components/ui/buttons/DeleteRowButton';
-import NumberField from '../components/fields/NumberField.js';
+import NumberField from '../components/fields/NumberField';
 
 const SORTING_ASCENDING = 'asc';
 const SORTING_DESCENDING = 'desc';
@@ -143,7 +127,6 @@ export default function EmployeesList() {
         : 'Mandatory.',
       password: mode === 'edit' ? '' : (curr.password !== '' && curr.password?.trim() ? '' : 'Mandatory.'),
     };
-    console.log('Validation', { curr, newErrors });
     setErrors(newErrors);
     return Object.values(newErrors).every((e) => e === '');
   };
@@ -155,8 +138,8 @@ export default function EmployeesList() {
   const [filterEntryDateFrom, setFilterEntryDateFrom] = useState('');
   const [filterEntryDateTo, setFilterEntryDateTo] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
-  const [filterIsActive, setFilterIsActive] = useState('True');
   const [filterJobTitle, setFilterJobTitle] = useState('');
+  const [filterIsActive, setFilterIsActive] = useState('True');
   const handleClearFilters = () => {
     setFilterBusinessId('');
     setFilterName('');
@@ -164,8 +147,8 @@ export default function EmployeesList() {
     setFilterEntryDateFrom('');
     setFilterEntryDateTo('');
     setFilterDepartment('');
-    setFilterIsActive('True');
     setFilterJobTitle('');
+    setFilterIsActive('True');
   };
 
   const handleOpenAdd = () => {
@@ -178,7 +161,6 @@ export default function EmployeesList() {
   const handleOpenEdit = (idx) => {
     setMode('edit');
     const emp = Users[idx];
-    console.log('Editing employee', emp);
     setForm({
       businessId: emp.BusinessEntityID,
       firstName: emp.FirstName,
@@ -201,9 +183,7 @@ export default function EmployeesList() {
   const handleClose = () => setDialogOpen(false);
 
   const handleSave = async () => {
-    console.log('Saving form', form);
     const ok = validateForm(form);
-    console.log(ok);
     if (!ok) return;
     try {
       if (mode === 'add') {
@@ -251,7 +231,7 @@ export default function EmployeesList() {
   useEffect(() => {
     async function fetchData() {
       try {
-        var data = await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE,
+        const data = await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE,
           [
             { Fields: ['BusinessEntityID'], Values: [filterBusinessId], Type: 'Contains' },
             { Fields: ['FirstName', 'MiddleName', 'LastName'], Values: [filterName], Type: 'Contains' },
@@ -282,7 +262,6 @@ export default function EmployeesList() {
             }
             )
         );
-        console.log('Fetched employees:', employees);
         employees.forEach(element => {
           element.FirstName = CapitalizeFirstLetter(element.FirstName);
           element.MiddleName = CapitalizeFirstLetter(element.MiddleName);
@@ -297,146 +276,149 @@ export default function EmployeesList() {
     fetchData();
   }, [Users.length, filterBusinessId, filterDepartment, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterIsActive, filterJobTitle, filterName, navigate, notifs, page, sort, sort.Direction, sort.SortBy]);
 
-
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
-      <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
-        <Stack direction="row" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: '#000' }}>Employees</Typography>
-          <Box sx={{ ml: 'auto' }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleOpenAdd}
-              sx={{ bgcolor: '#ff9800', color: '#000', textTransform: 'none', fontWeight: 700 }}
-            >
-              Add User
-            </Button>
-          </Box>
-        </Stack>
-        <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
-          <CardHeader
-            title="Filters"
-            action={
-              <IconButton onClick={() => setFilterExpanded(!filterExpanded)} sx={{ p: 0 }}>
-                {filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-              </IconButton>
-            }
-            sx={{ pb: 0 }}
-          />
-          <Collapse in={filterExpanded}>
-            <CardContent>
-              <Stack direction="column" spacing={2}>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                  <TextField
-                    label="Business ID"
-                    type='number'
-                    value={filterBusinessId}
-                    onChange={(e) => {
-                      setFilterBusinessId(e.target.value);
-                      setPage(1);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                  />
-                  <TextField
-                    label="Name"
-                    value={filterName}
-                    onChange={(e) => {
-                      setFilterName(e.target.value);
-                      setPage(1);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                  />
+      <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
+        <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
+          <Stack direction="row" alignItems="center" sx={{ mb: 2 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: '#000' }}>Employees</Typography>
+            <Box sx={{ ml: 'auto' }}>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleOpenAdd}
+                sx={{ bgcolor: '#ff9800', color: '#000', textTransform: 'none', fontWeight: 700 }}
+              >
+                Add User
+              </Button>
+            </Box>
+          </Stack>
+
+          <Card sx={{ mb: 2, bgcolor: '#fff5e6', border: '2px solid #ffe0b2' }}>
+            <CardHeader
+              title="Filters"
+              action={
+                <IconButton onClick={() => setFilterExpanded(!filterExpanded)} sx={{ p: 0 }} aria-label="toggle filters">
+                  {filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              }
+              sx={{ pb: 0 }}
+            />
+            <Collapse in={filterExpanded}>
+              <CardContent>
+                <Stack direction="column" spacing={2}>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                    <NumberField
+                      label="Business ID"
+                      type='number'
+                      value={filterBusinessId}
+                      onChange={(value) => {
+                        setFilterBusinessId(value);
+                        setPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      label="Name"
+                      value={filterName}
+                      onChange={(e) => {
+                        setFilterName(e.target.value);
+                        setPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                  </Stack>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                    <TextField
+                      label="Email"
+                      value={filterEmail}
+                      onChange={(e) => {
+                        setFilterEmail(e.target.value);
+                        setPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      label="Date From"
+                      type="date"
+                      value={filterEntryDateFrom}
+                      onChange={(e) => {
+                        setFilterEntryDateFrom(e.target.value);
+                        setPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                      label="Date To"
+                      type="date"
+                      value={filterEntryDateTo}
+                      onChange={(e) => {
+                        setFilterEntryDateTo(e.target.value);
+                        setPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Stack>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent={"space-evenly"} >
+                    <DepartmentSelectField
+                      onChange={(v) => {
+                        setFilterDepartment(v);
+                        setPage(1);
+                      }}
+                      error={null}
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      label="Job Title"
+                      value={filterJobTitle}
+                      onChange={(e) => {
+                        setFilterJobTitle(e.target.value);
+                        setPage(1);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                    <Select 
+                      value={filterIsActive === "" || filterIsActive === null || filterIsActive === undefined ? "default" : filterIsActive}
+                      onChange={(e) => {
+                        setFilterIsActive(e.target.value === "default" ? "" : e.target.value);
+                        setPage(1);
+                        console.log('IsActive filter changed to', e.target.value);
+                      }}
+                      size="small"
+                      sx={{ flex: 1 }}
+                    >
+                      <MenuItem value="default">All</MenuItem>
+                      <MenuItem value="True">Active</MenuItem>
+                      <MenuItem value="False">Inactive</MenuItem>
+                    </Select>
+                    <Button variant="outlined" onClick={handleClearFilters} sx={{ textTransform: 'none', fontWeight: 600 }}>
+                      Clear Filters
+                    </Button>
+                  </Stack>
                 </Stack>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                  <TextField
-                    label="Email"
-                    value={filterEmail}
-                    onChange={(e) => {
-                      setFilterEmail(e.target.value);
-                      setPage(1);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                  />
-                  <TextField
-                    label="Date From"
-                    type="date"
-                    value={filterEntryDateFrom}
-                    onChange={(e) => {
-                      setFilterEntryDateFrom(e.target.value);
-                      setPage(1);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                  <TextField
-                    label="Date To"
-                    type="date"
-                    value={filterEntryDateTo}
-                    onChange={(e) => {
-                      setFilterEntryDateTo(e.target.value);
-                      setPage(1);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Stack>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent={"space-evenly"} >
-                  <DepartmentSelectField
-                    onChange={(v) => {
-                      setFilterDepartment(v);
-                      setPage(1);
-                    }}
-                    error={null}
-                    sx={{ flex: 1 }}
-                  />
-                  <TextField
-                    label="Job Title"
-                    value={filterJobTitle}
-                    onChange={(e) => {
-                      setFilterJobTitle(e.target.value);
-                      setPage(1);
-                    }}
-                    size="small"
-                    sx={{ flex: 1 }}
-                  />
-                  <Select
-                    value={filterIsActive}
-                    onChange={(e) => { setFilterIsActive(e.target.value); setPage(1); }}
-                    displayEmpty
-                    size="small"
-                    sx={{ flex: 1 }}
-                  >
-                    <MenuItem value=''>All</MenuItem>
-                    <MenuItem value='True'>Active</MenuItem>
-                    <MenuItem value='False'>Inactive</MenuItem>
-                  </Select>
-                  <Button variant="outlined" onClick={handleClearFilters} sx={{ textTransform: 'none', fontWeight: 600 }}>
-                    Clear Filters
-                  </Button>
-                </Stack>
-              </Stack>
-            </CardContent>
-          </Collapse>
-        </Card>
+              </CardContent>
+            </Collapse>
+          </Card>
 
         <SectionPaper>
-          <DataTable
-            columns={columns}
-            rows={Users}
-            getRowId={(r) => r.BusinessEntityID}
-            page={page}
-            onPageChange={setPage}
+          <DataTable 
+            columns={columns} 
+            rows={Users} 
+            getRowId={(r) => r.BusinessEntityID} 
             pageSize={ROWS_PER_PAGE}
             pageCount={pageCount}
-            onSortChange={(sort) => { setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort); }}
-            standoutRow={(r) => { if (!r.IsActive) return colors.red[100]; }}
+            onPageChange={setPage}
+            onSortChange={(sort) => {setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort);}}
+            standoutRow={(r) => { if (!r.IsActive) return colors.red.A100; }}
           />
         </SectionPaper>
       </Container>
@@ -445,13 +427,13 @@ export default function EmployeesList() {
         open={dialogOpen}
         title={mode === 'add' ? 'Add User' : 'Edit User'}
         fields={[
-          { type: 'text', label: 'First Name', value: form.firstName, onChange: setField('firstName'), required: true, error: !!errors.firstName, helperText: errors.firstName },
-          { type: 'text', label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
-          { type: 'text', label: 'Last Name', value: form.lastName, onChange: setField('lastName'), required: true, error: !!errors.lastName, helperText: errors.lastName },
-          { type: 'email', label: 'Email', value: form.email, onChange: setField('email'), required: true, error: !!errors.email, helperText: errors.email },
+          { type: 'text',     label: 'First Name', value: form.firstName,  onChange: setField('firstName'),  required: true, error: !!errors.firstName,  helperText: errors.firstName },
+          { type: 'text',     label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
+          { type: 'text',     label: 'Last Name',  value: form.lastName,   onChange: setField('lastName'),   required: true, error: !!errors.lastName,   helperText: errors.lastName },
+          { type: 'email',    label: 'Email',      value: form.email,      onChange: setField('email'),      required: true, error: !!errors.email,      helperText: errors.email },
           { type: 'custom', render: () => <DepartmentSelectField label="Department" value={form.DepartmentName} onChange={setField('department')} error={errors.DepartmentName} fullWidth={true} /> },
-          { type: 'text', label: 'Job Title', value: form.jobTitle, onChange: setField('jobTitle'), required: true, error: !!errors.jobTitle, helperText: errors.jobTitle },
-          { type: 'date', label: 'Hire Date', value: form.hireDate, onChange: setField('hireDate'), required: true, error: !!errors.hireDate, helperText: errors.hireDate },
+          { type: 'text',     label: 'Job Title',  value: form.jobTitle,   onChange: setField('jobTitle'),   required: true, error: !!errors.jobTitle,   helperText: errors.jobTitle },
+          { type: 'date',     label: 'Hire Date',  value: form.hireDate,   onChange: setField('hireDate'),   required: true, error: !!errors.hireDate,   helperText: errors.hireDate },
           ...(mode === 'add'
             ? [{ type: 'password', label: 'Password', value: form.password, onChange: setField('password'), required: true, error: !!errors.password, helperText: errors.password }]
             : [])
@@ -497,5 +479,6 @@ export default function EmployeesList() {
       />
 
     </Box>
+  </Box>
   );
 }

@@ -222,9 +222,9 @@ export default function EmployeeProfile() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', width: '100%', bgcolor: '#fff' }}>
+    <Box sx={{ minHeight: '100vh', width: '100%', bgcolor: '#f5f5f5' }}>
       <HeaderBar />
-    <Box sx={{ bgcolor: '#FFF4E6', minHeight: 'calc(100vh - 64px)' }}>
+    <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
         <Stack alignItems="center" sx={{ pt: { xs: 2, md: 3 }, pb: { xs: 1, md: 2 } }}>
           <Typography variant="h5" sx={{ color: '#000', fontWeight: 700 }}>
             Profile

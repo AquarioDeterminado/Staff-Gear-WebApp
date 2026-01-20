@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Box, Container, Typography, TextField, Select, MenuItem, Stack, Button, IconButton } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
 import JobListingService from '../../services/JobListingService';
 import { FormatDate } from '../../utils/FormatingUtils';
@@ -71,10 +71,10 @@ export default function HRJobListings() {
               e.stopPropagation();
               handleEditClick(row);
             }}
-            sx={{ color: '#ff9100' }}
+            sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
             title="Edit Job Listing"
           >
-            <EditIcon />
+            <EditOutlinedIcon />
           </IconButton>
           <IconButton 
             size="small" 
@@ -82,10 +82,10 @@ export default function HRJobListings() {
               e.stopPropagation();
               handleDeleteClick(row);
             }}
-            sx={{ color: '#d32f2f' }}
+            sx={{ bgcolor: '#fff3e0', color: '#000000ff', '&:hover': { bgcolor: '#000000ff', color: '#fff' } }}
             title="Delete Job Listing"
           >
-            <DeleteIcon />
+            <DeleteOutlineIcon />
           </IconButton>
         </div>
       )

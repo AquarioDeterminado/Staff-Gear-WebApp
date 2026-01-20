@@ -18,6 +18,10 @@ import { FormatDateTime } from '../../utils/FormatingUtils';
 import UserDTO from '../../models/dtos/UserDTO.js';
 import LogDTO from '../../models/dtos/LogDTO.js';
 
+// Ícones para as abas
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import GroupIcon from '@mui/icons-material/Group';
+
 const LOGS_TAB = 0;
 const USER_CHANGE_TAB = 1;
 
@@ -61,7 +65,6 @@ export default function AdminConsole() {
         )
     }];
 
-
     const [filterExpanded, setFilterExpanded] = useState(true);
 
     const [filterUserId, setFilterUserId] = useState('');
@@ -70,7 +73,6 @@ export default function AdminConsole() {
     const [filterAction, setFilterAction] = useState('');
     const [filterCreateDateFrom, setFilterCreateDateFrom] = useState('');
     const [filterCreateDateTo, setFilterCreateDateTo] = useState('');
-
 
     const [filterUserName, setFilterUserName] = useState('');
     const [filterEmployeeId, setFilterEmployeeId] = useState('');
@@ -84,7 +86,6 @@ export default function AdminConsole() {
         setFilterAction('');
         setFilterCreateDateFrom('');
         setFilterCreateDateTo('');
-
         setFilterUserName('');
         setFilterEmployeeId('');
         setFilterActiveStatus('');
@@ -108,14 +109,8 @@ export default function AdminConsole() {
 
     const handleSubmitRoleChange = async () => {
         const errors = {};
-
-        if (!newRole.trim()) {
-            errors.role = 'Role is required';
-        }
-        if (!roleChangeReason.trim()) {
-            errors.reason = 'Reason for role change is required';
-        }
-
+        if (!newRole.trim()) errors.role = 'Role is required';
+        if (!roleChangeReason.trim()) errors.reason = 'Reason for role change is required';
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
             return;
@@ -153,7 +148,8 @@ export default function AdminConsole() {
         const fetchUsers = async () => {
             try {
                 setCanSwitchPage(false);
-                const data = await AdminService.getUsers(currentPage,
+                const data = await AdminService.getUsers(
+                    currentPage,
                     rowsPerPage,
                     [
                         { Field: ['UserID'], Value: [filterUserId] },
@@ -166,9 +162,9 @@ export default function AdminConsole() {
                 );
 
                 setUsersCount(Math.ceil(data.totalCount / rowsPerPage));
-
-                const usersData = data.items.map(user => (new UserDTO({ UserID: user.userID, Username: user.username, EmployeeId: user.employeeId, IsActive: user.isActive, Role: user.role })));
-
+                const usersData = data.items.map(user => (
+                  new UserDTO({ UserID: user.userID, Username: user.username, EmployeeId: user.employeeId, IsActive: user.isActive, Role: user.role })
+                ));
                 setUsers(usersData);
                 setCanSwitchPage(true);
             } catch (error) {
@@ -183,8 +179,9 @@ export default function AdminConsole() {
         async function fetchLogs() {
             try {
                 setCanSwitchPage(false);
-                console.log("Fetching logs for page:", currentPage);
-                const data = await AdminService.getLogs(currentPage, rowsPerPage,
+                const data = await AdminService.getLogs(
+                    currentPage,
+                    rowsPerPage,
                     [
                         { Fields: ['ActorID'], Values: [filterActorId] },
                         { Fields: ['Target'], Values: [filterTarget] },
@@ -195,9 +192,9 @@ export default function AdminConsole() {
                 );
 
                 setLogsCount(Math.ceil(data.totalCount / rowsPerPage));
-
-                const logsData = data.items.map(log => (new LogDTO({ LogID: log.logID, ActorID: log.actorID, Target: log.target, Action: log.action, Description: log.description, CreatedAt: log.createdAt })));
-
+                const logsData = data.items.map(log => (
+                  new LogDTO({ LogID: log.logID, ActorID: log.actorID, Target: log.target, Action: log.action, Description: log.description, CreatedAt: log.createdAt })
+                ));
                 setLogs(logsData);
                 setCanSwitchPage(true);
             } catch (error) {
@@ -209,26 +206,34 @@ export default function AdminConsole() {
     }, [currentPage, rowsPerPage, navigate, filterActorId, filterTarget, filterAction, filterCreateDateFrom, filterCreateDateTo, sort.SortBy, sort.Direction]);
 
     const handleTabChange = (_e, v) => {
-        console.log("handleTabChange", v);
         setTab(v);
     };
 
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
             <HeaderBar />
-            <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
+            <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
+              <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
                 <Box sx={{ mb: 2 }}>
                     <StyledTabs value={tab} onChange={handleTabChange}>
-                        <StyledTab label="Logs" />
-                        <StyledTab label="Users" />
+                        <StyledTab
+                          label="Logs"
+                          icon={<ListAltIcon fontSize="small" />}
+                          iconPosition="start"
+                        />
+                        <StyledTab
+                          label="Users"
+                          icon={<GroupIcon fontSize="small" />}
+                          iconPosition="start"
+                        />
                     </StyledTabs>
                 </Box>
 
-                <Card sx={{ mb: 2, bgcolor: '#f7f7f7ff', border: '2px solid #fff7cbff' }}>
+                <Card sx={{ mb: 2, bgcolor: '#fff5e6', border: '2px solid #ffe0b2' }}>
                     <CardHeader
                         title="Filters"
                         action={
-                            <IconButton onClick={() => setFilterExpanded(!filterExpanded)} sx={{ p: 0 }}>
+                            <IconButton onClick={() => setFilterExpanded(!filterExpanded)} sx={{ p: 0 }} aria-label="toggle filters">
                                 {filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                             </IconButton>
                         }
@@ -403,7 +408,6 @@ export default function AdminConsole() {
                             onSortChange={(sort) => { setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); }}
                         />
                     ) : (
-
                         <DataTable
                             columns={usersColumns}
                             rows={users}
@@ -416,12 +420,10 @@ export default function AdminConsole() {
                             canSwitchPage={canSwitchPage}
                             onSortChange={(sort) => { setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); }}
                         />
-
                     )}
                 </SectionPaper>
             </Container>
 
-            {/* Role Change Form */}
             <FormPopup
                 open={formOpen}
                 title={`Change Role for ${selectedUser?.Username || ''}`}
@@ -460,6 +462,7 @@ export default function AdminConsole() {
                 loading={loading}
                 submitDisabled={!newRole || !roleChangeReason}
             />
-        </Box>
+      </Box>
+    </Box>
     );
 }
