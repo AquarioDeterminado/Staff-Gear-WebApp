@@ -146,8 +146,10 @@ const JobListingService = {
 
       console.log('Job listing updated successfully!');
 
-      const jobData = response.data;
-      return new JobListingDTO({
+      const jobData = response.data.data || response.data;
+      const rejectedCandidatesCount = response.data.rejectedCandidatesCount || 0;
+      
+      const jobListingDTO = new JobListingDTO({
         jobListingID: jobData.jobListingID,
         jobTitle: jobData.jobTitle,
         location: jobData.location,
@@ -162,6 +164,11 @@ const JobListingService = {
         departmentName: jobData.departmentName,
         applicationCount: jobData.applicationCount
       });
+      
+      // Attach rejectedCandidatesCount to the DTO for the caller to use
+      jobListingDTO.rejectedCandidatesCount = rejectedCandidatesCount;
+      
+      return jobListingDTO;
     } catch (error) {
       console.error('Error updating job listing:', error);
       throw error;

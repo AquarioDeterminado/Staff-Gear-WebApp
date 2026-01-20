@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Container, Typography, TextField, Select, MenuItem, Stack, Button, IconButton } from '@mui/material';
+import { Box, Container, Typography, TextField, Select, MenuItem, Stack, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -50,6 +50,8 @@ export default function HRJobListings() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [selectedJobListingForDelete, setSelectedJobListingForDelete] = useState(null);
+  const [confirmClosingDialog, setConfirmClosingDialog] = useState(false);
+  const [pendingEditData, setPendingEditData] = useState(null);
 
   const columns = [
     { label: 'Job Title', field: 'jobTitle', sortable: true },
@@ -185,13 +187,40 @@ export default function HRJobListings() {
   };
 
   const handleEditJobListing = async (jobListingData) => {
+    // Check if status is changing to Closed (2)
+    const currentJobListing = listings.find(j => j.jobListingID === jobListingData.jobListingID);
+    const isChangingToClosed = jobListingData.status === 2 && currentJobListing?.status !== 2;
+    const hasCandidates = currentJobListing?.applicationCount > 0;
+
+    if (isChangingToClosed && hasCandidates) {
+      // Show confirmation dialog
+      setPendingEditData(jobListingData);
+      setConfirmClosingDialog(true);
+      return;
+    }
+
+    // Proceed with update
+    await performJobListingUpdate(jobListingData);
+  };
+
+  const performJobListingUpdate = async (jobListingData) => {
     try {
       setEditLoading(true);
       const updatedListing = await JobListingService.update(jobListingData);
+      const rejectedCount = updatedListing.rejectedCandidatesCount || 0;
+      
       setListings(listings.map(item => 
         item.jobListingID === updatedListing.jobListingID ? updatedListing : item
       ));
-      notifs({ severity: 'success', message: 'Job listing updated successfully!' });
+      
+      let successMessage = 'Job listing updated successfully!';
+      if (rejectedCount > 0) {
+        successMessage = `Job listing closed and ${rejectedCount} candidate(s) were automatically rejected.`;
+      }
+      
+      notifs({ severity: 'success', message: successMessage });
+      setConfirmClosingDialog(false);
+      setPendingEditData(null);
     } catch (error) {
       notifs({ severity: 'error', message: 'Failed to update job listing' });
       console.error('Error updating job listing:', error);
@@ -359,6 +388,43 @@ export default function HRJobListings() {
           onConfirm={handleConfirmDelete}
           loading={deleteLoading}
         />
+
+        <Dialog
+          open={confirmClosingDialog}
+          onClose={() => {
+            setConfirmClosingDialog(false);
+            setPendingEditData(null);
+          }}
+        >
+          <DialogTitle>Close Job Listing?</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              You are about to close this job listing. All {selectedJobListing?.applicationCount || 0} associated candidate application(s) will be automatically rejected.
+              <br />
+              <br />
+              Are you sure you want to continue?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setConfirmClosingDialog(false);
+                setPendingEditData(null);
+              }}
+              disabled={editLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => performJobListingUpdate(pendingEditData)}
+              disabled={editLoading}
+              variant="contained"
+              sx={{ bgcolor: '#d32f2f', '&:hover': { bgcolor: '#b71c1c' } }}
+            >
+              {editLoading ? 'Processing...' : 'Yes, Close It'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   );

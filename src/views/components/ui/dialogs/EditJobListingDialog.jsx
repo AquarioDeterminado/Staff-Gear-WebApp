@@ -10,7 +10,7 @@
 */
 import React, { useEffect, useState } from 'react';
 import FormPopup from '../popups/FormPopup';
-import { TextField } from '@mui/material';
+import { TextField, Alert } from '@mui/material';
 import { DepartmentSelectField } from '../../fields/DepartmentSelectField';
 
 const JOB_TYPE_OPTIONS = [
@@ -53,6 +53,8 @@ export default function EditJobListingDialog({
     status: '',
   });
 
+  const [showClosingWarning, setShowClosingWarning] = useState(false);
+
   useEffect(() => {
     if (open && jobListing) {
       setForm({
@@ -76,8 +78,16 @@ export default function EditJobListingDialog({
     }
   }, [open, jobListing]);
 
-  const setField = (field) => (value) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const setField = (field) => (value) => {
+    setForm((prev) => {
+      const updated = { ...prev, [field]: value };
+      // Show warning if status is changing to Closed (value '2')
+      if (field === 'status') {
+        setShowClosingWarning(value === '2');
+      }
+      return updated;
+    });
+  };
 
   const validate = () => {
     const newErrors = {
@@ -205,6 +215,16 @@ export default function EditJobListingDialog({
       ),
       error: errors.description,
     },
+    ...(showClosingWarning ? [
+      {
+        type: 'custom',
+        render: () => (
+          <Alert severity="warning">
+            <strong>⚠️ Warning:</strong> Closing this job listing will automatically reject all associated candidate applications.
+          </Alert>
+        ),
+      }
+    ] : []),
   ];
 
   return (
