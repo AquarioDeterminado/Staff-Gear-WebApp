@@ -30,6 +30,29 @@ const NotificationService = {
         }   else {
             console.log('Notification deleted with success!');
         }
+    },
+
+    deleteMultipleNotifications: async (notificationIds) => {
+        try {
+            const deletePromises = notificationIds.map(id => 
+                api.delete(NOTIFICATION_PATH + `/${id}`)
+            );
+            
+            const responses = await Promise.all(deletePromises);
+            
+            // Verify all deletions were successful
+            const allSuccessful = responses.every(response => response.status === 204);
+            
+            if (!allSuccessful) {
+                throw new Error('Error deleting some notifications');
+            }
+            
+            console.log('Multiple notifications deleted with success!');
+            return true;
+        } catch (error) {
+            console.error('Error deleting multiple notifications:', error);
+            throw error;
+        }
     }
 }
 

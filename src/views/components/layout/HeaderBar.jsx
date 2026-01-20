@@ -10,12 +10,15 @@ import {
   Avatar,
   Menu,
   MenuItem,
-  ListItemText
+  ListItemText,
+  Checkbox,
+  Divider
 } from '@mui/material';
 
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
+import DeleteIcon from '@mui/icons-material/Delete';
 import NoticationService from '../../../services/NotificationService';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../../../services/AuthService';
@@ -29,6 +32,7 @@ export default function HeaderBar() {
 
   const [notifications, setNotifications] = useState([]);
   const [anchorNotif, setAnchorNotif] = useState(null);
+  const [selectedNotifications, setSelectedNotifications] = useState(new Set());
   const notifOpen = Boolean(anchorNotif);
 
   useEffect(() => {
@@ -49,8 +53,49 @@ export default function HeaderBar() {
     try {
       NoticationService.deleteNotification(id);
       setNotifications((prev) => prev.filter((n) => n.NotificationID !== id));
+      setSelectedNotifications((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
     } catch (error) {
       console.error('Error dismissing notification:', error);
+    }
+  }
+
+  function handleToggleSelection(id) {
+    setSelectedNotifications((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }
+
+  function handleDeleteSelected() {
+    if (selectedNotifications.size === 0) return;
+
+    const notificationIds = Array.from(selectedNotifications);
+    try {
+      NoticationService.deleteMultipleNotifications(notificationIds);
+      setNotifications((prev) =>
+        prev.filter((n) => !selectedNotifications.has(n.NotificationID))
+      );
+      setSelectedNotifications(new Set());
+    } catch (error) {
+      console.error('Error deleting selected notifications:', error);
+    }
+  }
+
+  function handleSelectAll() {
+    if (selectedNotifications.size === notifications.length) {
+      setSelectedNotifications(new Set());
+    } else {
+      const allIds = new Set(notifications.map((n) => n.NotificationID));
+      setSelectedNotifications(allIds);
     }
   }
 
@@ -220,33 +265,110 @@ export default function HeaderBar() {
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           MenuListProps={{ dense: true }}
+          slotProps={{
+            paper: {
+              sx: {
+                maxHeight: 400,
+                width: '100%',
+                maxWidth: 500,
+              },
+            },
+          }}
         >
-          {notifications.length > 0 ? (
-            notifications.map((n) => (
-              <MenuItem key={n.NotificationID} divider>
-                <ListItemText
-                  primary={n.Message}
-                  secondary={new Date(n.CreatedAt).toLocaleString('fr-FR')}
-                  sx={{ mr: 2 }}
-                  onClick={() => {
-                    sendToPage(n.Message);
+          {notifications.length > 0
+            ? [
+                <MenuItem 
+                  key="header" 
+                  sx={{ 
+                    flexDirection: 'column', 
+                    alignItems: 'stretch', 
+                    p: 1.5,
+                    bgcolor: '#fafafa',
+                    '&:hover': { bgcolor: '#f5f5f5' }
                   }}
-                />
-                <Button
-                  size="small"
-                  color="error"
-                  onClick={() => handleDismissNotification(n.NotificationID)}
-                  sx={{ textTransform: 'none', fontWeight: 700, minWidth: 0, px: 0.75 }}
                 >
-                  X
-                </Button>
-              </MenuItem>
-            ))
-          ) : (
-            <MenuItem disabled>
-              <ListItemText primary="No notifications." />
-            </MenuItem>
-          )}
+                  <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+                      <Checkbox
+                        checked={selectedNotifications.size === notifications.length && notifications.length > 0}
+                        indeterminate={selectedNotifications.size > 0 && selectedNotifications.size < notifications.length}
+                        onChange={handleSelectAll}
+                        size="small"
+                      />
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          Select All
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#999' }}>
+                          {selectedNotifications.size} of {notifications.length}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={handleDeleteSelected}
+                      disabled={selectedNotifications.size === 0}
+                      sx={{ 
+                        textTransform: 'none', 
+                        fontWeight: 600,
+                        opacity: selectedNotifications.size === 0 ? 0.5 : 1,
+                      }}
+                    >
+                      Delete ({selectedNotifications.size})
+                    </Button>
+                  </Box>
+                </MenuItem>,
+                <Divider key="divider" sx={{ my: 0 }} />,
+                ...notifications.map((n) => (
+                  <MenuItem
+                    key={n.NotificationID}
+                    divider
+                    sx={{
+                      bgcolor: selectedNotifications.has(n.NotificationID) ? 'rgba(255, 152, 0, 0.1)' : 'transparent',
+                      p: 1,
+                      display: 'flex',
+                      gap: 1,
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    <Checkbox
+                      checked={selectedNotifications.has(n.NotificationID)}
+                      onChange={() => handleToggleSelection(n.NotificationID)}
+                      size="small"
+                      sx={{ mt: 0.5 }}
+                    />
+                    <Box
+                      sx={{ flex: 1, cursor: 'pointer' }}
+                      onClick={() => {
+                        sendToPage(n.Message);
+                        setAnchorNotif(null);
+                      }}
+                    >
+                      <ListItemText
+                        primary={n.Message}
+                        secondary={new Date(n.CreatedAt).toLocaleString('fr-FR')}
+                      />
+                    </Box>
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() => handleDismissNotification(n.NotificationID)}
+                      sx={{ textTransform: 'none', fontWeight: 700, minWidth: 0, px: 0.75 }}
+                    >
+                      X
+                    </Button>
+                  </MenuItem>
+                )),
+              ]
+            : [
+                <MenuItem key="empty" disabled>
+                  <ListItemText primary="Without notifications." />
+                </MenuItem>,
+              ]}
         </Menu>
       )}
     </>
