@@ -7,7 +7,6 @@ import {
   Box,
   Button,
   Badge,
-  Avatar,
   Menu,
   MenuItem,
   ListItemText,
@@ -26,6 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import AuthService from '../../../services/AuthService';
 import SideMenu from './SideMenu';
 import logo from '../../../assets/logo.png';
+import CompressedAvatar from '../ui/CompressedAvatar';
 
 export default function HeaderBar() {
   const navigate = useNavigate();
@@ -40,14 +40,14 @@ export default function HeaderBar() {
   const notifOpen = Boolean(anchorNotif);
 
   useEffect(() => {
-    // Load profile photo from localStorage
+    // Loads the photo from the local storage
     const savedPhoto = localStorage.getItem('profilePhotoUrl');
     if (savedPhoto) {
       setProfilePhotoUrl(savedPhoto);
     }
   }, []);
 
-  // Load profile photo if authenticated but not yet loaded
+  // Loads the photo if not authenticated
   useEffect(() => {
     async function loadProfilePhoto() {
       if (isAuthenticated && BusinessId && !profilePhotoUrl) {
@@ -69,11 +69,13 @@ export default function HeaderBar() {
     loadProfilePhoto();
   }, [isAuthenticated, BusinessId, profilePhotoUrl]);
 
-  // Listen for profile photo updates
+  // Update photo
   useEffect(() => {
     const handleProfilePhotoUpdated = (event) => {
       if (event.detail?.profilePhoto) {
         setProfilePhotoUrl(event.detail.profilePhoto);
+        // Sincronize with the local storage
+        localStorage.setItem('profilePhotoUrl', event.detail.profilePhoto);
       }
     };
     
@@ -81,10 +83,10 @@ export default function HeaderBar() {
     return () => window.removeEventListener('profilePhotoUpdated', handleProfilePhotoUpdated);
   }, []);
 
-  // Listen for storage changes to sync profile photo updates from other tabs
+  // Sincronize between different parts
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === 'profilePhotoUrl' && e.newValue) {
+      if (e.key === 'profilePhotoUrl') {
         setProfilePhotoUrl(e.newValue);
       }
     };
@@ -257,9 +259,22 @@ export default function HeaderBar() {
 
                 <IconButton onClick={() => navigate('/profile')} aria-label="profile" disabled={isLoadingPhoto}>
                   <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Avatar sx={{ bgcolor: '#607d8b' }} src={profilePhotoUrl}>
-                      {!profilePhotoUrl && !isLoadingPhoto && <PersonIcon />}
-                    </Avatar>
+                    <CompressedAvatar
+                      src={profilePhotoUrl}
+                      size={40}
+                      quality={0.3}
+                      dprFactor={2}
+                      sx={{ bgcolor: '#607d8b' }}
+                    />
+                    {(!profilePhotoUrl && !isLoadingPhoto) && (
+                      <PersonIcon
+                        style={{
+                          position: 'absolute',
+                          fontSize: 24,
+                          color: 'rgba(255,255,255,0.9)'
+                        }}
+                      />
+                    )}
                     {isLoadingPhoto && (
                       <CircularProgress 
                         size={40} 

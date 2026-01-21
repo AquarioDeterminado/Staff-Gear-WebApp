@@ -3,13 +3,14 @@
   enviar dados à API e convertê-lo em colaborador.
 */
 import React, { useEffect, useState } from 'react';
-import FormPopup from '../popups/FormPopup';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, Button, Stack, Alert, CircularProgress, FormHelperText } from '@mui/material';
 
 export default function AcceptCandidateDialog({
   open,
   candidate,
   jobListingTitle = '',
   jobListingDepartment = '',
+  jobListingAvailablePositions = null,
   departments = [],
   defaultPassword = 'Welcome@123',
   onClose,
@@ -49,7 +50,7 @@ export default function AcceptCandidateDialog({
   const validate = () => {
     const e = {
       jobTitle: '',
-      department: form.department ? '' : 'Selecione um departamento (ou deixe vazio se for permitido).',
+      department: form.department ? '' : 'Selecione um departamento.',
       defaultPassword: form.defaultPassword && form.defaultPassword.length >= 6 ? '' : 'A password deve ter pelo menos 6 caracteres.',
     };
     setErrors(e);
@@ -74,48 +75,87 @@ export default function AcceptCandidateDialog({
     }
   };
 
+  const isNoPositionsAvailable = jobListingAvailablePositions !== null && jobListingAvailablePositions <= 0;
+  const isLowPositions = jobListingAvailablePositions !== null && jobListingAvailablePositions === 1;
+
   return (
-    <FormPopup
-      open={open}
-      title={
-        'Accept Candidate: ' +
-        (candidate?.firstName ? candidate.firstName + ' ' : '') +
-        (candidate?.lastName || '')
-      }
-      maxWidth={maxWidth}
-      fields={[
-        {
-          type: 'text',
-          label: 'Job Title',
-          value: form.jobTitle,
-          onChange: setField('jobTitle'),
-          helperText: "Leave empty to use 'New Hire'",
-        },
-        {
-          type: 'select',
-          label: 'Department',
-          value: form.department,
-          onChange: setField('department'),
-          options: [{ value: '', label: '-- Select Department --' }].concat(
-            (departments || []).map((d) => ({ value: d, label: d }))
-          ),
-          error: !!errors.department,
-          helperText: errors.department || undefined,
-        },
-        {
-          type: 'password',
-          label: 'Password',
-          value: form.defaultPassword,
-          onChange: setField('defaultPassword'),
-          helperText: errors.defaultPassword || 'Will be sent to the employee (must change on first login)',
-          error: !!errors.defaultPassword,
-        },
-      ]}
-      onCancel={onClose}
-      onSubmit={handleSubmit}
-      loading={loading}
-      submitLabel="Save"
-      submitSx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#222' } }}
-    />
+    <Dialog open={open} onClose={onClose} maxWidth={maxWidth} fullWidth>
+      <DialogTitle sx={{ fontWeight: 700 }}>
+        Accept Candidate: {candidate?.firstName} {candidate?.lastName}
+      </DialogTitle>
+      <DialogContent sx={{ pt: 2 }}>
+        <Stack spacing={2}>
+          {isNoPositionsAvailable && (
+            <Alert severity="error">
+              No available positions for this job listing! Cannot accept this candidate.
+            </Alert>
+          )}
+          {isLowPositions && !isNoPositionsAvailable && (
+            <Alert severity="warning">
+              Only 1 position remaining! This is the last candidate you can accept for this job listing.
+            </Alert>
+          )}
+          {jobListingAvailablePositions !== null && jobListingAvailablePositions > 1 && (
+            <Alert severity="info">
+              {jobListingAvailablePositions} positions available for this job listing.
+            </Alert>
+          )}
+
+          <TextField
+            label="Job Title"
+            value={form.jobTitle}
+            onChange={(e) => setField('jobTitle')(e.target.value)}
+            fullWidth
+            size="small"
+            helperText="Leave empty to use 'New Hire'"
+          />
+
+          <div>
+            <Select
+              label="Department"
+              value={form.department}
+              onChange={(e) => setField('department')(e.target.value)}
+              fullWidth
+              size="small"
+              error={!!errors.department}
+            >
+              <MenuItem value="">
+                <em>-- Select Department --</em>
+              </MenuItem>
+              {(departments || []).map((d) => (
+                <MenuItem key={d} value={d}>
+                  {d}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.department && <FormHelperText error>{errors.department}</FormHelperText>}
+          </div>
+
+          <TextField
+            label="Password"
+            type="password"
+            value={form.defaultPassword}
+            onChange={(e) => setField('defaultPassword')(e.target.value)}
+            fullWidth
+            size="small"
+            error={!!errors.defaultPassword}
+            helperText={errors.defaultPassword || 'Will be sent to the employee (must change on first login)'}
+          />
+        </Stack>
+      </DialogContent>
+      <DialogActions sx={{ p: 2 }}>
+        <Button onClick={onClose} disabled={loading}>
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          disabled={loading || isNoPositionsAvailable}
+          variant="contained"
+          sx={{ bgcolor: '#4caf50', color: '#fff', '&:hover': { bgcolor: '#45a049' } }}
+        >
+          {loading ? <CircularProgress size={24} /> : 'Accept'}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
