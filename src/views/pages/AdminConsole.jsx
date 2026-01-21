@@ -155,7 +155,7 @@ export default function AdminConsole() {
                         { Fields: ['UserID'], Values: [filterUserId], Type: 'Contains' },
                         { Fields: ['Username'], Values: [filterUserName], Type: 'Contains' },
                         { Fields: ['EmployeeId'], Values: [filterEmployeeId], Type: 'Contains' },
-                        { Fields: ['IsActive'], Values: [filterActiveStatus], Type: 'Equals' },
+                        { Fields: ['IsActive'], Values: [filterActiveStatus === '1' ? 'true' : filterActiveStatus === '0' ? 'false' : ''], Type: 'Equals' },
                         { Fields: ['Role'], Values: [filterRole], Type: 'Contains' },
                     ],
                     { SortBy: sort.SortBy, Direction: sort.Direction }
@@ -186,7 +186,7 @@ export default function AdminConsole() {
                         { Fields: ['ActorID'], Values: [filterActorId], Type: 'Contains' },
                         { Fields: ['Target'], Values: [filterTarget], Type: 'Contains' },
                         { Fields: ['Action'], Values: [filterAction], Type: 'Contains' },
-                        { Fields: ['CreatedAtFrom', 'CreatedAtTo'], Values: [filterCreateDateFrom.toString(), filterCreateDateTo.toString()], Type: 'DateRange' },
+                        { Fields: ['CreatedAtFrom', 'CreatedAtTo'], Values: [filterCreateDateFrom.toString(), filterCreateDateTo.toString()], Type: 'Range' },
                     ],
                     { SortBy: sort.SortBy, Direction: sort.Direction }
                 );
