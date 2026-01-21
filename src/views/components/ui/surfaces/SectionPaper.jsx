@@ -4,7 +4,7 @@ utilizado em maior parte das páginas
 */
 import { Paper, Box, Divider } from '@mui/material';
 
-export default function SectionPaper({ children, noOverflow, sx, headerSpacing = { px: 2, pt: 1 } }) {
+export default function SectionPaper({ children, noOverflow, sx, headerSpacing = { px: 2, pt: 0 } }) {
   return (
     <Paper
       sx={{
@@ -21,9 +21,6 @@ export default function SectionPaper({ children, noOverflow, sx, headerSpacing =
         ...(sx || {}),
       }}
     >
-      <Box sx={headerSpacing}>
-        <Divider sx={{ borderColor: '#ffe0b2' }} />
-      </Box>
       {children}
       <Box sx={{ height: 0 }} />
     </Paper>
