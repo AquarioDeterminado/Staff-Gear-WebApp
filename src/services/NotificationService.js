@@ -19,7 +19,7 @@ const NotificationService = {
             notifications.push(newNotif);
         }
 
-        return notifications;
+        return notifications.reverse();
     },
 
     deleteNotification: async (notificationId) => {

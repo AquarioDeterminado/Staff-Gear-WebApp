@@ -98,6 +98,7 @@ export default function HRJobListings() {
     const fetchListings = async () => {
       try {
         const data = await JobListingService.getAll();
+        console.log('Job listing created, reloading listings', data);
         setListings(data);
       } catch (error) {
         notifs({ severity: 'error', message: 'Failed to load job listings' });
@@ -123,6 +124,7 @@ export default function HRJobListings() {
         if (!(listing.departmentName || '').toLowerCase().includes(query)) return false;
       }
       if (filterStatus !== '') {
+        console.log('Filtering by status:', filterStatus, listing.status);
         if (listing.status !== parseInt(filterStatus)) return false;
       }
       if (filterPostedFrom) {

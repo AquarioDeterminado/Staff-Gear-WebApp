@@ -21,7 +21,6 @@ export const DepartmentSelectField = ({ value, onChange, error, fullWidth = fals
           onChange(e.target.value === "default" ? "" : e.target.value);
         }}
         size='small'
-        label="Department"
         autoWidth={autoWidth}
       >
         <MenuItem value="default">All Departments</MenuItem>

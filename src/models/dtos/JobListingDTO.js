@@ -22,7 +22,7 @@ class JobListingDTO {
         this.description = description || null;
         this.numberOfPositions = numberOfPositions || null;
         this.departmentID = departmentID || null;
-        this.status = status || null;
+        this.status = status || 0;
         this.postedDate = postedDate || null;
         this.modifiedDate = modifiedDate || null;
         this.department = department || null;
