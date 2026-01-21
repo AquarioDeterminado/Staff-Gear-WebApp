@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Box, Container, Typography, IconButton, Button, Stack, Divider, TextField, Select, MenuItem
+  Box, Container, Typography, IconButton, Button, Stack, Divider, TextField, Select, MenuItem,
+  colors
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import HeaderBar from '../components/layout/HeaderBar';
@@ -10,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import EmployeeService from '../../services/EmployeeService';
 import UserSession from '../../utils/UserSession';
 import useNotification from '../../utils/UseNotification';
+import ErrorHandler from '../../utils/ErrorHandler';
 import DataTable from '../components/table/DataTable';
 import FilterBox from '../components/filters/FilterBox';
 import SectionPaper from '../components/ui/surfaces/SectionPaper';
@@ -214,13 +216,7 @@ export default function CandidatesView() {
       setRows((prev) => prev.filter((r) => r.jobCandidateId !== jobCandidateId));
       showNotification({ message: 'Candidate accepted as employee!', severity: 'success' });
     } catch (error) {
-      let msg = 'Error accepting candidate';
-      const data = error?.response?.data;
-      if (typeof data === 'string') {
-        msg = data;
-      } else if (data && typeof data === 'object') {
-        msg = data.detail || data.title || data.message || msg;
-      }
+      const msg = ErrorHandler(error) || 'Error accepting candidate';
       showNotification({ message: msg, severity: 'error' });
     }
   };
@@ -386,6 +382,7 @@ export default function CandidatesView() {
           <Stack direction="row" spacing={3} alignItems="flex-start">
             <SectionPaper sx={{ flex: 1 }}>
               <DataTable
+                standoutRow={(r) => { return r.employeeID ? colors.blue[100] : null; }}
                 columns={columns}
                 rows={rows}
                 getRowId={(r) => r.jobCandidateId}
@@ -433,6 +430,10 @@ export default function CandidatesView() {
               </Select>
             </FilterBox>
           </Stack>
+
+          <Typography variant="caption" sx={{ display: 'block', color: '#383838', fontStyle: 'italic' }}>
+            Note: Blue highlighted rows indicate candidates who are already employees.
+          </Typography>
         </Container>
 
         <AcceptCandidateDialog
