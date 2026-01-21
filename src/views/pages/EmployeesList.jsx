@@ -1,3 +1,5 @@
+
+// src/pages/EmployeesList.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
@@ -37,98 +39,10 @@ import ConfirmPopup from '../components/ui/popups/ConfirmPopup';
 import { EditRowButton } from '../components/ui/buttons/EditRowButton';
 import { DeleteRowButton } from '../components/ui/buttons/DeleteRowButton';
 import NumberField from '../components/fields/NumberField';
+import CompressedAvatar from '../components/ui/CompressedAvatar';
 
 const SORTING_ASCENDING = 'asc';
 const SORTING_DESCENDING = 'desc';
-const imageCompressionCache = new Map();
-
-/**
- * @param {string} base64
- * @param {{maxWidth?: number, maxHeight?: number, quality?: number}} options
- * @returns {Promise<string>}
- */
-function compressAndResizeBase64(
-  base64,
-  { maxWidth = 80, maxHeight = 80, quality = 0.4 } = {}
-) {
-  return new Promise((resolve) => {
-    const img = new Image();
-
-    const normalized =
-      base64?.startsWith('data:')
-        ? base64
-        : base64
-        ? `data:image/jpeg;base64,${base64}`
-        : '';
-
-    img.onload = () => {
-      const { width, height } = img;
-
-      const scale = Math.min(maxWidth / width, maxHeight / height, 1);
-      const targetW = Math.round(width * scale);
-      const targetH = Math.round(height * scale);
-
-      const canvas = document.createElement('canvas');
-      canvas.width = targetW;
-      canvas.height = targetH;
-
-      const ctx = canvas.getContext('2d');
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(img, 0, 0, targetW, targetH);
-
-      const out = canvas.toDataURL('image/jpeg', quality);
-      resolve(out);
-    };
-
-    img.src = normalized || '';
-  });
-}
-function CompressedAvatar({ src, alt = 'avatar', size = 40 }) {
-  const [outSrc, setOutSrc] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!src) {
-      setOutSrc(null);
-      return;
-    }
-
-    const normalized = src.startsWith('data:')
-      ? src
-      : `data:image/jpeg;base64,${src}`;
-
-    const cached = imageCompressionCache.get(normalized);
-    if (cached) {
-      setOutSrc(cached);
-      return;
-    }
-
-    compressAndResizeBase64(normalized, {
-      maxWidth: size * 2,
-      maxHeight: size * 2,
-      quality: 0.3,
-    }).then((res) => {
-      if (!cancelled) {
-        imageCompressionCache.set(normalized, res);
-        setOutSrc(res);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [src, size]);
-
-  return (
-    <Avatar
-      sx={{ width: size, height: size }}
-      src={outSrc || (src?.startsWith?.('data:') ? src : src ? `data:image/jpeg;base64,${src}` : undefined)}
-      imgProps={{ loading: 'lazy' }}
-    >
-      {!src && <PersonIcon sx={{ fontSize: size * 0.6 }} />}
-    </Avatar>
-  );
-}
 
 export default function EmployeesList() {
   const navigate = useNavigate();
@@ -178,7 +92,7 @@ export default function EmployeesList() {
       render: (r) => {
         return (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-            <CompressedAvatar src={r.ProfilePhoto} size={40} />
+            <CompressedAvatar src={r.ProfilePhoto} size={40} quality={0.3} dprFactor={2} />
           </div>
         );
       }
