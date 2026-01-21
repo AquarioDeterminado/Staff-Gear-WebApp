@@ -440,6 +440,11 @@ export default function CandidatesView() {
           candidate={candidateToAccept}
           jobListingTitle={candidateToAccept?.jobListingTitle || ''}
           jobListingDepartment={candidateToAccept?.jobListingDepartment || ''}
+          jobListingAvailablePositions={
+            candidateToAccept && candidateToAccept.jobListingID
+              ? jobListings.find(j => j.jobListingID === candidateToAccept.jobListingID)?.availablePositions
+              : null
+          }
           departments={departments}
           onClose={closeAcceptDialog}
           onAccept={handleAccept}

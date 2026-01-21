@@ -12,7 +12,8 @@ class JobListingDTO {
         modifiedDate,
         department,
         departmentName,
-        applicationCount
+        applicationCount,
+        acceptedCount
     }) {
         this.jobListingID = jobListingID || null;
         this.jobTitle = jobTitle || null;
@@ -27,6 +28,11 @@ class JobListingDTO {
         this.department = department || null;
         this.departmentName = departmentName || null;
         this.applicationCount = applicationCount || 0;
+        this.acceptedCount = acceptedCount || 0;
+    }
+
+    get availablePositions() {
+        return this.numberOfPositions - this.acceptedCount;
     }
 }
 
