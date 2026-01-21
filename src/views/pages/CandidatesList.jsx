@@ -90,7 +90,8 @@ export default function CandidatesView() {
         if (filterJobListingId !== null) {
           filters.push({ 
             Fields: ['JobListingID'], 
-            Values: [filterJobListingId] 
+            Values: [filterJobListingId],
+            Type: 'Equals'
           });
         }
 
