@@ -163,6 +163,15 @@ const EmployeeService = {
     return response.data;
   },
 
+  undoDeleteEmployee: async (id) => {
+    const response = await api.post(`${EMPLOYEE_PATH}/undodelete/${id}`);
+    if (!response || response.status !== 200) {
+      throw new Error('Error undoing delete for the employee! Error code: ' + response?.status);
+    } else {
+      console.log('Employee delete undone with success!');
+    }
+  },
+
   uploadProfilePhoto: async (id, file) => {
     const formData = new FormData();
     formData.append('file', file);

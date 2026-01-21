@@ -107,7 +107,7 @@ export default function CreateJobListingDialog({
   const fields = [
     {
       type: 'text',
-      label: 'Job Title*',
+      label: 'Job Title',
       value: form.jobTitle,
       onChange: setField('jobTitle'),
       error: errors.jobTitle,
@@ -116,7 +116,7 @@ export default function CreateJobListingDialog({
     },
     {
       type: 'text',
-      label: 'Location*',
+      label: 'Location',
       value: form.location,
       onChange: setField('location'),
       error: errors.location,
@@ -125,7 +125,7 @@ export default function CreateJobListingDialog({
     },
     {
       type: 'select',
-      label: 'Job Type*',
+      label: 'Job Type',
       value: form.jobType,
       onChange: setField('jobType'),
       options: [
@@ -138,7 +138,7 @@ export default function CreateJobListingDialog({
     },
     {
       type: 'text',
-      label: 'Number of Positions*',
+      label: 'Number of Positions',
       value: form.numberOfPositions,
       onChange: setField('numberOfPositions'),
       error: errors.numberOfPositions,

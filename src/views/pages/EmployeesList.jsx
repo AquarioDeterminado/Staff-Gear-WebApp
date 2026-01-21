@@ -149,7 +149,7 @@ export default function EmployeesList() {
             r.IsActive ?
               (<Stack direction="row" spacing={1}>
                 <EditRowButton openEdit={handleOpenEdit} idx={idx} />
-                <DeleteRowButton openConfirm={setConfirmOpen} setConfirmIndex={setConfirmId} idx={idx} />
+                <DeleteRowButton setConfirmOpen={setConfirmOpen} setConfirmIndex={setConfirmId} businessEntityId={r.BusinessEntityID} />
               </Stack>)
               : (
                 <IconButton
@@ -525,6 +525,7 @@ export default function EmployeesList() {
               getRowId={(r) => r.BusinessEntityID}
               pageSize={ROWS_PER_PAGE}
               pageCount={pageCount}
+              page={page}
               onPageChange={setPage}
               onSortChange={(sort) => { setSort({ SortBy: sort.SortBy, Direction: sort.Direction }); console.log('Sort changed', sort); }}
               standoutRow={(r) => { if (!r.IsActive) return colors.red.A100; }}

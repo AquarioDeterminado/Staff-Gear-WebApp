@@ -302,7 +302,7 @@ export default function HRJobListings() {
               size="small"
               sx={{ flex: 1 }}
             >
-              <MenuItem value="">All Statuses</MenuItem>
+              <MenuItem value="">All Status</MenuItem>
               <MenuItem value={0}>Open</MenuItem>
               <MenuItem value={1}>Reviewing Applications</MenuItem>
               <MenuItem value={2}>Closed</MenuItem>

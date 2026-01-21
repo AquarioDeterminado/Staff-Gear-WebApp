@@ -121,7 +121,7 @@ export default function AdminConsole() {
             setCanSwitchPage(false);
             await AdminService.updateUserRole(selectedUser.UserID, newRole, roleChangeReason);
             notif({ severity: 'success', message: 'User role updated successfully.' });
-            setUsers(await AdminService.getUsers(currentPage, rowsPerPage));
+            setCurrentPage((prev) => prev); // Refresh current page
             setFormOpen(false);
             setSelectedUser(null);
             setNewRole('');
@@ -152,11 +152,11 @@ export default function AdminConsole() {
                     currentPage,
                     rowsPerPage,
                     [
-                        { Field: ['UserID'], Value: [filterUserId] },
-                        { Field: ['Username'], Value: [filterUserName] },
-                        { Field: ['EmployeeId'], Value: [filterEmployeeId] },
-                        { Field: ['IsActive'], Value: [filterActiveStatus] },
-                        { Field: ['Role'], Value: [filterRole] },
+                        { Fields: ['UserID'], Values: [filterUserId], Type: 'Contains' },
+                        { Fields: ['Username'], Values: [filterUserName], Type: 'Contains' },
+                        { Fields: ['EmployeeId'], Values: [filterEmployeeId], Type: 'Contains' },
+                        { Fields: ['IsActive'], Values: [filterActiveStatus], Type: 'Equals' },
+                        { Fields: ['Role'], Values: [filterRole], Type: 'Contains' },
                     ],
                     { SortBy: sort.SortBy, Direction: sort.Direction }
                 );
@@ -183,10 +183,10 @@ export default function AdminConsole() {
                     currentPage,
                     rowsPerPage,
                     [
-                        { Fields: ['ActorID'], Values: [filterActorId] },
-                        { Fields: ['Target'], Values: [filterTarget] },
-                        { Fields: ['Action'], Values: [filterAction] },
-                        { Fields: ['CreatedAtFrom', 'CreatedAtTo'], Values: [filterCreateDateFrom.toString(), filterCreateDateTo.toString()] },
+                        { Fields: ['ActorID'], Values: [filterActorId], Type: 'Contains' },
+                        { Fields: ['Target'], Values: [filterTarget], Type: 'Contains' },
+                        { Fields: ['Action'], Values: [filterAction], Type: 'Contains' },
+                        { Fields: ['CreatedAtFrom', 'CreatedAtTo'], Values: [filterCreateDateFrom.toString(), filterCreateDateTo.toString()], Type: 'DateRange' },
                     ],
                     { SortBy: sort.SortBy, Direction: sort.Direction }
                 );
@@ -279,7 +279,7 @@ export default function AdminConsole() {
                                                 sx={{ flex: 1 }}
                                             >
                                                 <MenuItem disabled value="default">-- Select Action --</MenuItem>
-                                                {["Create", "Update", "Delete", "Login", "Logout", "Read"].map((d) => (
+                                                {["CREATE", "UPDATE", "DELETE", "LOGIN", "LOGOUT", "READ"].map((d) => (
                                                     <MenuItem key={d} value={d}>
                                                         {d}
                                                     </MenuItem>

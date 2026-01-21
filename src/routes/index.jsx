@@ -12,6 +12,7 @@ import AdminConsole from '../views/pages/AdminConsole';
 import HRJobListings from '../views/pages/HRJobListings';
 import PrivateRoute from '../views/components/routing/PrivateRoute';
 import PublicRoute from '../views/components/routing/PublicRoute';
+import HeaderBar from '../views/components/layout/HeaderBar';
 
 // ==============================|| ROUTING RENDER ||============================== //
 

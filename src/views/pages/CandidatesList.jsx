@@ -99,7 +99,8 @@ export default function CandidatesView() {
         if (debouncedSearch) {
           filters.push({ 
             Fields: ['FirstName', 'MiddleName', 'LastName', 'Email'], 
-            Values: [debouncedSearch] 
+            Values: [debouncedSearch],
+            Type: 'Contains'
           });
         }
         console.log('Fetching candidates with filters:', page);

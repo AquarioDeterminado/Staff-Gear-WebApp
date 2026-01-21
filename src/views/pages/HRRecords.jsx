@@ -66,6 +66,8 @@ export default function HRRecords() {
   }, [navigate]);
 
   const [tab, setTab] = useState(0);
+  
+  const [currentPage, setCurrentPage] = useState(1);
   const [canSwitchPage, setCanSwitchPage] = useState(true);
 
   const [payments, setPayments] = useState([]);
@@ -85,6 +87,8 @@ export default function HRRecords() {
   const [filterJobDateFrom, setFilterJobDateFrom] = useState('');
   const [filterJobDateTo, setFilterJobDateTo] = useState('');
   const [filterJobChangesExpanded, setFilterJobChangesExpanded] = useState(false);
+
+  useEffect(() => { setCurrentPage(1); }, [tab, filterPaymentEmployee, filterRateMin, filterRateMax, filterPayFrequency, filterPaymentDateFrom, filterPaymentDateTo, filterJobEmployee, filterDepartment, filterJobDateFrom, filterJobDateTo]);
 
   const [sort, setSort] = useState({ SortBy: 'CreatedAt', Direction: 'asc' });
 
@@ -119,7 +123,6 @@ export default function HRRecords() {
   ];
 
   // Pages
-  const [currentPage, setCurrentPage] = useState(1);
 
   const [paymentsPageCount, setPaymentsPageCount] = useState(1);
   const [jobChangesPageCount, setJobChangesPageCount] = useState(1);
@@ -426,7 +429,7 @@ export default function HRRecords() {
             RateChangeDate: newItem.RateChangeDate + 'T00:00:00',
             PayFrequency: newItem.PayFrequency,
           });
-          setPayments(await HRService.getAllPayments(currentPage, ROWS_PER_PAGE));
+          setCurrentPage((prev => prev))
           notif({ severity: 'success', message: 'Payment created with success!' });
         } catch (error) {
           console.error('Error creating payment:', error);
@@ -453,7 +456,7 @@ export default function HRRecords() {
             RateChangeDate: newItem.RateChangeDate,
             PayFrequency: newItem.PayFrequency,
           });
-          setPayments(await HRService.getAllPayments());
+          setCurrentPage((prev) => prev);
           notif({ severity: 'success', message: 'Payment updated with success!' });
         } catch (error) {
           console.error('Error editing payment:', error);
@@ -480,7 +483,7 @@ export default function HRRecords() {
             StartDate: newItem.StartDate,
             EndDate: newItem.EndDate,
           });
-          setJobChanges(await HRService.getAllMovements());
+          setCurrentPage((prev) => prev);
           notif({ severity: 'success', message: 'Job change created with success!' });
         } catch (error) {
           console.error('Error creating job change:', error);
@@ -508,7 +511,7 @@ export default function HRRecords() {
             StartDate: newItem.StartDate,
             EndDate: newItem.EndDate,
           });
-          setJobChanges(await HRService.getAllMovements());
+          setCurrentPage((prev) => prev);
           notif({ severity: 'success', message: 'Job change modified with success!' });
         } catch (error) {
           console.error('Error editing job change:', error);
@@ -655,7 +658,6 @@ export default function HRRecords() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
       <HeaderBar />
-
       <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
         <Container maxWidth="lg" sx={{ pt: 3, pb: 5 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
