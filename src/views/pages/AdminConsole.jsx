@@ -115,6 +115,13 @@ export default function AdminConsole() {
             setFormErrors(errors);
             return;
         }
+        
+        //If trying to set own role, block
+        if (selectedUser.EmployeeId.toString() === UserSession.getBusinessID()) {
+            console.warn('User tried to change own role.');
+            notif({ severity: 'error', message: 'You cannot change your own role.' });
+            return;
+        }
 
         setLoading(true);
         try {

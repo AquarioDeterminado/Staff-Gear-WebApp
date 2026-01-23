@@ -56,7 +56,7 @@ export default function CandidatesView() {
       try {
         const listings = await JobListingService.getAll();
         setJobListings(listings || []);
-      } catch (error) {
+      } catch (e) {
         showNotification({ message: 'Error fetching job listings', severity: 'error' });
       }
     }

@@ -69,6 +69,7 @@ export default function HRRecords() {
   
   const [currentPage, setCurrentPage] = useState(1);
   const [canSwitchPage, setCanSwitchPage] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [payments, setPayments] = useState([]);
   const [jobChanges, setJobChanges] = useState([]);
@@ -117,7 +118,7 @@ export default function HRRecords() {
     { label: 'Job Title', field: 'JobTitle', sortable: true },
     { label: 'Department', field: 'DepartmentName', sortable: true },
     { label: 'Start Date', field: 'StartDate', render: (r) => FormatDate(r.StartDate), sortable: true },
-    { label: 'End Date', field: 'EndDate', render: (r) => FormatDate(r.EndDate), sortable: true },
+    { label: 'End Date', field: 'EndDate', render: (r) => r.EndDate ? FormatDate(r.EndDate) : 'Present', sortable: true },
     { label: 'Employee', field: 'FullName', sortable: true },
     actionColum,
   ];
@@ -200,6 +201,7 @@ export default function HRRecords() {
     navigate,
     sort.Direction,
     sort.SortBy,
+    refreshKey
   ]);
 
   useEffect(() => {
@@ -251,6 +253,7 @@ export default function HRRecords() {
     sort,
     sort.Direction,
     sort.SortBy,
+    refreshKey
   ]);
 
   function setFormDefaults() {
@@ -429,7 +432,7 @@ export default function HRRecords() {
             RateChangeDate: newItem.RateChangeDate + 'T00:00:00',
             PayFrequency: newItem.PayFrequency,
           });
-          setCurrentPage((prev => prev))
+          setRefreshKey((prev) => prev + 1);
           notif({ severity: 'success', message: 'Payment created with success!' });
         } catch (error) {
           console.error('Error creating payment:', error);
@@ -456,7 +459,7 @@ export default function HRRecords() {
             RateChangeDate: newItem.RateChangeDate,
             PayFrequency: newItem.PayFrequency,
           });
-          setCurrentPage((prev) => prev);
+          setRefreshKey((prev) => prev + 1);
           notif({ severity: 'success', message: 'Payment updated with success!' });
         } catch (error) {
           console.error('Error editing payment:', error);
@@ -483,7 +486,7 @@ export default function HRRecords() {
             StartDate: newItem.StartDate,
             EndDate: newItem.EndDate,
           });
-          setCurrentPage((prev) => prev);
+          setRefreshKey((prev) => prev + 1);
           notif({ severity: 'success', message: 'Job change created with success!' });
         } catch (error) {
           console.error('Error creating job change:', error);
@@ -493,13 +496,13 @@ export default function HRRecords() {
         }
       } else if (editIndex != null) {
         const jobChange = jobChanges[editIndex];
-
+        
         const newItem = {
           BusinessEntityID: jobChange.BusinessEntityID,
           DepartmentName: form.DepartmentName,
           StartDate: jobChange.StartDate,
           JobTitle: form.JobTitle,
-          EndDate: Date.parse(form.EndDate) || null,
+          EndDate: form.EndDate || null,
         };
 
         try {
@@ -511,7 +514,7 @@ export default function HRRecords() {
             StartDate: newItem.StartDate,
             EndDate: newItem.EndDate,
           });
-          setCurrentPage((prev) => prev);
+          setRefreshKey((prev) => prev + 1);
           notif({ severity: 'success', message: 'Job change modified with success!' });
         } catch (error) {
           console.error('Error editing job change:', error);
