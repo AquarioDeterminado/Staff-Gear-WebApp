@@ -48,6 +48,7 @@ export default function EmployeesList() {
   const navigate = useNavigate();
   const notifs = useNotification();
   const [Users, setUsers] = useState([]);
+  const [refreshToken, setRefreshToken] = useState(0);
 
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
@@ -192,6 +193,7 @@ export default function EmployeesList() {
       jobTitle: emp.JobTitle,
       hireDate: emp.HireDate,
     });
+    console.log('Editing employee:', emp);
     setErrors({ firstName: '', middleName: '', lastName: '', email: '', department: '', jobTitle: '', hireDate: '', password: '' });
     setDialogOpen(true);
   };
@@ -212,7 +214,7 @@ export default function EmployeesList() {
           firstName: form.firstName, middleName: form.middleName, lastName: form.lastName,
           email: form.email, department: form.department, jobTitle: form.jobTitle, hireDate: form.hireDate, password: form.password,
         });
-        setUsers((await EmployeeService.getAllEmployees(page, ROWS_PER_PAGE)).items);
+        setRefreshToken((prev) => prev + 1);
         notifs({ severity: 'success', message: 'Employee created successfully!' });
       } else {
         await EmployeeService.updateEmployee(form.businessId, {
@@ -220,12 +222,7 @@ export default function EmployeesList() {
           FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
           Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate,
         });
-        setUsers((prev) => prev.map((u) =>
-          (u.BusinessEntityID === form.businessId ? {
-            BusinessEntityID: form.businessId, FirstName: form.firstName, MiddleName: form.middleName, LastName: form.lastName,
-            Email: form.email, Department: form.department, JobTitle: form.jobTitle, HireDate: form.hireDate, IsActive: form.isActive
-          } : u)
-        ));
+        setRefreshToken((prev) => prev + 1);
         notifs({ severity: 'success', message: 'Employee updated successfully!' });
       }
       setDialogOpen(false);
@@ -238,7 +235,7 @@ export default function EmployeesList() {
   const handleDelete = async (businessEntityID) => {
     try {
       await EmployeeService.deleteEmployee(businessEntityID);
-      setUsers((prev) => prev.filter((u) => u.BusinessEntityID !== businessEntityID));
+      setRefreshToken((prev) => prev + 1);
       notifs({ severity: 'success', message: 'Employee deleted!' });
     } catch (error) {
       UserSession.verifyAuthorize(navigate, error.status);
@@ -296,7 +293,7 @@ export default function EmployeesList() {
       }
     }
     fetchData();
-  }, [Users.length, filterBusinessId, filterDepartment, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterIsActive, filterJobTitle, filterName, navigate, notifs, page, sort, sort.Direction, sort.SortBy]);
+  }, [Users.length, filterBusinessId, filterDepartment, filterEmail, filterEntryDateFrom, filterEntryDateTo, filterIsActive, filterJobTitle, filterName, navigate, notifs, page, sort, sort.Direction, sort.SortBy, refreshToken]);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
@@ -455,7 +452,7 @@ export default function EmployeesList() {
             { type: 'text', label: 'Middle Name', value: form.middleName, onChange: setField('middleName') },
             { type: 'text', label: 'Last Name', value: form.lastName, onChange: setField('lastName'), required: true, error: !!errors.lastName, helperText: errors.lastName },
             { type: 'email', label: 'Email', value: form.email, onChange: setField('email'), required: true, error: !!errors.email, helperText: errors.email },
-            { type: 'custom', render: () => <DepartmentSelectField label="Department" value={form.DepartmentName} onChange={setField('department')} error={errors.DepartmentName} fullWidth={true} /> },
+            { type: 'custom', render:  () => <DepartmentSelectField label="Department" value={form.department} onChange={setField('department')} error={errors.DepartmentName} fullWidth={true} /> },
             { type: 'text', label: 'Job Title', value: form.jobTitle, onChange: setField('jobTitle'), required: true, error: !!errors.jobTitle, helperText: errors.jobTitle },
             { type: 'date', label: 'Hire Date', value: form.hireDate, onChange: setField('hireDate'), required: true, error: !!errors.hireDate, helperText: errors.hireDate },
             ...(mode === 'add'
